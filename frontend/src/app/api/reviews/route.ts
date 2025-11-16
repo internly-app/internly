@@ -1,0 +1,186 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import {
+  reviewCreateSchema,
+  reviewsQuerySchema,
+} from "@/lib/validations/schemas";
+import type { ReviewWithDetails } from "@/lib/types/database";
+
+/**
+ * POST /api/reviews
+ * Create a new review (authenticated)
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Parse and validate request body
+    const body = await request.json();
+    const validatedData = reviewCreateSchema.parse(body);
+
+    // Insert review
+    const { data: review, error: insertError } = await supabase
+      .from("reviews")
+      .insert({
+        ...validatedData,
+        user_id: user.id,
+      })
+      .select(
+        `
+        *,
+        company:companies(*),
+        role:roles(*)
+      `
+      )
+      .single();
+
+    if (insertError) {
+      // Check for duplicate review (unique constraint violation)
+      if (insertError.code === "23505") {
+        return NextResponse.json(
+          { error: "You have already reviewed this role" },
+          { status: 409 }
+        );
+      }
+
+      console.error("Review insert error:", insertError);
+      return NextResponse.json(
+        { error: "Failed to create review" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(review, { status: 201 });
+  } catch (error) {
+    if (error instanceof Error && error.name === "ZodError") {
+      return NextResponse.json(
+        { error: "Invalid request data", details: error },
+        { status: 400 }
+      );
+    }
+
+    console.error("POST /api/reviews error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET /api/reviews
+ * Get paginated reviews feed with filters
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { searchParams } = new URL(request.url);
+
+    // Parse and validate query parameters
+    const query = reviewsQuerySchema.parse({
+      company_id: searchParams.get("company_id") || undefined,
+      role_id: searchParams.get("role_id") || undefined,
+      work_style: searchParams.get("work_style") || undefined,
+      sort: searchParams.get("sort") || "likes",
+      limit: searchParams.get("limit") || "20",
+      offset: searchParams.get("offset") || "0",
+    });
+
+    // Build query
+    let dbQuery = supabase.from("reviews").select(
+      `
+        *,
+        company:companies(*),
+        role:roles(*)
+      `,
+      { count: "exact" }
+    );
+
+    // Apply filters
+    if (query.company_id) {
+      dbQuery = dbQuery.eq("company_id", query.company_id);
+    }
+
+    if (query.role_id) {
+      dbQuery = dbQuery.eq("role_id", query.role_id);
+    }
+
+    if (query.work_style) {
+      dbQuery = dbQuery.eq("work_style", query.work_style);
+    }
+
+    // Apply sorting
+    if (query.sort === "likes") {
+      dbQuery = dbQuery.order("like_count", { ascending: false });
+    } else {
+      dbQuery = dbQuery.order("created_at", { ascending: false });
+    }
+
+    // Apply pagination
+    dbQuery = dbQuery.range(query.offset, query.offset + query.limit - 1);
+
+    const { data: reviews, error: fetchError, count } = await dbQuery;
+
+    if (fetchError) {
+      console.error("Reviews fetch error:", fetchError);
+      return NextResponse.json(
+        { error: "Failed to fetch reviews" },
+        { status: 500 }
+      );
+    }
+
+    // Check if user is authenticated to add like status
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    let reviewsWithLikeStatus: ReviewWithDetails[] = reviews || [];
+
+    if (user && reviews && reviews.length > 0) {
+      // Get user's likes for these reviews
+      const reviewIds = reviews.map((r) => r.id);
+      const { data: userLikes } = await supabase
+        .from("review_likes")
+        .select("review_id")
+        .eq("user_id", user.id)
+        .in("review_id", reviewIds);
+
+      const likedReviewIds = new Set(userLikes?.map((l) => l.review_id) || []);
+
+      reviewsWithLikeStatus = reviews.map((review) => ({
+        ...review,
+        user_has_liked: likedReviewIds.has(review.id),
+      }));
+    }
+
+    return NextResponse.json({
+      reviews: reviewsWithLikeStatus,
+      total: count || 0,
+      limit: query.limit,
+      offset: query.offset,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "ZodError") {
+      return NextResponse.json(
+        { error: "Invalid query parameters", details: error },
+        { status: 400 }
+      );
+    }
+
+    console.error("GET /api/reviews error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
