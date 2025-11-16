@@ -32,7 +32,7 @@ export function ReviewModal({ isOpen, onClose }: ReviewModalProps) {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center justify-center shadow-lg"
+          className="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center justify-center shadow-lg cursor-pointer"
           aria-label="Close modal"
         >
           <svg

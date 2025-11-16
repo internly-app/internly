@@ -137,7 +137,7 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-3 rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm font-semibold text-white hover:border-gray-500 transition disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm font-semibold text-white hover:border-gray-500 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {googleLoading ? "Redirecting to Google..." : "Continue with Google"}
         </button>
@@ -190,7 +190,7 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
         <button
           type="submit"
           disabled={formStatus === "loading"}
-          className="w-full rounded-lg bg-blue-500 px-4 py-3 font-semibold text-white transition hover:bg-blue-400 disabled:opacity-50"
+          className="w-full rounded-lg bg-blue-500 px-4 py-3 font-semibold text-white transition hover:bg-blue-400 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {formStatus === "loading"
             ? "Working..."
@@ -212,7 +212,7 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
         <button
           type="button"
           onClick={() => setMode(mode === "sign-in" ? "sign-up" : "sign-in")}
-          className="font-semibold text-blue-300 hover:text-blue-200"
+          className="font-semibold text-blue-300 hover:text-blue-200 cursor-pointer"
         >
           {mode === "sign-in" ? "Sign up with email" : "Sign in"}
         </button>

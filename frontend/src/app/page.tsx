@@ -57,13 +57,13 @@ export default function Home() {
                 <>
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
                   >
                     Write Review
                   </button>
                   <button
                     onClick={signOut}
-                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
                   >
                     Sign Out
                   </button>
@@ -72,13 +72,13 @@ export default function Home() {
                 <>
                   <Link
                     href="/reviews/new"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
                   >
                     Write Review
                   </Link>
                   <Link
                     href="/reviews/new"
-                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
                   >
                     Sign In
                   </Link>
@@ -107,7 +107,7 @@ export default function Home() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as "likes" | "recent")}
-              className="px-3 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="likes">Most Liked</option>
               <option value="recent">Most Recent</option>
