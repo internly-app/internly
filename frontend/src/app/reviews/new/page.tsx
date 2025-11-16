@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ReviewForm } from "./ReviewForm";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewReviewPage() {
   const supabase = await createClient();
   const {

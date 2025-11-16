@@ -20,23 +20,25 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const getCallbackUrl = () => {
-    if (typeof window === "undefined") return undefined;
-    const origin = window.location.origin;
-    return `${origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`;
-  };
-
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError(null);
     setMessage(null);
 
     try {
+      if (typeof document !== "undefined") {
+        document.cookie = `post_auth_redirect=${encodeURIComponent(
+          redirectTo
+        )}; path=/; max-age=600`;
+      }
       const supabase = getSupabaseBrowserClient();
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getCallbackUrl(),
+          redirectTo:
+            typeof window !== "undefined"
+              ? `${window.location.origin}/auth/callback`
+              : undefined,
         },
       });
 
@@ -64,9 +66,22 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
       return;
     }
 
-    try {
-      const supabase = getSupabaseBrowserClient();
+    const supabase = getSupabaseBrowserClient();
 
+    const handlePostAuth = () => {
+      if (typeof window !== "undefined" && redirectTo) {
+        const currentPath = window.location.pathname;
+        if (currentPath !== redirectTo) {
+          router.push(redirectTo);
+        } else {
+          router.refresh();
+        }
+      } else {
+        router.refresh();
+      }
+    };
+
+    try {
       if (mode === "sign-in") {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -78,34 +93,32 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
         }
 
         setMessage("Signed in successfully");
-
-        if (typeof window !== "undefined" && redirectTo) {
-          const currentPath = window.location.pathname;
-          if (currentPath !== redirectTo) {
-            router.push(redirectTo);
-          } else {
-            router.refresh();
-          }
-        } else {
-          router.refresh();
-        }
+        handlePostAuth();
       } else {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: getCallbackUrl(),
-          },
         });
 
         if (signUpError) {
           throw new Error(signUpError.message);
         }
 
-        setMessage(
-          "Account created! Check your inbox to confirm your email, then sign in."
-        );
+        if (!data.session) {
+          const { error: fallbackSignInError } =
+            await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+          if (fallbackSignInError) {
+            throw new Error(fallbackSignInError.message);
+          }
+        }
+
+        setMessage("Account created! You're all set to continue.");
         setMode("sign-in");
+        handlePostAuth();
       }
     } catch (err) {
       console.error("Email auth error", err);
@@ -172,12 +185,6 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
               mode === "sign-up" ? "Create a password" : "Enter your password"
             }
           />
-          {mode === "sign-up" && (
-            <p className="mt-2 text-xs text-gray-400">
-              You&apos;ll get a confirmation email before your account is
-              active.
-            </p>
-          )}
         </div>
 
         <button

@@ -28,7 +28,7 @@ Visit [http://localhost:3000](http://localhost:3000) to browse the feed. Review 
 
 ## Authentication
 
-- Users can sign in with Google OAuth or create an email/password account.
+- Users can sign in with Google OAuth or create an email/password account (no verification email required—new accounts are active immediately).
 - `/auth/callback` exchanges the Supabase auth code and redirects back to the requested page.
 - Configure Supabase Auth → URL Configuration with the site URL (e.g., `http://localhost:3000`) and add `http://localhost:3000/auth/callback` as an allowed redirect.
 - Review creation and liking are gated server-side, so the `user_id` is always attached on the backend.
