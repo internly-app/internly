@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { useCreateReview } from "@/hooks/useReviews";
 import type { ReviewCreate } from "@/lib/validations/schemas";
 
-export function ReviewForm() {
+interface ReviewFormProps {
+  onSuccess?: () => void;
+}
+
+export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
   const router = useRouter();
   const { createReview, loading, error } = useCreateReview();
 
@@ -41,7 +45,12 @@ export function ReviewForm() {
         5;
 
       await createReview({ ...formData, rating_overall } as ReviewCreate);
-      router.push("/");
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/");
+      }
     } catch (err) {
       console.error("Failed to create review:", err);
     }
