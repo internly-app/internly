@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useReviews } from "@/hooks/useReviews";
 import { ReviewCard } from "@/components/ReviewCard";
 import { ReviewModal } from "@/components/ReviewModal";
@@ -12,6 +12,14 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { reviews, total, loading, error } = useReviews({ sort, limit: 20 });
   const { user, signOut } = useAuth();
+
+  // Check if we should open the modal from localStorage
+  useEffect(() => {
+    if (user && localStorage.getItem("openReviewModal") === "true") {
+      setIsModalOpen(true);
+      localStorage.removeItem("openReviewModal");
+    }
+  }, [user]);
 
   if (loading) {
     return (
