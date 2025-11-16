@@ -1,113 +1,182 @@
 /**
  * Database Types
  *
- * TypeScript types for your Supabase tables.
- * Generate automatically with: npx supabase gen types typescript --project-id your-project-id
- *
- * For now, these are manual types matching your schema.
+ * TypeScript types for Supabase tables matching schema.sql
  */
+
+export type WorkStyle = "onsite" | "hybrid" | "remote";
 
 export interface Database {
   public: {
     Tables: {
-      internships: {
+      companies: {
         Row: {
           id: string;
+          name: string;
+          slug: string;
+          logo_url: string | null;
+          website: string | null;
+          industry: string | null;
           created_at: string;
           updated_at: string;
-          company: string;
-          role: string;
-          location: string;
-          type: "remote" | "hybrid" | "onsite";
-          description: string | null;
-          requirements: string[] | null;
-          salary_min: number | null;
-          salary_max: number | null;
-          application_url: string | null;
-          is_active: boolean;
-          posted_by: string | null;
         };
         Insert: {
           id?: string;
+          name: string;
+          slug: string;
+          logo_url?: string | null;
+          website?: string | null;
+          industry?: string | null;
           created_at?: string;
           updated_at?: string;
-          company: string;
-          role: string;
-          location: string;
-          type: "remote" | "hybrid" | "onsite";
-          description?: string | null;
-          requirements?: string[] | null;
-          salary_min?: number | null;
-          salary_max?: number | null;
-          application_url?: string | null;
-          is_active?: boolean;
-          posted_by?: string | null;
         };
         Update: {
           id?: string;
+          name?: string;
+          slug?: string;
+          logo_url?: string | null;
+          website?: string | null;
+          industry?: string | null;
           created_at?: string;
           updated_at?: string;
-          company?: string;
-          role?: string;
-          location?: string;
-          type?: "remote" | "hybrid" | "onsite";
-          description?: string | null;
-          requirements?: string[] | null;
-          salary_min?: number | null;
-          salary_max?: number | null;
-          application_url?: string | null;
-          is_active?: boolean;
-          posted_by?: string | null;
+        };
+      };
+      roles: {
+        Row: {
+          id: string;
+          title: string;
+          slug: string;
+          company_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          slug: string;
+          company_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          slug?: string;
+          company_id?: string;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       reviews: {
         Row: {
           id: string;
+          user_id: string;
+          company_id: string;
+          role_id: string;
+          location: string;
+          term: string;
+          work_style: WorkStyle;
+          rating_overall: number;
+          rating_wlb: number;
+          rating_learning: number;
+          rating_culture: number;
+          rating_management: number;
+          rating_impact: number;
+          summary: string;
+          hardest: string;
+          best: string;
+          advice: string;
+          wage_hourly: number | null;
+          wage_currency: string | null;
+          housing_provided: boolean | null;
+          housing_stipend: number | null;
+          perks: string | null;
+          interview_round_count: number;
+          interview_rounds_description: string;
+          interview_tips: string;
+          like_count: number;
           created_at: string;
           updated_at: string;
-          internship_id: string;
-          user_id: string;
-          rating: number;
-          title: string;
-          pros: string | null;
-          cons: string | null;
-          advice: string | null;
-          would_recommend: boolean;
-          work_life_balance: number | null;
-          learning_opportunities: number | null;
-          mentorship: number | null;
         };
         Insert: {
           id?: string;
+          user_id: string;
+          company_id: string;
+          role_id: string;
+          location: string;
+          term: string;
+          work_style: WorkStyle;
+          rating_overall: number;
+          rating_wlb: number;
+          rating_learning: number;
+          rating_culture: number;
+          rating_management: number;
+          rating_impact: number;
+          summary: string;
+          hardest: string;
+          best: string;
+          advice: string;
+          wage_hourly?: number | null;
+          wage_currency?: string | null;
+          housing_provided?: boolean | null;
+          housing_stipend?: number | null;
+          perks?: string | null;
+          interview_round_count: number;
+          interview_rounds_description: string;
+          interview_tips: string;
+          like_count?: number;
           created_at?: string;
           updated_at?: string;
-          internship_id: string;
-          user_id: string;
-          rating: number;
-          title: string;
-          pros?: string | null;
-          cons?: string | null;
-          advice?: string | null;
-          would_recommend: boolean;
-          work_life_balance?: number | null;
-          learning_opportunities?: number | null;
-          mentorship?: number | null;
         };
         Update: {
           id?: string;
+          user_id?: string;
+          company_id?: string;
+          role_id?: string;
+          location?: string;
+          term?: string;
+          work_style?: WorkStyle;
+          rating_overall?: number;
+          rating_wlb?: number;
+          rating_learning?: number;
+          rating_culture?: number;
+          rating_management?: number;
+          rating_impact?: number;
+          summary?: string;
+          hardest?: string;
+          best?: string;
+          advice?: string;
+          wage_hourly?: number | null;
+          wage_currency?: string | null;
+          housing_provided?: boolean | null;
+          housing_stipend?: number | null;
+          perks?: string | null;
+          interview_round_count?: number;
+          interview_rounds_description?: string;
+          interview_tips?: string;
+          like_count?: number;
           created_at?: string;
           updated_at?: string;
-          internship_id?: string;
+        };
+      };
+      review_likes: {
+        Row: {
+          id: string;
+          user_id: string;
+          review_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          review_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
           user_id?: string;
-          rating?: number;
-          title?: string;
-          pros?: string | null;
-          cons?: string | null;
-          advice?: string | null;
-          would_recommend?: boolean;
-          work_life_balance?: number | null;
-          learning_opportunities?: number | null;
-          mentorship?: number | null;
+          review_id?: string;
+          created_at?: string;
         };
       };
       test_records: {
@@ -132,4 +201,20 @@ export interface Database {
       };
     };
   };
+}
+
+// Helper types for working with reviews
+export type Company = Database["public"]["Tables"]["companies"]["Row"];
+export type CompanyInsert = Database["public"]["Tables"]["companies"]["Insert"];
+export type Role = Database["public"]["Tables"]["roles"]["Row"];
+export type RoleInsert = Database["public"]["Tables"]["roles"]["Insert"];
+export type Review = Database["public"]["Tables"]["reviews"]["Row"];
+export type ReviewInsert = Database["public"]["Tables"]["reviews"]["Insert"];
+export type ReviewLike = Database["public"]["Tables"]["review_likes"]["Row"];
+
+// Extended review with joined data
+export interface ReviewWithDetails extends Review {
+  company: Company;
+  role: Role;
+  user_has_liked?: boolean;
 }

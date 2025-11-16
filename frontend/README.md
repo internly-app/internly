@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Internly Frontend
 
-## Getting Started
+Internly is a dark-mode Next.js 15 app for browsing and contributing internship reviews powered by Supabase (Postgres + Auth). This package contains the UI, API routes, and Supabase client helpers.
 
-First, run the development server:
+## Prerequisites
+
+- Node 20+
+- Supabase project with the `reviews`, `review_likes`, `companies`, and `roles` tables from the `/database` folder
+- Environment variables in `.env.local`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_URL=...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Install dependencies and run the dev server:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Visit [http://localhost:3000](http://localhost:3000) to browse the feed. Review creation lives at `/reviews/new`.
 
-To learn more about Next.js, take a look at the following resources:
+## Authentication
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Users can sign in with Google OAuth or create an email/password account (no verification email required—new accounts are active immediately).
+- `/auth/callback` exchanges the Supabase auth code and redirects back to the requested page.
+- Configure Supabase Auth → URL Configuration with the site URL (e.g., `http://localhost:3000`) and add `http://localhost:3000/auth/callback` as an allowed redirect.
+- Review creation and liking are gated server-side, so the `user_id` is always attached on the backend.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testing the flow
 
-## Deploy on Vercel
+1. Start the dev server.
+2. Go to `/reviews/new` and sign in via Google or email.
+3. After authentication, the review form appears automatically and likes become available.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For production builds run `npm run build` followed by `npm start`.
