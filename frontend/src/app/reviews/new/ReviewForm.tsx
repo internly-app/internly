@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { useCreateReview } from "@/hooks/useReviews";
 import type { ReviewCreate } from "@/lib/validations/schemas";
 
-export function ReviewForm() {
+interface ReviewFormProps {
+  onSuccess?: () => void;
+}
+
+export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
   const router = useRouter();
   const { createReview, loading, error } = useCreateReview();
 
@@ -41,7 +45,12 @@ export function ReviewForm() {
         5;
 
       await createReview({ ...formData, rating_overall } as ReviewCreate);
-      router.push("/");
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/");
+      }
     } catch (err) {
       console.error("Failed to create review:", err);
     }
@@ -145,7 +154,7 @@ export function ReviewForm() {
                 required
                 value={formData.work_style}
                 onChange={(e) => updateField("work_style", e.target.value)}
-                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
                 <option value="onsite">Onsite</option>
                 <option value="hybrid">Hybrid</option>
@@ -184,7 +193,7 @@ export function ReviewForm() {
                       onClick={() =>
                         updateField(key as keyof ReviewCreate, value)
                       }
-                      className={`w-12 h-12 rounded-lg border-2 font-semibold transition-colors ${
+                      className={`w-12 h-12 rounded-lg border-2 font-semibold transition-colors cursor-pointer ${
                         formData[key as keyof ReviewCreate] === value
                           ? "border-blue-500 bg-blue-500/10 text-blue-200"
                           : "border-gray-700 text-gray-400 hover:border-gray-500"
@@ -370,11 +379,11 @@ export function ReviewForm() {
                 onChange={(e) =>
                   updateField("housing_provided", e.target.checked)
                 }
-                className="w-4 h-4 text-blue-600 rounded"
+                className="w-4 h-4 text-blue-600 rounded cursor-pointer"
               />
               <label
                 htmlFor="housing"
-                className="text-sm font-medium text-gray-200"
+                className="text-sm font-medium text-gray-200 cursor-pointer"
               >
                 Housing Provided
               </label>
@@ -421,7 +430,7 @@ export function ReviewForm() {
             type="submit"
             disabled={loading}
             className={`flex-1 py-3 px-6 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-400 transition-colors shadow-lg shadow-blue-500/30 ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
+              loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
             {loading ? "Submitting..." : "Submit Review"}
@@ -429,8 +438,14 @@ export function ReviewForm() {
 
           <button
             type="button"
-            onClick={() => router.push("/")}
-            className="px-6 py-3 border border-gray-700 rounded-lg font-semibold text-gray-200 hover:bg-gray-900 transition-colors"
+            onClick={() => {
+              if (onSuccess) {
+                onSuccess();
+              } else {
+                router.push("/");
+              }
+            }}
+            className="px-6 py-3 border border-gray-700 rounded-lg font-semibold text-gray-200 hover:bg-gray-900 transition-colors cursor-pointer"
           >
             Cancel
           </button>

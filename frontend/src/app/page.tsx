@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useReviews } from "@/hooks/useReviews";
 import { ReviewCard } from "@/components/ReviewCard";
+import { ReviewModal } from "@/components/ReviewModal";
+import { useAuth } from "@/components/auth/AuthProvider";
 import Link from "next/link";
 
 export default function Home() {
   const [sort, setSort] = useState<"likes" | "recent">("likes");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { reviews, total, loading, error } = useReviews({ sort, limit: 20 });
+  const { user, signOut } = useAuth();
+
+  // Check if we should open the modal from localStorage
+  useEffect(() => {
+    if (user && localStorage.getItem("openReviewModal") === "true") {
+      setIsModalOpen(true);
+      localStorage.removeItem("openReviewModal");
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -40,12 +52,39 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-white">Internly</h1>
-            <Link
-              href="/reviews/new"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30"
-            >
-              Write Review
-            </Link>
+            <div className="flex items-center gap-3">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
+                  >
+                    Write Review
+                  </button>
+                  <button
+                    onClick={signOut}
+                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/reviews/new"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
+                  >
+                    Write Review
+                  </Link>
+                  <Link
+                    href="/reviews/new"
+                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
+                  >
+                    Sign In
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -68,7 +107,7 @@ export default function Home() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as "likes" | "recent")}
-              className="px-3 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="likes">Most Liked</option>
               <option value="recent">Most Recent</option>
@@ -95,6 +134,9 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Review Modal */}
+      <ReviewModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

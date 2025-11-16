@@ -1,7 +1,8 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { ReviewForm } from "./ReviewForm";
 import { AuthPanel } from "@/components/auth/AuthPanel";
+import { RedirectToModal } from "./RedirectToModal";
 
 export const dynamic = "force-dynamic";
 
@@ -11,25 +12,27 @@ export default async function NewReviewPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthenticated = Boolean(user);
+  // Server-side redirect if authenticated
+  if (user) {
+    redirect("/");
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-gray-100">
-      <header className="bg-gray-900/80 border-b border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="text-blue-300 hover:text-blue-200 text-sm transition-colors"
-          >
-            ← Back to reviews
-          </Link>
-        </div>
-      </header>
+    <>
+      <RedirectToModal />
+      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-gray-100">
+        <header className="bg-gray-900/80 border-b border-gray-800">
+          <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <Link
+              href="/"
+              className="text-blue-300 hover:text-blue-200 text-sm transition-colors"
+            >
+              ← Back to reviews
+            </Link>
+          </div>
+        </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {isAuthenticated ? (
-          <ReviewForm />
-        ) : (
+        <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="bg-gray-900/70 rounded-xl border border-gray-800 p-6 sm:p-8 text-center space-y-6">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">
@@ -43,8 +46,8 @@ export default async function NewReviewPage() {
             </div>
             <AuthPanel redirectTo="/reviews/new" />
           </div>
-        )}
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }
