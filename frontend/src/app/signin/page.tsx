@@ -1,17 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading } = useAuth();
+  const redirectParam = searchParams.get("redirect");
+
+  // Set the modal flag immediately if redirect=review (even before auth check)
+  useEffect(() => {
+    if (redirectParam === "review") {
+      localStorage.setItem("openReviewModal", "true");
+    }
+  }, [redirectParam]);
 
   useEffect(() => {
-    // If user is authenticated, just redirect to home page (no modal)
+    // If user is authenticated, redirect to home
     if (!loading && user) {
       router.push("/");
     }
@@ -50,10 +59,14 @@ export default function SignInPage() {
         <div className="bg-gray-900/70 rounded-xl border border-gray-800 p-6 sm:p-8 text-center space-y-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              Sign in to Internly
+              {redirectParam === "review"
+                ? "Sign in to write a review"
+                : "Sign in to Internly"}
             </h1>
             <p className="text-gray-400">
-              Access your account to like reviews and manage your profile
+              {redirectParam === "review"
+                ? "Reviews are tied to your account so employers can trust the source"
+                : "Access your account to like reviews and manage your profile"}
             </p>
           </div>
           <AuthPanel redirectTo="/" />
