@@ -76,12 +76,6 @@ export interface Database {
           location: string;
           term: string;
           work_style: WorkStyle;
-          rating_overall: number;
-          rating_wlb: number;
-          rating_learning: number;
-          rating_culture: number;
-          rating_management: number;
-          rating_impact: number;
           summary: string;
           hardest: string;
           best: string;
@@ -106,12 +100,6 @@ export interface Database {
           location: string;
           term: string;
           work_style: WorkStyle;
-          rating_overall: number;
-          rating_wlb: number;
-          rating_learning: number;
-          rating_culture: number;
-          rating_management: number;
-          rating_impact: number;
           summary: string;
           hardest: string;
           best: string;
@@ -136,12 +124,6 @@ export interface Database {
           location?: string;
           term?: string;
           work_style?: WorkStyle;
-          rating_overall?: number;
-          rating_wlb?: number;
-          rating_learning?: number;
-          rating_culture?: number;
-          rating_management?: number;
-          rating_impact?: number;
           summary?: string;
           hardest?: string;
           best?: string;
