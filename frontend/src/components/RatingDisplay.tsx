@@ -59,12 +59,14 @@ interface RatingsGridProps {
 
 export function RatingsGrid({ review }: RatingsGridProps) {
   const ratings = [
-    { label: "Work-Life Balance", value: review.rating_wlb },
-    { label: "Learning & Growth", value: review.rating_learning },
-    { label: "Team Culture", value: review.rating_culture },
-    { label: "Management Support", value: review.rating_management },
-    { label: "Impactful Work", value: review.rating_impact },
+    { label: "Work-Life Balance", value: review.rating_wlb ?? 0 },
+    { label: "Learning & Growth", value: review.rating_learning ?? 0 },
+    { label: "Team Culture", value: review.rating_culture ?? 0 },
+    { label: "Management Support", value: review.rating_management ?? 0 },
+    { label: "Impactful Work", value: review.rating_impact ?? 0 },
   ];
+
+  const overallRating = review.rating_overall ?? 0;
 
   return (
     <div className="space-y-3">
@@ -73,7 +75,7 @@ export function RatingsGrid({ review }: RatingsGridProps) {
         <div className="flex items-center justify-between mb-1">
           <span className="font-semibold text-white">Overall Rating</span>
           <span className="text-lg font-bold text-blue-300">
-            {review.rating_overall.toFixed(1)}/5
+            {overallRating.toFixed(1)}/5
           </span>
         </div>
         <div className="flex gap-1">
@@ -81,7 +83,7 @@ export function RatingsGrid({ review }: RatingsGridProps) {
             <span
               key={star}
               className={`text-2xl ${
-                star <= review.rating_overall
+                star <= overallRating
                   ? "text-yellow-400"
                   : "text-gray-700"
               }`}
