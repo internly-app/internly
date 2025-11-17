@@ -15,15 +15,14 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
 
   const [formData, setFormData] = useState<Partial<ReviewCreate>>({
     work_style: "onsite",
-    rating_wlb: 3,
-    rating_learning: 3,
-    rating_culture: 3,
-    rating_management: 3,
-    rating_impact: 3,
     wage_currency: "USD",
     housing_provided: false,
     interview_round_count: 0,
   });
+
+  // User-friendly fields (actual text, not UUIDs!)
+  const [companyName, setCompanyName] = useState("");
+  const [roleTitle, setRoleTitle] = useState("");
 
   const updateField = (
     field: keyof ReviewCreate,
@@ -36,15 +35,57 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
     e.preventDefault();
 
     try {
-      const rating_overall =
-        ((formData.rating_wlb || 0) +
-          (formData.rating_learning || 0) +
-          (formData.rating_culture || 0) +
-          (formData.rating_management || 0) +
-          (formData.rating_impact || 0)) /
-        5;
+      if (!companyName.trim()) {
+        alert("Please enter a company name");
+        return;
+      }
 
-      await createReview({ ...formData, rating_overall } as ReviewCreate);
+      if (!roleTitle.trim()) {
+        alert("Please enter a role title");
+        return;
+      }
+
+      // Step 1: Create or get company
+      const companySlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const companyResponse = await fetch("/api/companies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: companyName.trim(),
+          slug: companySlug,
+        }),
+      });
+
+      if (!companyResponse.ok) {
+        throw new Error("Failed to create/get company");
+      }
+
+      const company = await companyResponse.json();
+
+      // Step 2: Create or get role
+      const roleSlug = roleTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const roleResponse = await fetch("/api/roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: roleTitle.trim(),
+          slug: roleSlug,
+          company_id: company.id,
+        }),
+      });
+
+      if (!roleResponse.ok) {
+        throw new Error("Failed to create/get role");
+      }
+
+      const role = await roleResponse.json();
+
+      // Step 3: Create review with the IDs
+      await createReview({
+        ...formData,
+        company_id: company.id,
+        role_id: role.id,
+      } as ReviewCreate);
 
       if (onSuccess) {
         onSuccess();
@@ -78,36 +119,30 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
-                Company ID *
+                Company Name *
               </label>
               <input
                 type="text"
                 required
-                value={formData.company_id || ""}
-                onChange={(e) => updateField("company_id", e.target.value)}
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter company UUID"
+                placeholder="e.g., Google"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                You&apos;ll need to create a company first
-              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
-                Role ID *
+                Role Title *
               </label>
               <input
                 type="text"
                 required
-                value={formData.role_id || ""}
-                onChange={(e) => updateField("role_id", e.target.value)}
+                value={roleTitle}
+                onChange={(e) => setRoleTitle(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter role UUID"
+                placeholder="e.g., Software Engineer Intern"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                You&apos;ll need to create a role first
-              </p>
             </div>
           </div>
         </section>
@@ -161,50 +196,6 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
                 <option value="remote">Remote</option>
               </select>
             </div>
-          </div>
-        </section>
-
-        {/* Ratings Section */}
-        <section>
-          <h2 className="text-xl font-semibold text-white mb-4">
-            Ratings (1-5 stars)
-          </h2>
-          <p className="text-sm text-gray-400 mb-4">
-            Overall rating will be calculated automatically based on these 5
-            categories
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { key: "rating_wlb", label: "Work-Life Balance" },
-              { key: "rating_learning", label: "Learning & Growth" },
-              { key: "rating_culture", label: "Team Culture" },
-              { key: "rating_management", label: "Management Support" },
-              { key: "rating_impact", label: "Impactful Work" },
-            ].map(({ key, label }) => (
-              <div key={key}>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
-                  {label} *
-                </label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() =>
-                        updateField(key as keyof ReviewCreate, value)
-                      }
-                      className={`w-12 h-12 rounded-lg border-2 font-semibold transition-colors cursor-pointer ${
-                        formData[key as keyof ReviewCreate] === value
-                          ? "border-blue-500 bg-blue-500/10 text-blue-200"
-                          : "border-gray-700 text-gray-400 hover:border-gray-500"
-                      }`}
-                    >
-                      {value}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </section>
 

@@ -45,14 +45,6 @@ CREATE TABLE reviews (
   term TEXT NOT NULL, -- e.g., "Summer 2024", "Fall 2023"
   work_style TEXT NOT NULL CHECK (work_style IN ('onsite', 'hybrid', 'remote')),
   
-  -- Ratings (1-5 scale, overall is computed average)
-  rating_overall DECIMAL(3, 2) NOT NULL,
-  rating_wlb INTEGER NOT NULL CHECK (rating_wlb >= 1 AND rating_wlb <= 5),
-  rating_learning INTEGER NOT NULL CHECK (rating_learning >= 1 AND rating_learning <= 5),
-  rating_culture INTEGER NOT NULL CHECK (rating_culture >= 1 AND rating_culture <= 5),
-  rating_management INTEGER NOT NULL CHECK (rating_management >= 1 AND rating_management <= 5),
-  rating_impact INTEGER NOT NULL CHECK (rating_impact >= 1 AND rating_impact <= 5),
-  
   -- Written content
   summary TEXT NOT NULL,
   hardest TEXT NOT NULL,

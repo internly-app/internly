@@ -45,14 +45,6 @@ export const reviewCreateSchema = z.object({
   term: z.string().min(1, "Term is required").max(100),
   work_style: z.enum(["onsite", "hybrid", "remote"]),
 
-  // Ratings (1-5, overall is auto-calculated average)
-  rating_overall: z.number().min(1).max(5),
-  rating_wlb: z.number().int().min(1).max(5),
-  rating_learning: z.number().int().min(1).max(5),
-  rating_culture: z.number().int().min(1).max(5),
-  rating_management: z.number().int().min(1).max(5),
-  rating_impact: z.number().int().min(1).max(5),
-
   // Written content (no minimum length required)
   summary: z.string().max(2000),
   hardest: z.string().max(1000),

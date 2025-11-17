@@ -63,8 +63,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(review, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
+      console.error("Validation error:", error);
       return NextResponse.json(
-        { error: "Invalid request data", details: error },
+        {
+          error: "Invalid request data",
+          details: error instanceof Error ? error.message : "Validation failed",
+        },
         { status: 400 }
       );
     }

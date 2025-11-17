@@ -2,7 +2,6 @@
 
 import type { ReviewWithDetails } from "@/lib/types/database";
 import { CompanyTag } from "./CompanyTag";
-import { RatingsGrid } from "./RatingDisplay";
 import { LikeButton } from "./LikeButton";
 
 interface ReviewCardProps {
@@ -50,11 +49,6 @@ export function ReviewCard({ review }: ReviewCardProps) {
         <span>{review.term}</span>
         <span>•</span>
         <span>{formatDate(review.created_at)}</span>
-      </div>
-
-      {/* Ratings */}
-      <div className="mb-4">
-        <RatingsGrid review={review} />
       </div>
 
       {/* Summary */}
