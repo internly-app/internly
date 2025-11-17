@@ -15,6 +15,8 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [formStatus, setFormStatus] = useState<"idle" | "loading">("idle");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -95,30 +97,46 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
         setMessage("Signed in successfully");
         handlePostAuth();
       } else {
+        // Sign up mode - collect name and store in metadata
+        if (!firstName.trim() || !lastName.trim()) {
+          setError("Please enter your first and last name");
+          setFormStatus("idle");
+          return;
+        }
+
+        const fullName = `${firstName.trim()} ${lastName.trim()}`;
+
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: fullName,
+              first_name: firstName.trim(),
+              last_name: lastName.trim(),
+            },
+          },
         });
 
         if (signUpError) {
           throw new Error(signUpError.message);
         }
 
-        if (!data.session) {
-          const { error: fallbackSignInError } =
-            await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-
-          if (fallbackSignInError) {
-            throw new Error(fallbackSignInError.message);
-          }
+        // Check if email confirmation is required
+        if (data.user && !data.session) {
+          // Email confirmation required
+          setMessage(
+            "✓ Verification email sent! Please check your inbox to confirm your email address."
+          );
+          setFormStatus("idle");
+          return;
         }
 
-        setMessage("Account created! You're all set to continue.");
-        setMode("sign-in");
-        handlePostAuth();
+        // If we have a session, user is signed in (email confirmation disabled)
+        if (data.session) {
+          setMessage("Account created! You're all set to continue.");
+          handlePostAuth();
+        }
       }
     } catch (err) {
       console.error("Email auth error", err);
@@ -149,6 +167,45 @@ export function AuthPanel({ redirectTo = "/" }: AuthPanelProps) {
       </div>
 
       <form onSubmit={handleEmailAuth} className="space-y-4">
+        {mode === "sign-up" && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="auth-first-name"
+                className="mb-2 block text-sm font-medium text-gray-200"
+              >
+                First name
+              </label>
+              <input
+                id="auth-first-name"
+                type="text"
+                required
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                className="w-full rounded-lg border border-gray-700 bg-gray-950 px-4 py-2 text-gray-100 placeholder:text-gray-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="John"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="auth-last-name"
+                className="mb-2 block text-sm font-medium text-gray-200"
+              >
+                Last name
+              </label>
+              <input
+                id="auth-last-name"
+                type="text"
+                required
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                className="w-full rounded-lg border border-gray-700 bg-gray-950 px-4 py-2 text-gray-100 placeholder:text-gray-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+        )}
+
         <div>
           <label
             htmlFor="auth-email"
