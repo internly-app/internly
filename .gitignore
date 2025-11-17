@@ -1,0 +1,21 @@
+# Backend folder (not needed - using Next.js API routes)
+backend/
+
+# Python
+*.pyc
+__pycache__/
+venv/
+.env
+
+# Node
+node_modules/
+.next/
+out/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
