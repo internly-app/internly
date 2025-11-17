@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useReviews } from "@/hooks/useReviews";
 import { ReviewCard } from "@/components/ReviewCard";
 import { ReviewModal } from "@/components/ReviewModal";
+import { UserProfileDisplay } from "@/components/UserProfileDisplay";
 import { useAuth } from "@/components/auth/AuthProvider";
 import Link from "next/link";
 
@@ -11,7 +12,7 @@ export default function Home() {
   const [sort, setSort] = useState<"likes" | "recent">("likes");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { reviews, total, loading, error } = useReviews({ sort, limit: 20 });
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   // Check if we should open the modal from localStorage
   useEffect(() => {
@@ -64,12 +65,7 @@ export default function Home() {
                   >
                     Write Review
                   </button>
-                  <button
-                    onClick={signOut}
-                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
-                  >
-                    Sign Out
-                  </button>
+                  <UserProfileDisplay />
                 </>
               ) : (
                 <>
