@@ -77,7 +77,7 @@ export default function Home() {
                     Write Review
                   </Link>
                   <Link
-                    href="/reviews/new"
+                    href="/auth/signin"
                     className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
                   >
                     Sign In
