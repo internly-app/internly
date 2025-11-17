@@ -249,7 +249,7 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
 
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
-                Advice *
+                Advice for Incoming Interns *
               </label>
               <textarea
                 required
@@ -292,7 +292,7 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
 
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
-                Interview Rounds Description *
+                Interview Rounds Description (Include Questions if Possible) *
               </label>
               <textarea
                 required

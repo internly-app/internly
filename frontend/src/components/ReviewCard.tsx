@@ -73,13 +73,34 @@ export function ReviewCard({ review }: ReviewCardProps) {
 
       {/* Advice */}
       <div className="mb-4">
-        <h4 className="font-semibold text-white mb-2">Advice</h4>
+        <h4 className="font-semibold text-white mb-2">
+          Advice for Incoming Interns
+        </h4>
         <p className="text-gray-300 text-sm leading-relaxed">{review.advice}</p>
+      </div>
+
+      {/* Interview */}
+      <div className="border-t border-gray-800 pt-4 mb-4">
+        <h4 className="font-semibold text-white mb-2">Interview Process</h4>
+        <div className="space-y-2 text-sm text-gray-300">
+          <p>
+            <span className="font-medium text-gray-100">Rounds:</span>{" "}
+            {review.interview_round_count}
+          </p>
+          <p>
+            <span className="font-medium text-gray-100">Description:</span>{" "}
+            {review.interview_rounds_description}
+          </p>
+          <p>
+            <span className="font-medium text-gray-100">Tips:</span>{" "}
+            {review.interview_tips}
+          </p>
+        </div>
       </div>
 
       {/* Compensation (if provided) */}
       {(review.wage_hourly || review.housing_provided || review.perks) && (
-        <div className="border-t border-gray-800 pt-4 mb-4">
+        <div className="border-t border-gray-800 pt-4">
           <h4 className="font-semibold text-white mb-2">Compensation</h4>
           <div className="space-y-1 text-sm text-gray-300">
             {review.wage_hourly && (
@@ -105,25 +126,6 @@ export function ReviewCard({ review }: ReviewCardProps) {
           </div>
         </div>
       )}
-
-      {/* Interview */}
-      <div className="border-t border-gray-800 pt-4">
-        <h4 className="font-semibold text-white mb-2">Interview Process</h4>
-        <div className="space-y-2 text-sm text-gray-300">
-          <p>
-            <span className="font-medium text-gray-100">Rounds:</span>{" "}
-            {review.interview_round_count}
-          </p>
-          <p>
-            <span className="font-medium text-gray-100">Description:</span>{" "}
-            {review.interview_rounds_description}
-          </p>
-          <p>
-            <span className="font-medium text-gray-100">Tips:</span>{" "}
-            {review.interview_tips}
-          </p>
-        </div>
-      </div>
     </article>
   );
 }

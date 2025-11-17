@@ -15,9 +15,12 @@ export default function Home() {
 
   // Check if we should open the modal from localStorage
   useEffect(() => {
-    if (user && localStorage.getItem("openReviewModal") === "true") {
-      setIsModalOpen(true);
+    if (!user) return;
+
+    const shouldOpenModal = localStorage.getItem("openReviewModal") === "true";
+    if (shouldOpenModal) {
       localStorage.removeItem("openReviewModal");
+      setIsModalOpen(true);
     }
   }, [user]);
 
@@ -71,13 +74,13 @@ export default function Home() {
               ) : (
                 <>
                   <Link
-                    href="/reviews/new"
+                    href="/signin?redirect=review"
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
                   >
                     Write Review
                   </Link>
                   <Link
-                    href="/reviews/new"
+                    href="/signin"
                     className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
                   >
                     Sign In

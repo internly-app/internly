@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ReviewForm } from "@/app/reviews/new/ReviewForm";
+import { ReviewForm } from "@/components/ReviewForm";
 
 interface ReviewModalProps {
   isOpen: boolean;
