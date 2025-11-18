@@ -57,7 +57,7 @@ export const reviewCreateSchema = z.object({
 
   // Compensation (optional)
   wage_hourly: z.number().positive().optional(),
-  wage_currency: z.string().length(3).default("USD"),
+  wage_currency: z.string().length(3).default("CAD"),
   housing_provided: z.boolean().optional(),
   housing_stipend: z.number().positive().optional(),
   perks: z.string().max(500).optional(),

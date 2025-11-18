@@ -57,7 +57,7 @@ CREATE TABLE reviews (
   
   -- Compensation (optional)
   wage_hourly DECIMAL(10, 2),
-  wage_currency TEXT DEFAULT 'USD',
+  wage_currency TEXT DEFAULT 'CAD',
   housing_provided BOOLEAN DEFAULT false,
   housing_stipend DECIMAL(10, 2),
   perks TEXT,

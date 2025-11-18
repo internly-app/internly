@@ -16,7 +16,7 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
 
   const [formData, setFormData] = useState<Partial<ReviewCreate>>({
     work_style: "onsite",
-    wage_currency: "USD",
+    wage_currency: "CAD",
     housing_provided: false,
     interview_round_count: 0,
   });
@@ -413,7 +413,7 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
                   )
                 }
                 className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="45.00"
+                placeholder="20, 30, 40..."
               />
             </div>
 
@@ -422,12 +422,12 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
                 Currency
               </label>
               <select
-                value={formData.wage_currency || "USD"}
+                value={formData.wage_currency || "CAD"}
                 onChange={(e) => updateField("wage_currency", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
-                <option value="USD">USD - US Dollar</option>
                 <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="USD">USD - US Dollar</option>
                 <option value="EUR">EUR - Euro</option>
                 <option value="GBP">GBP - British Pound</option>
                 <option value="AUD">AUD - Australian Dollar</option>
