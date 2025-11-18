@@ -54,10 +54,10 @@ export function ReviewCard({ review }: ReviewCardProps) {
         <span>{review.location}</span>
         <span>•</span>
         <span>{review.term}</span>
-        {review.duration_weeks && (
+        {review.duration_months && (
           <>
             <span>•</span>
-            <span>{review.duration_weeks} weeks</span>
+            <span>{review.duration_months} {review.duration_months === 1 ? 'month' : 'months'}</span>
           </>
         )}
         {review.team_name && (

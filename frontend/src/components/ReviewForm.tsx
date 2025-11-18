@@ -164,7 +164,7 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
                 value={formData.location || ""}
                 onChange={(e) => updateField("location", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="San Francisco, CA or Remote"
+                placeholder="Toronto, ON, San Francisco, CA, Remote..."
               />
             </div>
 
@@ -178,27 +178,27 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
                 value={formData.term || ""}
                 onChange={(e) => updateField("term", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Summer 2025, Fall 2024..."
+                placeholder="Summer 2025, Winter 2024..."
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
-                Duration (Weeks)
+                Duration (Months)
               </label>
               <input
                 type="number"
                 min="1"
-                max="52"
-                value={formData.duration_weeks || ""}
+                max="24"
+                value={formData.duration_months || ""}
                 onChange={(e) =>
                   updateField(
-                    "duration_weeks",
+                    "duration_months",
                     e.target.value ? parseInt(e.target.value) : undefined
                   )
                 }
                 className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="12"
+                placeholder="4, 8..."
               />
               <p className="mt-1 text-xs text-gray-500">
                 How long was your internship?
@@ -421,14 +421,27 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
               <label className="block text-sm font-medium text-gray-200 mb-1">
                 Currency
               </label>
-              <input
-                type="text"
-                maxLength={3}
+              <select
                 value={formData.wage_currency || "USD"}
                 onChange={(e) => updateField("wage_currency", e.target.value)}
-                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="USD"
-              />
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+              >
+                <option value="USD">USD - US Dollar</option>
+                <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="GBP">GBP - British Pound</option>
+                <option value="AUD">AUD - Australian Dollar</option>
+                <option value="JPY">JPY - Japanese Yen</option>
+                <option value="CNY">CNY - Chinese Yuan</option>
+                <option value="INR">INR - Indian Rupee</option>
+                <option value="SGD">SGD - Singapore Dollar</option>
+                <option value="CHF">CHF - Swiss Franc</option>
+                <option value="NZD">NZD - New Zealand Dollar</option>
+                <option value="MXN">MXN - Mexican Peso</option>
+                <option value="BRL">BRL - Brazilian Real</option>
+                <option value="ZAR">ZAR - South African Rand</option>
+                <option value="KRW">KRW - South Korean Won</option>
+              </select>
             </div>
 
             <div className="flex items-center gap-2">

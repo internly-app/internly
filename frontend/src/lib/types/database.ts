@@ -75,7 +75,7 @@ export interface Database {
           role_id: string;
           location: string;
           term: string;
-          duration_weeks: number | null;
+          duration_months: number | null;
           work_style: WorkStyle;
           work_hours: string | null;
           team_name: string | null;
@@ -103,7 +103,7 @@ export interface Database {
           role_id: string;
           location: string;
           term: string;
-          duration_weeks?: number | null;
+          duration_months?: number | null;
           work_style: WorkStyle;
           work_hours?: string | null;
           team_name?: string | null;
@@ -131,7 +131,7 @@ export interface Database {
           role_id?: string;
           location?: string;
           term?: string;
-          duration_weeks?: number | null;
+          duration_months?: number | null;
           work_style?: WorkStyle;
           work_hours?: string | null;
           team_name?: string | null;
