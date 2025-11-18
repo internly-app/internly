@@ -44,12 +44,39 @@ export function ReviewCard({ review }: ReviewCardProps) {
         >
           {review.work_style}
         </span>
+        {review.work_hours && (
+          <>
+            <span className="px-2 py-1 rounded bg-gray-800 text-gray-300">
+              {review.work_hours === "full-time" ? "Full-time" : "Part-time"}
+            </span>
+          </>
+        )}
         <span>{review.location}</span>
         <span>•</span>
         <span>{review.term}</span>
+        {review.duration_weeks && (
+          <>
+            <span>•</span>
+            <span>{review.duration_weeks} weeks</span>
+          </>
+        )}
+        {review.team_name && (
+          <>
+            <span>•</span>
+            <span>{review.team_name}</span>
+          </>
+        )}
         <span>•</span>
         <span>{formatDate(review.created_at)}</span>
       </div>
+
+      {/* Technologies */}
+      {review.technologies && (
+        <div className="mb-4">
+          <h4 className="font-semibold text-white mb-2 text-sm">Technologies</h4>
+          <p className="text-gray-300 text-sm">{review.technologies}</p>
+        </div>
+      )}
 
       {/* Summary */}
       <div className="mb-4">

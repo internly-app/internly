@@ -43,7 +43,11 @@ export const reviewCreateSchema = z.object({
   // Basic info
   location: z.string().min(1, "Location is required").max(200),
   term: z.string().min(1, "Term is required").max(100),
+  duration_weeks: z.number().int().min(1).max(52).optional(),
   work_style: z.enum(["onsite", "hybrid", "remote"]),
+  work_hours: z.enum(["full-time", "part-time"]).optional(),
+  team_name: z.string().max(200).optional(),
+  technologies: z.string().max(500).optional(),
 
   // Written content (no minimum length required)
   summary: z.string().max(2000),
