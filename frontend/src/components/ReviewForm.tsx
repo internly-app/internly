@@ -24,6 +24,12 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
   // User-friendly fields (actual text, not UUIDs!)
   const [companyName, setCompanyName] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
+  
+  // Field-specific validation errors
+  const [fieldErrors, setFieldErrors] = useState<{
+    companyName?: string;
+    roleTitle?: string;
+  }>({});
 
   const updateField = (
     field: keyof ReviewCreate,
@@ -35,16 +41,25 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      if (!companyName.trim()) {
-        alert("Please enter a company name");
-        return;
-      }
+    // Clear previous errors
+    setFieldErrors({});
 
-      if (!roleTitle.trim()) {
-        alert("Please enter a role title");
-        return;
-      }
+    // Validate required fields
+    const errors: { companyName?: string; roleTitle?: string } = {};
+    if (!companyName.trim()) {
+      errors.companyName = "Please enter a company name";
+    }
+    if (!roleTitle.trim()) {
+      errors.roleTitle = "Please enter a role title";
+    }
+
+    // If there are errors, show them and stop
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    try {
 
       // Step 1: Create or get company
       const companySlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -126,10 +141,23 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
                 type="text"
                 required
                 value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setCompanyName(e.target.value);
+                  // Clear error when user starts typing
+                  if (fieldErrors.companyName) {
+                    setFieldErrors((prev) => ({ ...prev, companyName: undefined }));
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.companyName
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : "border-gray-700"
+                }`}
                 placeholder="Google, Microsoft, Amazon..."
               />
+              {fieldErrors.companyName && (
+                <p className="mt-1 text-sm text-red-400">{fieldErrors.companyName}</p>
+              )}
             </div>
 
             <div>
@@ -140,10 +168,23 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
                 type="text"
                 required
                 value={roleTitle}
-                onChange={(e) => setRoleTitle(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  setRoleTitle(e.target.value);
+                  // Clear error when user starts typing
+                  if (fieldErrors.roleTitle) {
+                    setFieldErrors((prev) => ({ ...prev, roleTitle: undefined }));
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg bg-gray-950 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.roleTitle
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : "border-gray-700"
+                }`}
                 placeholder="Software Engineering Intern, Product Design Intern..."
               />
+              {fieldErrors.roleTitle && (
+                <p className="mt-1 text-sm text-red-400">{fieldErrors.roleTitle}</p>
+              )}
             </div>
           </div>
         </section>
