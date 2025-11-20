@@ -28,7 +28,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden bg-background">
+    <section className="relative flex items-center justify-center px-6 overflow-hidden bg-background transition-colors duration-300 pt-24 pb-12">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03]">
         <div
@@ -42,7 +42,7 @@ export default function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto text-center pt-20 pb-16">
+      <div className="relative z-10 max-w-5xl mx-auto text-center py-12">
         {/* Animated Headline */}
         <h1 className="text-display mb-6 text-foreground">
           <span
@@ -70,7 +70,7 @@ export default function HeroSection() {
           <Button
             asChild
             size="lg"
-            className="w-full sm:w-auto rounded-full bg-foreground text-background hover:bg-foreground/90 px-8 text-base"
+            className="w-full sm:w-auto rounded-full px-8 text-base bg-[#7748F6] text-white hover:bg-[#6636E5] transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
           >
             <Link href="#reviews">Explore Reviews</Link>
           </Button>
@@ -78,14 +78,14 @@ export default function HeroSection() {
             asChild
             size="lg"
             variant="outline"
-            className="w-full sm:w-auto rounded-full px-8 text-base border-border"
+            className="w-full sm:w-auto rounded-full px-8 text-base border-border hover:border-[#7748F6] hover:text-[#7748F6] transition-all duration-200 hover:scale-105 active:scale-95"
           >
             <Link href="/signin?redirect=review">Share Your Experience</Link>
           </Button>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="mt-20 flex flex-col items-center gap-2 animate-bounce">
+        <div className="mt-12 flex flex-col items-center gap-2 animate-bounce">
           <span className="text-sm text-muted-foreground">Scroll to explore</span>
           <svg
             width="24"

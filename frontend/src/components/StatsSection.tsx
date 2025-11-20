@@ -69,7 +69,7 @@ export default function StatsSection() {
   return (
     <section
       ref={sectionRef}
-      className="py-24 px-6 bg-foreground"
+      className="py-24 px-6 bg-foreground transition-colors duration-300"
     >
       <div className="max-w-[100rem] mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">

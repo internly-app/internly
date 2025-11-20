@@ -42,8 +42,8 @@ export default function CompanyCarousel() {
   }, []);
 
   return (
-    <section className="py-16 px-6 overflow-hidden bg-background border-y">
-      <div className="max-w-[100rem] mx-auto mb-8">
+    <section className="py-8 px-6 overflow-hidden bg-background">
+      <div className="max-w-[100rem] mx-auto mb-6">
         <h2 className="text-center text-sm font-medium tracking-wide uppercase text-muted-foreground">
           Companies reviewed by students
         </h2>
@@ -60,14 +60,18 @@ export default function CompanyCarousel() {
       >
         {/* Duplicate companies for infinite scroll effect */}
         {[...COMPANIES, ...COMPANIES, ...COMPANIES].map((company, index) => (
-          <Badge
+          <button
             key={index}
-            variant="outline"
-            className="flex-shrink-0 px-8 py-4 text-lg font-semibold whitespace-nowrap bg-muted border-border"
+            className="flex-shrink-0 px-8 py-4 text-lg font-semibold whitespace-nowrap bg-muted rounded-md border border-border hover:bg-accent hover:border-[#7748F6] hover:text-[#7748F6] transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
             style={{ minWidth: "200px" }}
+            onClick={() => {
+              // Scroll to reviews section and filter by this company
+              const reviewsSection = document.getElementById("reviews");
+              reviewsSection?.scrollIntoView({ behavior: "smooth" });
+            }}
           >
             {company}
-          </Badge>
+          </button>
         ))}
       </div>
     </section>
