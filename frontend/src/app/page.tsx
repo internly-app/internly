@@ -1,141 +1,128 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useReviews } from "@/hooks/useReviews";
-import { ReviewCard } from "@/components/ReviewCard";
-import { ReviewModal } from "@/components/ReviewModal";
-import { UserProfileDisplay } from "@/components/UserProfileDisplay";
-import { useAuth } from "@/components/auth/AuthProvider";
-import Link from "next/link";
+import Navigation from "@/components/Navigation";
+import HeroSection from "@/components/HeroSection";
+import CompanyCarousel from "@/components/CompanyCarousel";
+import StatsSection from "@/components/StatsSection";
+import ReviewCard from "@/components/ReviewCard";
+import { Button } from "@/components/ui/button";
+
+// Placeholder review data - will be replaced with real data from useReviews hook
+const PLACEHOLDER_REVIEWS = [
+  {
+    id: "1",
+    company: "Google",
+    position: "Software Engineering Intern",
+    rating: 5,
+    review_text:
+      "Amazing experience! The team was incredibly supportive and I learned so much about large-scale distributed systems. The intern program is well-structured with lots of networking opportunities.",
+    pros: "Great mentorship, competitive compensation, amazing perks and campus facilities",
+    cons: "Can be overwhelming at times, very fast-paced environment",
+    created_at: "2024-08-15T10:30:00Z",
+    likes_count: 45,
+    author: {
+      first_name: "Alex",
+      last_name: "Johnson",
+    },
+  },
+  {
+    id: "2",
+    company: "Meta",
+    position: "Product Design Intern",
+    rating: 4,
+    review_text:
+      "Great internship with real impact. I worked on features that shipped to millions of users. The design team is world-class and very collaborative.",
+    pros: "Real product impact, excellent design culture, great team events",
+    cons: "Long commute to office, sometimes unclear priorities",
+    created_at: "2024-07-20T14:20:00Z",
+    likes_count: 32,
+    author: {
+      first_name: "Sarah",
+      last_name: "Chen",
+    },
+  },
+  {
+    id: "3",
+    company: "Amazon",
+    position: "Data Science Intern",
+    rating: 4,
+    review_text:
+      "Challenging and rewarding experience. Got to work with real customer data and build ML models that directly impacted business decisions.",
+    pros: "Challenging projects, good work-life balance, learning opportunities",
+    cons: "Large company bureaucracy, slower decision making",
+    created_at: "2024-06-10T09:15:00Z",
+    likes_count: 28,
+  },
+];
 
 export default function Home() {
-  const [sort, setSort] = useState<"likes" | "recent">("likes");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { reviews, total, loading, error } = useReviews({ sort, limit: 20 });
-  const { user } = useAuth();
-
-  // Check if we should open the modal from localStorage
-  useEffect(() => {
-    if (!user) return;
-
-    const shouldOpenModal = localStorage.getItem("openReviewModal") === "true";
-    if (shouldOpenModal) {
-      localStorage.removeItem("openReviewModal");
-      setIsModalOpen(true);
-    }
-  }, [user]);
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-gray-200">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading reviews...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-gray-950 text-gray-200">
-        <div className="max-w-md w-full bg-red-900/30 border border-red-700 rounded-lg p-6 text-center">
-          <p className="text-red-400 font-semibold mb-2">
-            Error loading reviews
-          </p>
-          <p className="text-red-500 text-sm">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-gray-100">
-      {/* Header */}
-      <header className="bg-gray-900/80 border-b border-gray-800 sticky top-0 z-10 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Internly</h1>
-            <div className="flex items-center gap-3">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
-                  >
-                    Write Review
-                  </button>
-                  <UserProfileDisplay />
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/signin?redirect=review"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
-                  >
-                    Write Review
-                  </Link>
-                  <Link
-                    href="/signin"
-                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
-                  >
-                    Sign In
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen">
+      <Navigation />
+      <HeroSection />
+      <CompanyCarousel />
+      <StatsSection />
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Controls */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-white">
-              {total} {total === 1 ? "Review" : "Reviews"}
+      {/* Reviews Section */}
+      <section id="reviews" className="py-24 px-6 bg-background">
+        <div className="max-w-[100rem] mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-heading-1 mb-4 text-foreground">
+              Latest Reviews
             </h2>
-            <p className="text-sm text-gray-400">
-              Real internship experiences from students
+            <p className="text-lg md:text-xl max-w-2xl mx-auto text-muted-foreground">
+              Real experiences from students who&apos;ve interned at top companies
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-400">Sort by:</label>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as "likes" | "recent")}
-              className="px-3 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-            >
-              <option value="likes">Most Liked</option>
-              <option value="recent">Most Recent</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Reviews List */}
-        {reviews.length === 0 ? (
-          <div className="bg-gray-900/70 rounded-lg border border-gray-800 p-12 text-center">
-            <p className="text-gray-400 mb-4">No reviews yet</p>
-            <Link
-              href="/reviews/new"
-              className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/20"
-            >
-              Be the first to write a review
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {reviews.map((review) => (
+          {/* Reviews Grid */}
+          <div className="grid gap-6 max-w-4xl mx-auto">
+            {PLACEHOLDER_REVIEWS.map((review) => (
               <ReviewCard key={review.id} review={review} />
             ))}
           </div>
-        )}
-      </main>
 
-      {/* Review Modal */}
-      <ReviewModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-    </div>
+          {/* Load More */}
+          <div className="text-center mt-12">
+            <Button
+              size="lg"
+              className="rounded-full bg-foreground text-background hover:bg-foreground/90 px-8"
+            >
+              Load More Reviews
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-6 bg-foreground border-t">
+        <div className="max-w-[100rem] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-sm text-background/70">
+            © 2024 Internly. All rights reserved.
+          </div>
+          <div className="flex gap-8">
+            <a
+              href="#"
+              className="text-sm text-background/70 hover:text-background transition-colors"
+            >
+              Terms
+            </a>
+            <a
+              href="#"
+              className="text-sm text-background/70 hover:text-background transition-colors"
+            >
+              Privacy
+            </a>
+            <a
+              href="#"
+              className="text-sm text-background/70 hover:text-background transition-colors"
+            >
+              About
+            </a>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }
