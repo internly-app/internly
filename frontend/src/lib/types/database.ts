@@ -75,7 +75,11 @@ export interface Database {
           role_id: string;
           location: string;
           term: string;
+          duration_months: number | null;
           work_style: WorkStyle;
+          work_hours: string | null;
+          team_name: string | null;
+          technologies: string | null;
           summary: string;
           hardest: string;
           best: string;
@@ -99,7 +103,11 @@ export interface Database {
           role_id: string;
           location: string;
           term: string;
+          duration_months?: number | null;
           work_style: WorkStyle;
+          work_hours?: string | null;
+          team_name?: string | null;
+          technologies?: string | null;
           summary: string;
           hardest: string;
           best: string;
@@ -123,7 +131,11 @@ export interface Database {
           role_id?: string;
           location?: string;
           term?: string;
+          duration_months?: number | null;
           work_style?: WorkStyle;
+          work_hours?: string | null;
+          team_name?: string | null;
+          technologies?: string | null;
           summary?: string;
           hardest?: string;
           best?: string;

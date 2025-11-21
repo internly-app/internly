@@ -36,6 +36,12 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     }
   };
 
+  const workStyleBadge = {
+    onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40",
+    hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40",
+    remote: "bg-green-500/20 text-green-300 border border-green-500/40",
+  } satisfies Record<string, string>;
+
   return (
     <Card className="hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="pb-4">
@@ -48,15 +54,8 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
             {/* Company & Position */}
             <div>
-              <h3 className="text-heading-3 font-semibold mb-1">
-                {review.company.name}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {review.role.title}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {review.location} • {review.work_style}
-              </p>
+              <h3 className="font-semibold text-lg">{review.company.name}</h3>
+              <p className="text-sm text-muted-foreground">{review.role.title}</p>
             </div>
           </div>
 
@@ -65,9 +64,41 @@ export default function ReviewCard({ review }: ReviewCardProps) {
             {review.term}
           </Badge>
         </div>
+
+        {/* Meta info badges */}
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <Badge
+            variant="outline"
+            className={`${workStyleBadge[review.work_style]}`}
+          >
+            {review.work_style}
+          </Badge>
+          {review.work_hours && (
+            <Badge variant="outline">
+              {review.work_hours === "full-time" ? "Full-time" : "Part-time"}
+            </Badge>
+          )}
+          <Badge variant="outline">{review.location}</Badge>
+          {review.duration_months && (
+            <Badge variant="outline">
+              {review.duration_months} {review.duration_months === 1 ? "month" : "months"}
+            </Badge>
+          )}
+          {review.team_name && (
+            <Badge variant="outline">{review.team_name}</Badge>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Technologies */}
+        {review.technologies && (
+          <div>
+            <h4 className="font-semibold mb-2 text-sm">Technologies</h4>
+            <p className="text-sm text-muted-foreground">{review.technologies}</p>
+          </div>
+        )}
+
         {/* Summary */}
         <div>
           <h4 className="font-semibold mb-2">Summary</h4>
@@ -103,6 +134,54 @@ export default function ReviewCard({ review }: ReviewCardProps) {
             <p className="text-sm text-muted-foreground leading-relaxed">
               {review.advice}
             </p>
+          </div>
+        )}
+
+        {/* Interview Process */}
+        <div className="border-t pt-4">
+          <h4 className="font-semibold mb-2">Interview Process</h4>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              <span className="font-medium text-foreground">Rounds:</span>{" "}
+              {review.interview_round_count}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Description:</span>{" "}
+              {review.interview_rounds_description}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Tips:</span>{" "}
+              {review.interview_tips}
+            </p>
+          </div>
+        </div>
+
+        {/* Compensation (if provided) */}
+        {(review.wage_hourly || review.housing_provided || review.perks) && (
+          <div className="border-t pt-4">
+            <h4 className="font-semibold mb-2">Compensation</h4>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              {review.wage_hourly && (
+                <p>
+                  <span className="font-medium text-foreground">Hourly:</span> $
+                  {review.wage_hourly.toFixed(2)} {review.wage_currency || "CAD"}
+                </p>
+              )}
+              {review.housing_provided && (
+                <p>
+                  <span className="font-medium text-foreground">Housing:</span>{" "}
+                  Provided
+                  {review.housing_stipend &&
+                    ` ($${review.housing_stipend.toFixed(2)} stipend)`}
+                </p>
+              )}
+              {review.perks && (
+                <p>
+                  <span className="font-medium text-foreground">Perks:</span>{" "}
+                  {review.perks}
+                </p>
+              )}
+            </div>
           </div>
         )}
       </CardContent>

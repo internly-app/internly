@@ -35,7 +35,21 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
         const response = await fetch(`/api/reviews?${params.toString()}`);
 
         if (!response.ok) {
-          throw new Error("Failed to fetch reviews");
+          // Try to extract error message from response
+          let errorMsg = "Failed to fetch reviews";
+          try {
+            const errorData = await response.json();
+            if (errorData.error) {
+              errorMsg = errorData.error;
+            } else if (response.status === 401) {
+              errorMsg = "Please sign in to view reviews";
+            } else if (response.status >= 500) {
+              errorMsg = "Server error. Please try again later.";
+            }
+          } catch {
+            // If response isn't JSON, use default message
+          }
+          throw new Error(errorMsg);
         }
 
         const data: ReviewsResponse = await response.json();
@@ -70,21 +84,50 @@ export function useCreateReview() {
     setError(null);
 
     try {
-      const response = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reviewData),
-      });
+      let response;
+      try {
+        response = await fetch("/api/reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(reviewData),
+        });
+      } catch (networkError) {
+        throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
+      }
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to create review");
+        // Try to extract error message from response
+        let errorMsg = "Failed to create review";
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMsg = errorData.error;
+          } else if (errorData.details) {
+            errorMsg = `${errorData.error || "Validation error"}: ${errorData.details}`;
+          } else if (response.status === 401) {
+            errorMsg = "Please sign in to create a review";
+          } else if (response.status === 409) {
+            errorMsg = "You have already reviewed this role";
+          } else if (response.status === 400) {
+            errorMsg = "Invalid data. Please check all required fields.";
+          } else if (response.status >= 500) {
+            errorMsg = "Server error. Please try again later.";
+          }
+        } catch {
+          // If response isn't JSON, use status-based message
+          if (response.status === 401) {
+            errorMsg = "Please sign in to create a review";
+          } else if (response.status >= 500) {
+            errorMsg = "Server error. Please try again later.";
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       const review = await response.json();
       return review;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
       setError(errorMessage);
       throw err;
     } finally {
@@ -102,12 +145,38 @@ export function useLikeReview() {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/reviews/${reviewId}/like`, {
-        method: "POST",
-      });
+      let response;
+      try {
+        response = await fetch(`/api/reviews/${reviewId}/like`, {
+          method: "POST",
+        });
+      } catch (networkError) {
+        throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
+      }
 
       if (!response.ok) {
-        throw new Error("Failed to toggle like");
+        // Try to extract error message from response
+        let errorMsg = "Failed to toggle like";
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMsg = errorData.error;
+          } else if (response.status === 401) {
+            errorMsg = "Please sign in to like reviews";
+          } else if (response.status === 404) {
+            errorMsg = "Review not found";
+          } else if (response.status >= 500) {
+            errorMsg = "Server error. Please try again later.";
+          }
+        } catch {
+          // If response isn't JSON, use status-based message
+          if (response.status === 401) {
+            errorMsg = "Please sign in to like reviews";
+          } else if (response.status >= 500) {
+            errorMsg = "Server error. Please try again later.";
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();

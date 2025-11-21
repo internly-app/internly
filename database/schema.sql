@@ -43,7 +43,11 @@ CREATE TABLE reviews (
   -- Basic info
   location TEXT NOT NULL,
   term TEXT NOT NULL, -- e.g., "Summer 2024", "Fall 2023"
+  duration_months INTEGER, -- Optional: Duration in months (e.g., 3, 4, 6)
   work_style TEXT NOT NULL CHECK (work_style IN ('onsite', 'hybrid', 'remote')),
+  work_hours TEXT CHECK (work_hours IN ('full-time', 'part-time')), -- Optional: Full-time or part-time
+  team_name TEXT, -- Optional: Team name at the company
+  technologies TEXT, -- Optional: Technologies, languages, tools used (comma-separated or free text)
   
   -- Written content
   summary TEXT NOT NULL,
@@ -53,7 +57,7 @@ CREATE TABLE reviews (
   
   -- Compensation (optional)
   wage_hourly DECIMAL(10, 2),
-  wage_currency TEXT DEFAULT 'USD',
+  wage_currency TEXT DEFAULT 'CAD',
   housing_provided BOOLEAN DEFAULT false,
   housing_stipend DECIMAL(10, 2),
   perks TEXT,
