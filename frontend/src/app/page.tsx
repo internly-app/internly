@@ -74,7 +74,7 @@ export default function Home() {
       <footer className="py-12 px-6 bg-background border-t border-border">
         <div className="max-w-[100rem] mx-auto">
           <div className="flex flex-col gap-6">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground font-semibold">
               © 2025 Tejas Thind and Srinikesh Singarapu. All rights reserved.
             </div>
             <div className="text-sm text-muted-foreground">
