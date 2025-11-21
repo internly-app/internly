@@ -21,6 +21,7 @@ export function LikeButton({
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLike = async () => {
     if (!user) {
@@ -30,6 +31,8 @@ export function LikeButton({
     if (loading) return;
 
     setLoading(true);
+    setErrorMessage(null);
+    setAuthMessage(null);
 
     try {
       const response = await fetch(`/api/reviews/${reviewId}/like`, {
@@ -41,19 +44,33 @@ export function LikeButton({
           setAuthMessage("Sign in to like reviews");
           return;
         }
-        throw new Error("Failed to toggle like");
+        
+        // Try to extract error message from response
+        let errorMsg = "Failed to update like. Please try again.";
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMsg = errorData.error;
+          }
+        } catch {
+          // If response isn't JSON, use default message
+        }
+        
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
       const newLiked = data.liked;
       setAuthMessage(null);
+      setErrorMessage(null);
 
       setLiked(newLiked);
       setCount((prev) => (newLiked ? prev + 1 : prev - 1));
       onLikeChange?.(newLiked);
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to update like. Please try again.";
+      setErrorMessage(errorMsg);
       console.error("Like error:", error);
-      alert("Failed to update like. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -78,6 +95,11 @@ export function LikeButton({
       {authMessage && (
         <p className="text-xs text-red-300" role="status">
           {authMessage}
+        </p>
+      )}
+      {errorMessage && (
+        <p className="text-xs text-red-300" role="alert">
+          {errorMessage}
         </p>
       )}
     </div>
