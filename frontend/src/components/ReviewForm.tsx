@@ -18,7 +18,7 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
     work_style: "onsite",
     wage_currency: "CAD",
     housing_provided: false,
-    interview_round_count: 0,
+    interview_round_count: undefined,
   });
 
   // User-friendly fields (actual text, not UUIDs!)
@@ -30,6 +30,9 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
     companyName?: string;
     roleTitle?: string;
   }>({});
+  
+  // Submission error (for API/network errors)
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const updateField = (
     field: keyof ReviewCreate,
@@ -43,6 +46,7 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
 
     // Clear previous errors
     setFieldErrors({});
+    setSubmissionError(null);
 
     // Validate required fields
     const errors: { companyName?: string; roleTitle?: string } = {};
@@ -60,38 +64,51 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
     }
 
     try {
-
       // Step 1: Create or get company
       const companySlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const companyResponse = await fetch("/api/companies", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: companyName.trim(),
-          slug: companySlug,
-        }),
-      });
+      let companyResponse;
+      try {
+        companyResponse = await fetch("/api/companies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: companyName.trim(),
+            slug: companySlug,
+          }),
+        });
+      } catch (networkError) {
+        throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
+      }
 
       if (!companyResponse.ok) {
-        throw new Error("Failed to create/get company");
+        const errorData = await companyResponse.json().catch(() => ({}));
+        const errorMessage = errorData.error || `Failed to create company (${companyResponse.status})`;
+        throw new Error(errorMessage);
       }
 
       const company = await companyResponse.json();
 
       // Step 2: Create or get role
       const roleSlug = roleTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const roleResponse = await fetch("/api/roles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: roleTitle.trim(),
-          slug: roleSlug,
-          company_id: company.id,
-        }),
-      });
+      let roleResponse;
+      try {
+        roleResponse = await fetch("/api/roles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: roleTitle.trim(),
+            slug: roleSlug,
+            company_id: company.id,
+          }),
+        });
+      } catch (networkError) {
+        throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
+      }
 
       if (!roleResponse.ok) {
-        throw new Error("Failed to create/get role");
+        const errorData = await roleResponse.json().catch(() => ({}));
+        const errorMessage = errorData.error || `Failed to create role (${roleResponse.status})`;
+        throw new Error(errorMessage);
       }
 
       const role = await roleResponse.json();
@@ -109,6 +126,17 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
         router.push("/");
       }
     } catch (err) {
+      // Extract user-friendly error message
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      }
+      
+      // Set submission error to display to user
+      setSubmissionError(errorMessage);
       console.error("Failed to create review:", err);
     }
   };
@@ -120,9 +148,10 @@ export function ReviewForm({ onSuccess }: ReviewFormProps = {}) {
         Share your internship experience to help other students make informed decisions
       </p>
 
-      {error && (
+      {(error || submissionError) && (
         <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-300">
-          {error}
+          <p className="font-semibold mb-1">Error submitting review</p>
+          <p>{error || submissionError}</p>
         </div>
       )}
 
