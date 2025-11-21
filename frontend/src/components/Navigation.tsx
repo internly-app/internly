@@ -86,7 +86,7 @@ export default function Navigation() {
           {/* Logo - Left Side */}
           <Link
             href="/"
-            className="text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-all duration-200 active:scale-95 mr-8"
+            className="text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-opacity duration-200 mr-8"
           >
             Internly
           </Link>
@@ -95,21 +95,24 @@ export default function Navigation() {
           <div className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
             <Link
               href="#reviews"
-              className="text-sm font-medium text-foreground hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95"
+              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
             >
               Reviews
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link
               href="#companies"
-              className="text-sm font-medium text-foreground hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95"
+              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
             >
               Companies
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link
               href="#about"
-              className="text-sm font-medium text-foreground hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95"
+              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
             >
               About
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </div>
 
@@ -131,7 +134,7 @@ export default function Navigation() {
                 {/* Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer">
+                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-none focus-within:outline-none active:outline-none border-none outline-none">
                       <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
                         {userName.initials}
                       </div>
@@ -162,7 +165,7 @@ export default function Navigation() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive">
+                    <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 focus:outline-none focus-visible:outline-none focus-within:outline-none active:outline-none border-none outline-none">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -189,7 +192,7 @@ export default function Navigation() {
                 <Button
                   variant="ghost"
                   asChild
-                  className="hidden sm:inline-flex text-sm font-medium hover:bg-muted transition-all duration-200 active:scale-95"
+                  className="hidden sm:inline-flex text-sm font-medium hover:bg-muted transition-colors duration-200"
                 >
                   <Link href="/signin">Sign In</Link>
                 </Button>

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #522081;
-  --color-primary-foreground: #ffffff;
+  --color-primary: #ffffff;
+  --color-primary-foreground: #000000;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
 
@@ -40,11 +40,11 @@
   --color-secondary-foreground: #ffffff;
   --color-muted: #2a2a2a;
   --color-muted-foreground: #C4B5FD;
-  --color-accent: #522081;
-  --color-accent-foreground: #ffffff;
+  --color-accent: #ffffff;
+  --color-accent-foreground: #000000;
   --color-border: #2a2a2a;
   --color-input: #2a2a2a;
-  --color-ring: #522081;
+  --color-ring: rgba(255, 255, 255, 0.3);
 }
 
 /* Dark mode class (same as default) */
@@ -59,11 +59,11 @@
   --color-secondary-foreground: #ffffff;
   --color-muted: #2a2a2a;
   --color-muted-foreground: #C4B5FD;
-  --color-accent: #522081;
-  --color-accent-foreground: #ffffff;
+  --color-accent: #ffffff;
+  --color-accent-foreground: #000000;
   --color-border: #2a2a2a;
   --color-input: #2a2a2a;
-  --color-ring: #522081;
+  --color-ring: rgba(255, 255, 255, 0.3);
 }
 
 
@@ -141,9 +141,17 @@ html {
 }
 
 /* Focus Visible */
-*:focus-visible {
+*:focus-visible:not(button):not([role="button"]) {
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
+}
+
+/* Remove outline from buttons and dropdown items */
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[data-radix-collection-item]:focus-visible {
+  outline: none !important;
 }
 
 /* Force update background and text colors in dark mode */
