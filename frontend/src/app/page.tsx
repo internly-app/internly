@@ -72,29 +72,14 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-12 px-6 bg-background border-t border-border">
-        <div className="max-w-[100rem] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-sm text-muted-foreground">
-            © 2024 Internly. All rights reserved.
-          </div>
-          <div className="flex gap-8">
-            <a
-              href="#"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Terms
-            </a>
-            <a
-              href="#"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Privacy
-            </a>
-            <a
-              href="#"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              About
-            </a>
+        <div className="max-w-[100rem] mx-auto">
+          <div className="flex flex-col gap-6">
+            <div className="text-sm text-muted-foreground">
+              © 2025 Tejas Thind and Srinikesh Singarapu. All rights reserved.
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Want to see a company added or noticed a bug? Feel free to contact us.
+            </div>
           </div>
         </div>
       </footer>
