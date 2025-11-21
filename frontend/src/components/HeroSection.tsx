@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 const ROTATING_WORDS = [
   "Real experiences",
@@ -28,21 +29,9 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative flex items-center justify-center px-6 overflow-hidden bg-background transition-colors duration-300 pt-24 pb-12">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
-
+    <AuroraBackground className="pt-24 pb-12">
       {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto text-center py-12">
+      <div className="relative z-10 max-w-5xl mx-auto text-center px-6">
         {/* Animated Headline */}
         <h1 className="text-display mb-6 text-foreground">
           <span
@@ -84,6 +73,6 @@ export default function HeroSection() {
           </Button>
         </div>
       </div>
-    </section>
+    </AuroraBackground>
   );
 }
