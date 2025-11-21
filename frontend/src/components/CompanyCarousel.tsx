@@ -42,8 +42,8 @@ export default function CompanyCarousel() {
   }, []);
 
   return (
-    <section className="py-8 px-6 overflow-hidden bg-background">
-      <div className="max-w-[100rem] mx-auto mb-6">
+    <section className="py-16 px-6 overflow-hidden bg-background">
+      <div className="max-w-[100rem] mx-auto mb-12">
         <h2 className="text-center text-sm font-medium tracking-wide uppercase text-muted-foreground">
           Companies reviewed by students
         </h2>

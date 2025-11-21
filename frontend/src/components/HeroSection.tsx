@@ -83,24 +83,6 @@ export default function HeroSection() {
             <Link href="/signin?redirect=review">Share Your Experience</Link>
           </Button>
         </div>
-
-        {/* Scroll Indicator */}
-        <div className="mt-12 flex flex-col items-center gap-2 animate-bounce">
-          <span className="text-sm text-muted-foreground">Scroll to explore</span>
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-muted-foreground"
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
       </div>
     </section>
   );

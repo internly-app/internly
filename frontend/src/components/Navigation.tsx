@@ -87,12 +87,12 @@ export default function Navigation() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-[100rem] mx-auto px-6 lg:px-12 py-4">
+      <div className="max-w-[100rem] mx-auto px-4 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           {/* Logo - Left Side */}
           <Link
             href="/"
-            className="text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-all duration-200 active:scale-95"
+            className="text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-all duration-200 active:scale-95 mr-8"
           >
             Internly
           </Link>
@@ -120,7 +120,7 @@ export default function Navigation() {
           </div>
 
           {/* Right Side - Theme Toggle, Write Review, Profile */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 ml-auto">
             {user ? (
               <>
                 {/* Theme Toggle */}
