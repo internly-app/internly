@@ -66,21 +66,6 @@
   --color-ring: #522081;
 }
 
-/* Light mode override - only applies when .dark class is NOT present */
-:root:not(.dark) {
-  --color-background: #ffffff;
-  --color-foreground: #1E1A33;
-  --color-card: #ffffff;
-  --color-card-foreground: #1E1A33;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #1E1A33;
-  --color-secondary: #F3F0FF;
-  --color-secondary-foreground: #1E1A33;
-  --color-muted: #E9E2FF;
-  --color-muted-foreground: #1E1A33;
-  --color-border: #E9E2FF;
-  --color-input: #E9E2FF;
-}
 
 /* Base Styles */
 * {

@@ -71,27 +71,27 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-foreground border-t transition-colors duration-300">
+      <footer className="py-12 px-6 bg-background border-t border-border">
         <div className="max-w-[100rem] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-sm text-background/70">
+          <div className="text-sm text-muted-foreground">
             © 2024 Internly. All rights reserved.
           </div>
           <div className="flex gap-8">
             <a
               href="#"
-              className="text-sm text-background/70 hover:text-background transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms
             </a>
             <a
               href="#"
-              className="text-sm text-background/70 hover:text-background transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy
             </a>
             <a
               href="#"
-              className="text-sm text-background/70 hover:text-background transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               About
             </a>
