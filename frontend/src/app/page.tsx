@@ -54,7 +54,6 @@ export default function Home() {
               <p className="text-muted-foreground mb-4">No reviews yet</p>
               <Button
                 asChild
-                className="rounded-full bg-[#7748F6] text-white hover:bg-[#6636E5] transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
               >
                 <a href="/signin?redirect=review">Be the first to write a review</a>
               </Button>

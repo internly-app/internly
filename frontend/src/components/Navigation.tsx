@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -101,19 +102,19 @@ export default function Navigation() {
           <div className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
             <Link
               href="#reviews"
-              className="text-sm font-medium text-foreground hover:text-[#7748F6] transition-all duration-200 hover:scale-105 active:scale-95"
+              className="text-sm font-medium text-foreground hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95"
             >
               Reviews
             </Link>
             <Link
               href="#companies"
-              className="text-sm font-medium text-foreground hover:text-[#7748F6] transition-all duration-200 hover:scale-105 active:scale-95"
+              className="text-sm font-medium text-foreground hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95"
             >
               Companies
             </Link>
             <Link
               href="#about"
-              className="text-sm font-medium text-foreground hover:text-[#7748F6] transition-all duration-200 hover:scale-105 active:scale-95"
+              className="text-sm font-medium text-foreground hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95"
             >
               About
             </Link>
@@ -174,16 +175,19 @@ export default function Navigation() {
                 {/* Write Review Button */}
                 <Button
                   asChild
-                  className="text-sm font-medium rounded-full bg-[#7748F6] text-white hover:bg-[#6636E5] transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
+                  className="gap-2 group"
                 >
-                  <Link href="/write-review">Write Review</Link>
+                  <Link href="/write-review">
+                    Write Review
+                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
                 </Button>
 
                 {/* Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer">
-                      <div className="w-8 h-8 rounded-full bg-[#7748F6] flex items-center justify-center text-white text-xs font-semibold">
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
                         {userName.initials}
                       </div>
                       <span className="text-sm font-medium text-foreground hidden sm:block">
@@ -294,9 +298,12 @@ export default function Navigation() {
                 </Button>
                 <Button
                   asChild
-                  className="text-sm font-medium rounded-full bg-[#7748F6] text-white hover:bg-[#6636E5] transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
+                  className="gap-2 group"
                 >
-                  <Link href="/signin?redirect=review">Write Review</Link>
+                  <Link href="/signin?redirect=review">
+                    Write Review
+                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
                 </Button>
               </>
             )}

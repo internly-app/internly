@@ -70,7 +70,7 @@ export default function HeroSection() {
           <Button
             asChild
             size="lg"
-            className="w-full sm:w-auto rounded-full px-8 text-base bg-[#7748F6] text-white hover:bg-[#6636E5] transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+            className="w-full sm:w-auto"
           >
             <Link href="#reviews">Explore Reviews</Link>
           </Button>
@@ -78,7 +78,7 @@ export default function HeroSection() {
             asChild
             size="lg"
             variant="outline"
-            className="w-full sm:w-auto rounded-full px-8 text-base border-border hover:border-[#7748F6] hover:text-[#7748F6] transition-all duration-200 hover:scale-105 active:scale-95"
+            className="w-full sm:w-auto"
           >
             <Link href="/signin?redirect=review">Share Your Experience</Link>
           </Button>

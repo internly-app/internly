@@ -195,7 +195,7 @@ export default function WriteReviewPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-12 h-12 border-4 border-[#7748F6] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -243,13 +243,13 @@ export default function WriteReviewPage() {
               <div
                 key={s}
                 className={`flex items-center ${
-                  s <= step ? "text-[#7748F6]" : "text-muted-foreground"
+                  s <= step ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
                     s <= step
-                      ? "bg-[#7748F6] text-white"
+                      ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
@@ -258,7 +258,7 @@ export default function WriteReviewPage() {
                 {s < 5 && (
                   <div
                     className={`w-12 lg:w-24 h-1 mx-2 transition-all duration-200 ${
-                      s < step ? "bg-[#7748F6]" : "bg-muted"
+                      s < step ? "bg-primary" : "bg-muted"
                     }`}
                   />
                 )}
@@ -790,7 +790,6 @@ export default function WriteReviewPage() {
                     (step === 2 && !canProceedFromStep2) ||
                     (step === 3 && !canProceedFromStep3)
                   }
-                  className="bg-[#7748F6] text-white hover:bg-[#6636E5]"
                 >
                   Next
                 </Button>
@@ -798,7 +797,6 @@ export default function WriteReviewPage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={submitting || !canProceedFromStep5}
-                  className="bg-[#7748F6] text-white hover:bg-[#6636E5]"
                 >
                   {submitting ? "Submitting..." : "Submit Review"}
                 </Button>

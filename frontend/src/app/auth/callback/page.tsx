@@ -123,7 +123,7 @@ export default function AuthCallbackPage() {
             </div>
             <Button
               onClick={() => router.push("/")}
-              className="w-full bg-[#7748F6] text-white hover:bg-[#6636E5]"
+              className="w-full"
             >
               Back to Home
             </Button>
@@ -140,7 +140,7 @@ export default function AuthCallbackPage() {
           <CardTitle className="text-2xl">Signing you in...</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center py-6">
-          <div className="w-12 h-12 border-4 border-[#7748F6] border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </CardContent>
       </Card>
     </div>

@@ -147,7 +147,7 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
         onClick={handleGoogleSignIn}
         disabled={googleLoading || formStatus === "loading"}
         variant="outline"
-        className="w-full h-11 text-base hover:border-[#7748F6] hover:text-[#7748F6] transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+        className="w-full h-11 text-base hover:border-primary hover:text-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
       >
         {googleLoading ? (
           "Redirecting to Google..."
@@ -238,7 +238,7 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
         <Button
           type="submit"
           disabled={formStatus === "loading" || googleLoading}
-          className="w-full bg-[#7748F6] text-white hover:bg-[#6636E5] transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-lg disabled:opacity-50"
+          className="w-full"
         >
           {formStatus === "loading"
             ? mode === "sign-in"
@@ -260,7 +260,7 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
             setMessage(null);
           }}
           disabled={formStatus === "loading" || googleLoading}
-          className="text-[#7748F6] hover:underline transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+          className="text-primary hover:underline transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
         >
           {mode === "sign-in"
             ? "Don't have an account? Sign up"

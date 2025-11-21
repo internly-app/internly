@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #7748F6;
+  --color-primary: #522081;
   --color-primary-foreground: #ffffff;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
@@ -18,40 +18,40 @@
 
 /* Dark Mode - Default */
 :root {
-  --color-background: #1B1212;
+  --color-background: #000000;
   --color-foreground: #ffffff;
-  --color-card: #2A1F1F;
+  --color-card: #1a1a1a;
   --color-card-foreground: #ffffff;
-  --color-popover: #2A1F1F;
+  --color-popover: #1a1a1a;
   --color-popover-foreground: #ffffff;
-  --color-secondary: #2A1F1F;
+  --color-secondary: #1a1a1a;
   --color-secondary-foreground: #ffffff;
-  --color-muted: #3A2F2F;
+  --color-muted: #2a2a2a;
   --color-muted-foreground: #C4B5FD;
-  --color-accent: #7748F6;
+  --color-accent: #522081;
   --color-accent-foreground: #ffffff;
-  --color-border: #3A2F2F;
-  --color-input: #3A2F2F;
-  --color-ring: #7748F6;
+  --color-border: #2a2a2a;
+  --color-input: #2a2a2a;
+  --color-ring: #522081;
 }
 
 /* Dark mode class (same as default) */
 .dark {
-  --color-background: #1B1212;
+  --color-background: #000000;
   --color-foreground: #ffffff;
-  --color-card: #2A1F1F;
+  --color-card: #1a1a1a;
   --color-card-foreground: #ffffff;
-  --color-popover: #2A1F1F;
+  --color-popover: #1a1a1a;
   --color-popover-foreground: #ffffff;
-  --color-secondary: #2A1F1F;
+  --color-secondary: #1a1a1a;
   --color-secondary-foreground: #ffffff;
-  --color-muted: #3A2F2F;
+  --color-muted: #2a2a2a;
   --color-muted-foreground: #C4B5FD;
-  --color-accent: #7748F6;
+  --color-accent: #522081;
   --color-accent-foreground: #ffffff;
-  --color-border: #3A2F2F;
-  --color-input: #3A2F2F;
-  --color-ring: #7748F6;
+  --color-border: #2a2a2a;
+  --color-input: #2a2a2a;
+  --color-ring: #522081;
 }
 
 /* Light mode override - only applies when .dark class is NOT present */
