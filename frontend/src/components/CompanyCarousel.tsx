@@ -62,7 +62,7 @@ export default function CompanyCarousel() {
         {[...COMPANIES, ...COMPANIES, ...COMPANIES].map((company, index) => (
           <button
             key={index}
-            className="flex-shrink-0 px-8 py-4 text-lg font-semibold whitespace-nowrap bg-muted rounded-md border border-border hover:bg-accent hover:border-[#7748F6] hover:text-[#7748F6] transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+            className="flex-shrink-0 px-8 py-4 text-lg font-semibold whitespace-nowrap bg-muted rounded-md border border-border hover:bg-accent hover:border-primary hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
             style={{ minWidth: "200px" }}
             onClick={() => {
               // Scroll to reviews section and filter by this company
