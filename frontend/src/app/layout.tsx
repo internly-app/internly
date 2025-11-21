@@ -22,17 +22,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              try {
-                const theme = localStorage.getItem('theme');
-                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme');
+                  // Default to dark mode if no theme is set
+                  if (theme === 'dark' || (!theme)) {
+                    document.documentElement.classList.add('dark');
+                  } else if (theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                  } else {
+                    // Default to dark mode
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {
+                  // Default to dark mode on error
                   document.documentElement.classList.add('dark');
                 }
-              } catch (e) {}
+              })();
             `,
           }}
         />

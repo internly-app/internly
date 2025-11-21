@@ -4,7 +4,6 @@ import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import CompanyCarousel from "@/components/CompanyCarousel";
-import StatsSection from "@/components/StatsSection";
 import ReviewCard from "@/components/ReviewCard";
 import { Button } from "@/components/ui/button";
 import { useReviews } from "@/hooks/useReviews";
@@ -19,7 +18,6 @@ export default function Home() {
       <Navigation />
       <HeroSection />
       <CompanyCarousel />
-      <StatsSection />
 
       {/* Reviews Section */}
       <section id="reviews" className="py-24 px-6 bg-background transition-colors duration-300">

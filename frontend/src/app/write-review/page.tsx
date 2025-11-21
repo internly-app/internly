@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/components/AuthProvider";
 import { useCreateReview } from "@/hooks/useReviews";
+import { TechnologyAutocomplete } from "@/components/TechnologyAutocomplete";
 
 export default function WriteReviewPage() {
   const router = useRouter();
@@ -34,15 +35,20 @@ export default function WriteReviewPage() {
     location: "",
     term: "",
     work_style: "onsite" as "onsite" | "hybrid" | "remote",
+    duration_months: "" as string | number,
+    work_hours: "" as string,
+    team_name: "",
 
     // Experience (Step 3)
     summary: "",
     best: "",
     hardest: "",
     advice: "",
+    technologies: "",
 
     // Compensation (Step 4)
     wage_hourly: "",
+    wage_currency: "CAD",
     housing_provided: false,
     housing_stipend: "",
     perks: "",
@@ -52,6 +58,15 @@ export default function WriteReviewPage() {
     interview_rounds_description: "",
     interview_tips: "",
   });
+
+  // Field-specific validation errors
+  const [fieldErrors, setFieldErrors] = useState<{
+    company_id?: string;
+    role_id?: string;
+  }>({});
+  
+  // Submission error (for API/network errors)
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Companies and roles (would be fetched from API in production)
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
@@ -111,6 +126,24 @@ export default function WriteReviewPage() {
   };
 
   const handleSubmit = async () => {
+    // Clear previous errors
+    setFieldErrors({});
+    setSubmissionError(null);
+
+    // Validate required fields
+    const errors: { company_id?: string; role_id?: string } = {};
+    if (!formData.company_id) {
+      errors.company_id = "Please select a company";
+    }
+    if (!formData.role_id) {
+      errors.role_id = "Please select a role";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
     try {
       const reviewData = {
         company_id: formData.company_id,
@@ -118,16 +151,20 @@ export default function WriteReviewPage() {
         location: formData.location,
         term: formData.term,
         work_style: formData.work_style,
+        duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
+        work_hours: formData.work_hours && formData.work_hours !== "" ? (formData.work_hours as "full-time" | "part-time") : undefined,
+        team_name: formData.team_name || undefined,
+        technologies: formData.technologies || undefined,
         summary: formData.summary,
         best: formData.best,
         hardest: formData.hardest,
         advice: formData.advice,
         wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
-        wage_currency: "USD",
+        wage_currency: formData.wage_currency || "CAD",
         housing_provided: formData.housing_provided,
         housing_stipend: formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
-        perks: formData.perks,
-        interview_round_count: parseInt(formData.interview_round_count) || 0,
+        perks: formData.perks || undefined,
+        interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
         interview_rounds_description: formData.interview_rounds_description,
         interview_tips: formData.interview_tips,
       };
@@ -135,6 +172,17 @@ export default function WriteReviewPage() {
       await createReview(reviewData);
       router.push("/");
     } catch (err) {
+      // Extract user-friendly error message
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      }
+      
+      // Set submission error to display to user
+      setSubmissionError(errorMessage);
       console.error("Failed to submit review:", err);
     }
   };
@@ -264,9 +312,17 @@ export default function WriteReviewPage() {
                         role_id: "", // Reset role when company changes
                         roleName: "",
                       });
+                      // Clear error when user selects
+                      if (fieldErrors.company_id) {
+                        setFieldErrors((prev) => ({ ...prev, company_id: undefined }));
+                      }
                     }}
                     disabled={loadingCompanies}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                      fieldErrors.company_id
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : "border-input"
+                    }`}
                   >
                     <option value="">Select a company...</option>
                     {companies.map((company) => (
@@ -275,6 +331,9 @@ export default function WriteReviewPage() {
                       </option>
                     ))}
                   </select>
+                  {fieldErrors.company_id && (
+                    <p className="mt-1 text-sm text-destructive">{fieldErrors.company_id}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -291,9 +350,17 @@ export default function WriteReviewPage() {
                         role_id: e.target.value,
                         roleName: selectedRole?.title || "",
                       });
+                      // Clear error when user selects
+                      if (fieldErrors.role_id) {
+                        setFieldErrors((prev) => ({ ...prev, role_id: undefined }));
+                      }
                     }}
                     disabled={!formData.company_id || loadingRoles}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                      fieldErrors.role_id
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : "border-input"
+                    }`}
                   >
                     <option value="">Select a role...</option>
                     {roles.map((role) => (
@@ -302,7 +369,10 @@ export default function WriteReviewPage() {
                       </option>
                     ))}
                   </select>
-                  {!formData.company_id && (
+                  {fieldErrors.role_id && (
+                    <p className="mt-1 text-sm text-destructive">{fieldErrors.role_id}</p>
+                  )}
+                  {!formData.company_id && !fieldErrors.role_id && (
                     <p className="text-xs text-muted-foreground">
                       Please select a company first
                     </p>
@@ -355,15 +425,73 @@ export default function WriteReviewPage() {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              work_style: e.target.value as any,
+                              work_style: e.target.value as "onsite" | "hybrid" | "remote",
                             })
                           }
-                          className="w-4 h-4 text-[#7748F6] border-gray-300 focus:ring-[#7748F6]"
+                          className="w-4 h-4 text-primary border-input focus:ring-ring"
                         />
                         <span className="text-sm capitalize">{style}</span>
                       </label>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="duration_months" className="text-sm font-medium">
+                    Duration (Months)
+                  </label>
+                  <Input
+                    id="duration_months"
+                    type="number"
+                    min="1"
+                    max="24"
+                    placeholder="4, 8..."
+                    value={formData.duration_months}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        duration_months: e.target.value ? parseInt(e.target.value) : "",
+                      })
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    How long was your internship?
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="work_hours" className="text-sm font-medium">
+                    Work Hours
+                  </label>
+                  <select
+                    id="work_hours"
+                    value={formData.work_hours}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        work_hours: e.target.value as "" | "full-time" | "part-time",
+                      })
+                    }
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="">Select...</option>
+                    <option value="full-time">Full-time (40+ hrs/week)</option>
+                    <option value="part-time">Part-time (&lt;40 hrs/week)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="team_name" className="text-sm font-medium">
+                    Team Name
+                  </label>
+                  <Input
+                    id="team_name"
+                    placeholder="Platform Engineering, Product Design..."
+                    value={formData.team_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, team_name: e.target.value })
+                    }
+                  />
                 </div>
               </>
             )}
@@ -450,6 +578,19 @@ export default function WriteReviewPage() {
                     {formData.advice.length}/1000
                   </p>
                 </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="technologies" className="text-sm font-medium">
+                    Technologies & Skills Used
+                  </label>
+                  <TechnologyAutocomplete
+                    value={formData.technologies}
+                    onChange={(value) =>
+                      setFormData({ ...formData, technologies: value })
+                    }
+                    placeholder="Type to search technologies..."
+                  />
+                </div>
               </>
             )}
 
@@ -457,13 +598,38 @@ export default function WriteReviewPage() {
             {step === 4 && (
               <>
                 <div className="space-y-2">
+                  <label htmlFor="wage_currency" className="text-sm font-medium">
+                    Currency
+                  </label>
+                  <select
+                    id="wage_currency"
+                    value={formData.wage_currency}
+                    onChange={(e) =>
+                      setFormData({ ...formData, wage_currency: e.target.value })
+                    }
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="CAD">CAD - Canadian Dollar</option>
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="EUR">EUR - Euro</option>
+                    <option value="GBP">GBP - British Pound</option>
+                    <option value="AUD">AUD - Australian Dollar</option>
+                    <option value="JPY">JPY - Japanese Yen</option>
+                    <option value="CHF">CHF - Swiss Franc</option>
+                    <option value="CNY">CNY - Chinese Yuan</option>
+                    <option value="INR">INR - Indian Rupee</option>
+                    <option value="SGD">SGD - Singapore Dollar</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
                   <label htmlFor="wage_hourly" className="text-sm font-medium">
-                    Hourly Wage (USD)
+                    Hourly Wage
                   </label>
                   <Input
                     id="wage_hourly"
                     type="number"
-                    placeholder="e.g., 35"
+                    placeholder="20, 30, 40..."
                     value={formData.wage_hourly}
                     onChange={(e) =>
                       setFormData({ ...formData, wage_hourly: e.target.value })
@@ -482,7 +648,7 @@ export default function WriteReviewPage() {
                           housing_provided: e.target.checked,
                         })
                       }
-                      className="w-4 h-4 text-[#7748F6] border-gray-300 rounded focus:ring-[#7748F6]"
+                      className="w-4 h-4 text-primary border-input rounded focus:ring-ring"
                     />
                     <span className="text-sm font-medium">Housing Provided</span>
                   </label>
@@ -490,12 +656,12 @@ export default function WriteReviewPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="housing_stipend" className="text-sm font-medium">
-                    Housing Stipend (USD)
+                    Monthly Housing Stipend
                   </label>
                   <Input
                     id="housing_stipend"
                     type="number"
-                    placeholder="e.g., 2000"
+                    placeholder="1500, 2500, 3500..."
                     value={formData.housing_stipend}
                     onChange={(e) =>
                       setFormData({ ...formData, housing_stipend: e.target.value })
@@ -535,7 +701,7 @@ export default function WriteReviewPage() {
                   <Input
                     id="interview_round_count"
                     type="number"
-                    placeholder="e.g., 3"
+                    placeholder="3"
                     value={formData.interview_round_count}
                     onChange={(e) =>
                       setFormData({
@@ -596,10 +762,13 @@ export default function WriteReviewPage() {
               </>
             )}
 
-            {/* Error Message */}
-            {error && (
+            {/* Error Messages */}
+            {(error || submissionError) && (
               <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-destructive">{error}</p>
+                <p className="text-sm text-destructive font-semibold mb-1">
+                  {submissionError ? "Error submitting review" : "Error"}
+                </p>
+                <p className="text-sm text-destructive">{error || submissionError}</p>
               </div>
             )}
 

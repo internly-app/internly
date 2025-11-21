@@ -16,8 +16,46 @@
   --radius-full: 9999px;
 }
 
-/* Light Mode - Default */
+/* Dark Mode - Default */
 :root {
+  --color-background: #1B1212;
+  --color-foreground: #ffffff;
+  --color-card: #2A1F1F;
+  --color-card-foreground: #ffffff;
+  --color-popover: #2A1F1F;
+  --color-popover-foreground: #ffffff;
+  --color-secondary: #2A1F1F;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #3A2F2F;
+  --color-muted-foreground: #C4B5FD;
+  --color-accent: #7748F6;
+  --color-accent-foreground: #ffffff;
+  --color-border: #3A2F2F;
+  --color-input: #3A2F2F;
+  --color-ring: #7748F6;
+}
+
+/* Dark mode class (same as default) */
+.dark {
+  --color-background: #1B1212;
+  --color-foreground: #ffffff;
+  --color-card: #2A1F1F;
+  --color-card-foreground: #ffffff;
+  --color-popover: #2A1F1F;
+  --color-popover-foreground: #ffffff;
+  --color-secondary: #2A1F1F;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #3A2F2F;
+  --color-muted-foreground: #C4B5FD;
+  --color-accent: #7748F6;
+  --color-accent-foreground: #ffffff;
+  --color-border: #3A2F2F;
+  --color-input: #3A2F2F;
+  --color-ring: #7748F6;
+}
+
+/* Light mode override - only applies when .dark class is NOT present */
+:root:not(.dark) {
   --color-background: #ffffff;
   --color-foreground: #1E1A33;
   --color-card: #ffffff;
@@ -28,30 +66,8 @@
   --color-secondary-foreground: #1E1A33;
   --color-muted: #E9E2FF;
   --color-muted-foreground: #1E1A33;
-  --color-accent: #7748F6;
-  --color-accent-foreground: #ffffff;
   --color-border: #E9E2FF;
   --color-input: #E9E2FF;
-  --color-ring: #7748F6;
-}
-
-/* Dark Mode */
-.dark {
-  --color-background: #1E1A33;
-  --color-foreground: #ffffff;
-  --color-card: #2A2540;
-  --color-card-foreground: #ffffff;
-  --color-popover: #2A2540;
-  --color-popover-foreground: #ffffff;
-  --color-secondary: #2A2540;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #3A3555;
-  --color-muted-foreground: #C4B5FD;
-  --color-accent: #7748F6;
-  --color-accent-foreground: #ffffff;
-  --color-border: #3A3555;
-  --color-input: #3A3555;
-  --color-ring: #7748F6;
 }
 
 /* Base Styles */
