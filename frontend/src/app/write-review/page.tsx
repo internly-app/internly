@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/components/AuthProvider";
 import { useCreateReview } from "@/hooks/useReviews";
 import { TechnologyAutocomplete } from "@/components/TechnologyAutocomplete";
+import { CompanyAutocomplete } from "@/components/CompanyAutocomplete";
 
 export default function WriteReviewPage() {
   const router = useRouter();
@@ -63,59 +64,12 @@ export default function WriteReviewPage() {
   const [fieldErrors, setFieldErrors] = useState<{
     company_id?: string;
     role_id?: string;
+    roleName?: string;
   }>({});
   
   // Submission error (for API/network errors)
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  // Companies and roles (would be fetched from API in production)
-  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
-  const [roles, setRoles] = useState<Array<{ id: string; title: string }>>([]);
-  const [loadingCompanies, setLoadingCompanies] = useState(false);
-  const [loadingRoles, setLoadingRoles] = useState(false);
-
-  // Fetch companies on mount
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      setLoadingCompanies(true);
-      try {
-        const response = await fetch("/api/companies");
-        if (response.ok) {
-          const data = await response.json();
-          setCompanies(data.companies || []);
-        }
-      } catch (err) {
-        console.error("Failed to fetch companies:", err);
-      } finally {
-        setLoadingCompanies(false);
-      }
-    };
-    fetchCompanies();
-  }, []);
-
-  // Fetch roles when company is selected
-  useEffect(() => {
-    if (!formData.company_id) {
-      setRoles([]);
-      return;
-    }
-
-    const fetchRoles = async () => {
-      setLoadingRoles(true);
-      try {
-        const response = await fetch(`/api/roles?company_id=${formData.company_id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setRoles(data.roles || []);
-        }
-      } catch (err) {
-        console.error("Failed to fetch roles:", err);
-      } finally {
-        setLoadingRoles(false);
-      }
-    };
-    fetchRoles();
-  }, [formData.company_id]);
 
   const handleNext = () => {
     if (step < 5) setStep(step + 1);
@@ -131,12 +85,12 @@ export default function WriteReviewPage() {
     setSubmissionError(null);
 
     // Validate required fields
-    const errors: { company_id?: string; role_id?: string } = {};
+    const errors: { company_id?: string; roleName?: string } = {};
     if (!formData.company_id) {
       errors.company_id = "Please select a company";
     }
-    if (!formData.role_id) {
-      errors.role_id = "Please select a role";
+    if (!formData.roleName || !formData.roleName.trim()) {
+      errors.roleName = "Please enter a role name";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -145,9 +99,29 @@ export default function WriteReviewPage() {
     }
 
     try {
+      // Create or get role
+      const roleResponse = await fetch("/api/roles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: formData.roleName.trim(),
+          company_id: formData.company_id,
+          slug: formData.roleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        }),
+      });
+
+      if (!roleResponse.ok) {
+        const error = await roleResponse.json();
+        throw new Error(error.error || "Failed to create role");
+      }
+
+      const role = await roleResponse.json();
+
       const reviewData = {
         company_id: formData.company_id,
-        role_id: formData.role_id,
+        role_id: role.id,
         location: formData.location,
         term: formData.term,
         work_style: formData.work_style,
@@ -187,7 +161,7 @@ export default function WriteReviewPage() {
     }
   };
 
-  const canProceedFromStep1 = formData.company_id && formData.role_id;
+  const canProceedFromStep1 = formData.company_id && formData.roleName && formData.roleName.trim();
   const canProceedFromStep2 = formData.location && formData.term;
   const canProceedFromStep3 = formData.summary && formData.best && formData.hardest;
   const canProceedFromStep5 = formData.interview_rounds_description && formData.interview_tips;
@@ -300,15 +274,13 @@ export default function WriteReviewPage() {
                   <label htmlFor="company" className="text-sm font-medium">
                     Company *
                   </label>
-                  <select
-                    id="company"
+                  <CompanyAutocomplete
                     value={formData.company_id}
-                    onChange={(e) => {
-                      const selectedCompany = companies.find(c => c.id === e.target.value);
+                    onChange={(companyId, companyName) => {
                       setFormData({
                         ...formData,
-                        company_id: e.target.value,
-                        companyName: selectedCompany?.name || "",
+                        company_id: companyId,
+                        companyName: companyName,
                         role_id: "", // Reset role when company changes
                         roleName: "",
                       });
@@ -317,62 +289,42 @@ export default function WriteReviewPage() {
                         setFieldErrors((prev) => ({ ...prev, company_id: undefined }));
                       }
                     }}
-                    disabled={loadingCompanies}
-                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                      fieldErrors.company_id
-                        ? "border-destructive focus-visible:ring-destructive"
-                        : "border-input"
-                    }`}
-                  >
-                    <option value="">Select a company...</option>
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.company_id && (
-                    <p className="mt-1 text-sm text-destructive">{fieldErrors.company_id}</p>
-                  )}
+                    placeholder="Type to search companies..."
+                    error={fieldErrors.company_id}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="role" className="text-sm font-medium">
                     Role *
                   </label>
-                  <select
+                  <Input
                     id="role"
-                    value={formData.role_id}
+                    type="text"
+                    placeholder="e.g., Software Engineering Intern, Product Design Intern..."
+                    value={formData.roleName}
                     onChange={(e) => {
-                      const selectedRole = roles.find(r => r.id === e.target.value);
                       setFormData({
                         ...formData,
-                        role_id: e.target.value,
-                        roleName: selectedRole?.title || "",
+                        roleName: e.target.value,
+                        role_id: "", // Clear role_id when user types
                       });
-                      // Clear error when user selects
-                      if (fieldErrors.role_id) {
-                        setFieldErrors((prev) => ({ ...prev, role_id: undefined }));
+                      // Clear error when user types
+                      if (fieldErrors.role_id || fieldErrors.roleName) {
+                        setFieldErrors((prev) => ({ ...prev, role_id: undefined, roleName: undefined }));
                       }
                     }}
-                    disabled={!formData.company_id || loadingRoles}
-                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                      fieldErrors.role_id
-                        ? "border-destructive focus-visible:ring-destructive"
-                        : "border-input"
-                    }`}
-                  >
-                    <option value="">Select a role...</option>
-                    {roles.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.title}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.role_id && (
-                    <p className="mt-1 text-sm text-destructive">{fieldErrors.role_id}</p>
+                    disabled={!formData.company_id}
+                    className={
+                      fieldErrors.roleName || fieldErrors.role_id
+                        ? "border-destructive"
+                        : ""
+                    }
+                  />
+                  {(fieldErrors.roleName || fieldErrors.role_id) && (
+                    <p className="mt-1 text-sm text-destructive">{fieldErrors.roleName || fieldErrors.role_id}</p>
                   )}
-                  {!formData.company_id && !fieldErrors.role_id && (
+                  {!formData.company_id && !fieldErrors.roleName && !fieldErrors.role_id && (
                     <p className="text-xs text-muted-foreground">
                       Please select a company first
                     </p>
