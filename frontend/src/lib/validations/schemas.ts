@@ -6,11 +6,25 @@
  */
 
 import { z } from "zod";
+import {
+  validateCompanyName,
+  validateRoleName,
+  validateReviewContent,
+  sanitizeText,
+} from "@/lib/security/content-filter";
 
 // ==================== Company & Role Schemas ====================
 
 export const companyCreateSchema = z.object({
-  name: z.string().min(1, "Company name is required").max(200),
+  name: z
+    .string()
+    .min(1, "Company name is required")
+    .max(200)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => validateCompanyName(val).isValid,
+      (val) => ({ message: validateCompanyName(val).reason || "Invalid company name" })
+    ),
   slug: z
     .string()
     .min(1)
@@ -22,7 +36,15 @@ export const companyCreateSchema = z.object({
 });
 
 export const roleCreateSchema = z.object({
-  title: z.string().min(1, "Role title is required").max(200),
+  title: z
+    .string()
+    .min(1, "Role title is required")
+    .max(200)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => validateRoleName(val).isValid,
+      (val) => ({ message: validateRoleName(val).reason || "Invalid role name" })
+    ),
   slug: z
     .string()
     .min(1)
@@ -46,14 +68,89 @@ export const reviewCreateSchema = z.object({
   duration_months: z.number().int().min(1).max(24).optional(),
   work_style: z.enum(["onsite", "hybrid", "remote"]),
   work_hours: z.enum(["full-time", "part-time"]).optional(),
-  team_name: z.string().max(200).optional(),
-  technologies: z.string().max(500).optional(),
+  team_name: z
+    .string()
+    .max(200)
+    .optional()
+    .transform((val) => (val ? sanitizeText(val) : val))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const validation = validateRoleName(val); // Reuse role validation for team names
+        return validation.isValid;
+      },
+      (val) => {
+        const validation = validateRoleName(val || "");
+        return { message: validation.reason || "Team name contains inappropriate content" };
+      }
+    ),
+  technologies: z
+    .string()
+    .max(500)
+    .optional()
+    .transform((val) => (val ? sanitizeText(val) : val)),
 
   // Written content (no minimum length required)
-  summary: z.string().max(2000),
-  hardest: z.string().max(1000),
-  best: z.string().max(1000),
-  advice: z.string().max(1000),
+  summary: z
+    .string()
+    .max(2000)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => {
+        if (!val) return true; // Empty is allowed
+        const validation = validateReviewContent(val, "Summary");
+        return validation.isValid;
+      },
+      (val) => {
+        const validation = validateReviewContent(val, "Summary");
+        return { message: validation.reason || "Summary contains inappropriate content" };
+      }
+    ),
+  hardest: z
+    .string()
+    .max(1000)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const validation = validateReviewContent(val, "Hardest part");
+        return validation.isValid;
+      },
+      (val) => {
+        const validation = validateReviewContent(val, "Hardest part");
+        return { message: validation.reason || "Hardest part contains inappropriate content" };
+      }
+    ),
+  best: z
+    .string()
+    .max(1000)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const validation = validateReviewContent(val, "Best part");
+        return validation.isValid;
+      },
+      (val) => {
+        const validation = validateReviewContent(val, "Best part");
+        return { message: validation.reason || "Best part contains inappropriate content" };
+      }
+    ),
+  advice: z
+    .string()
+    .max(1000)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const validation = validateReviewContent(val, "Advice");
+        return validation.isValid;
+      },
+      (val) => {
+        const validation = validateReviewContent(val, "Advice");
+        return { message: validation.reason || "Advice contains inappropriate content" };
+      }
+    ),
 
   // Compensation (optional)
   wage_hourly: z.number().positive().optional(),
@@ -64,8 +161,36 @@ export const reviewCreateSchema = z.object({
 
   // Interview (required, no minimum length)
   interview_round_count: z.number().int().min(0).max(20),
-  interview_rounds_description: z.string().max(1000),
-  interview_tips: z.string().max(1000),
+  interview_rounds_description: z
+    .string()
+    .max(1000)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const validation = validateReviewContent(val, "Interview description");
+        return validation.isValid;
+      },
+      (val) => {
+        const validation = validateReviewContent(val, "Interview description");
+        return { message: validation.reason || "Interview description contains inappropriate content" };
+      }
+    ),
+  interview_tips: z
+    .string()
+    .max(1000)
+    .transform((val) => sanitizeText(val))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const validation = validateReviewContent(val, "Interview tips");
+        return validation.isValid;
+      },
+      (val) => {
+        const validation = validateReviewContent(val, "Interview tips");
+        return { message: validation.reason || "Interview tips contains inappropriate content" };
+      }
+    ),
 });
 
 export const reviewUpdateSchema = reviewCreateSchema

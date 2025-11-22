@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function AuthCallbackPage() {
@@ -116,11 +122,11 @@ export default function AuthCallbackPage() {
             <CardTitle className="text-2xl text-destructive">
               Authentication Error
             </CardTitle>
+            <CardDescription className="text-destructive/80">
+              {error}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
             <Button
               onClick={() => router.push("/")}
               className="w-full"
@@ -138,6 +144,9 @@ export default function AuthCallbackPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Signing you in...</CardTitle>
+          <CardDescription>
+            Please wait while we complete your authentication
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center py-6">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />

@@ -5,6 +5,12 @@ import {
   reviewsQuerySchema,
 } from "@/lib/validations/schemas";
 import type { ReviewWithDetails } from "@/lib/types/database";
+import {
+  checkRateLimit,
+  getClientIdentifier,
+  getIpAddress,
+  RATE_LIMITS,
+} from "@/lib/security/rate-limit";
 
 /**
  * POST /api/reviews
@@ -22,6 +28,29 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limiting
+    const ipAddress = getIpAddress(request);
+    const identifier = getClientIdentifier(user.id, ipAddress);
+    const rateLimit = checkRateLimit(identifier, RATE_LIMITS.CREATE_REVIEW);
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "Too many requests. Please try again later.",
+          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+            "X-RateLimit-Limit": RATE_LIMITS.CREATE_REVIEW.maxRequests.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": rateLimit.resetTime.toString(),
+          },
+        }
+      );
     }
 
     // Parse and validate request body
