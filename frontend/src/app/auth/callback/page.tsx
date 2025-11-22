@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSupabaseBrowserClient } from "@/lib/supabase/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -12,9 +14,8 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const supabase = getSupabaseBrowserClient();
+        const supabase = createClient();
 
-        // Check for error from OAuth provider
         const errorParam = searchParams.get("error");
         const errorDescription = searchParams.get("error_description");
         const errorCode = searchParams.get("error_code");
@@ -29,7 +30,6 @@ export default function AuthCallbackPage() {
           };
           console.error("OAuth error details:", fullError);
 
-          // User-friendly error messages
           let userMessage = errorDescription || errorParam;
           if (
             errorParam === "server_error" &&
@@ -41,8 +41,8 @@ export default function AuthCallbackPage() {
 
           setError(userMessage);
           return;
-        } // For OAuth, Supabase handles the code exchange automatically via URL hash
-        // We just need to check if there's a session now
+        }
+
         const {
           data: { session },
           error: sessionError,
@@ -55,7 +55,6 @@ export default function AuthCallbackPage() {
         }
 
         if (!session) {
-          // No session yet, might still be processing. Give it a moment.
           await new Promise((resolve) => setTimeout(resolve, 500));
           const {
             data: { session: retrySession },
@@ -68,7 +67,6 @@ export default function AuthCallbackPage() {
           }
         }
 
-        // Check for redirect cookie or query param
         const getCookie = (name: string) => {
           const value = `; ${document.cookie}`;
           const parts = value.split(`; ${name}=`);
@@ -78,32 +76,27 @@ export default function AuthCallbackPage() {
 
         const cookieRedirect = getCookie("post_auth_redirect");
         let redirectPath =
-          searchParams.get("redirect") ?? cookieRedirect ?? "/reviews/new";
+          searchParams.get("redirect") ?? cookieRedirect ?? "/";
 
-        // Decode if it's URL-encoded
         try {
           redirectPath = decodeURIComponent(redirectPath);
         } catch {
           console.warn("Could not decode redirect path:", redirectPath);
         }
 
-        // Ensure it starts with / and doesn't have double slashes
         if (!redirectPath.startsWith("/")) {
           redirectPath = "/" + redirectPath;
         }
         redirectPath = redirectPath.replace(/\/+/g, "/");
 
-        // Clear the redirect cookie
         if (cookieRedirect) {
           document.cookie = "post_auth_redirect=; path=/; max-age=0";
         }
 
         console.log("Redirecting to:", redirectPath);
 
-        // Small delay to ensure session is fully propagated to UI
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Redirect to the target page
         router.push(redirectPath);
         router.refresh();
       } catch (err) {
@@ -117,32 +110,39 @@ export default function AuthCallbackPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-        <div className="max-w-md rounded-xl border border-red-800 bg-red-900/30 p-6 text-center">
-          <h1 className="mb-2 text-xl font-bold text-red-300">
-            Authentication Error
-          </h1>
-          <p className="mb-4 text-sm text-red-400">{error}</p>
-          <button
-            onClick={() => router.push("/reviews/new")}
-            className="rounded-lg bg-red-500 px-4 py-2 font-semibold text-white transition hover:bg-red-400"
-          >
-            Back to Login
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-destructive">
+              Authentication Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+            <Button
+              onClick={() => router.push("/")}
+              className="w-full"
+            >
+              Back to Home
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <div className="text-center">
-        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-400"></div>
-        <h1 className="mb-2 text-xl font-semibold text-white">
-          Signing you in...
-        </h1>
-        <p className="text-sm text-gray-400">Please wait a moment</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Signing you in...</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-6">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </CardContent>
+      </Card>
     </div>
   );
 }

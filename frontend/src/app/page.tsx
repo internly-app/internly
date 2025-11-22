@@ -1,141 +1,88 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Navigation from "@/components/Navigation";
+import HeroSection from "@/components/HeroSection";
+import CompanyCarousel from "@/components/CompanyCarousel";
+import ReviewCard from "@/components/ReviewCard";
+import { Button } from "@/components/ui/button";
 import { useReviews } from "@/hooks/useReviews";
-import { ReviewCard } from "@/components/ReviewCard";
-import { ReviewModal } from "@/components/ReviewModal";
-import { UserProfileDisplay } from "@/components/UserProfileDisplay";
-import { useAuth } from "@/components/auth/AuthProvider";
-import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const [sort, setSort] = useState<"likes" | "recent">("likes");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { reviews, total, loading, error } = useReviews({ sort, limit: 20 });
-  const { user } = useAuth();
-
-  // Check if we should open the modal from localStorage
-  useEffect(() => {
-    if (!user) return;
-
-    const shouldOpenModal = localStorage.getItem("openReviewModal") === "true";
-    if (shouldOpenModal) {
-      localStorage.removeItem("openReviewModal");
-      setIsModalOpen(true);
-    }
-  }, [user]);
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-gray-200">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading reviews...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-gray-950 text-gray-200">
-        <div className="max-w-md w-full bg-red-900/30 border border-red-700 rounded-lg p-6 text-center">
-          <p className="text-red-400 font-semibold mb-2">
-            Error loading reviews
-          </p>
-          <p className="text-red-500 text-sm">{error}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-gray-100">
-      {/* Header */}
-      <header className="bg-gray-900/80 border-b border-gray-800 sticky top-0 z-10 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Internly</h1>
-            <div className="flex items-center gap-3">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
-                  >
-                    Write Review
-                  </button>
-                  <UserProfileDisplay />
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/signin?redirect=review"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/30 cursor-pointer"
-                  >
-                    Write Review
-                  </Link>
-                  <Link
-                    href="/signin"
-                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium cursor-pointer"
-                  >
-                    Sign In
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen">
+      <Navigation />
+      <HeroSection />
+      <CompanyCarousel />
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Controls */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-white">
-              {total} {total === 1 ? "Review" : "Reviews"}
+      {/* Reviews Section */}
+      <section id="reviews" className="py-24 px-6 bg-background transition-colors duration-300">
+        <div className="max-w-[100rem] mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-heading-1 mb-4 text-foreground">
+              Latest Reviews
             </h2>
-            <p className="text-sm text-gray-400">
-              Real internship experiences from students
+            <p className="text-lg md:text-xl max-w-2xl mx-auto text-muted-foreground">
+              Real experiences from students who&apos;ve interned at top companies
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-400">Sort by:</label>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as "likes" | "recent")}
-              className="px-3 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-            >
-              <option value="likes">Most Liked</option>
-              <option value="recent">Most Recent</option>
-            </select>
+          {/* Loading State */}
+          {loading && (
+            <div className="grid gap-6 max-w-4xl mx-auto">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-64 w-full rounded-lg" />
+              ))}
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-destructive">Error loading reviews: {error}</p>
+            </div>
+          )}
+
+          {/* Reviews Grid */}
+          {!loading && !error && reviews.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">No reviews yet</p>
+              <Button
+                asChild
+              >
+                <a href="/signin?redirect=review">Be the first to write a review</a>
+              </Button>
+            </div>
+          )}
+
+          {!loading && !error && reviews.length > 0 && (
+            <div className="grid gap-6 max-w-4xl mx-auto">
+              {reviews.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-6 bg-background border-t border-border">
+        <div className="max-w-[100rem] mx-auto">
+          <div className="flex flex-col gap-6">
+            <div className="text-sm text-muted-foreground font-semibold">
+              © 2025 Tejas Thind and Srinikesh Singarapu. All rights reserved.
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Want to see a company added or noticed a bug? Feel free to contact us.
+            </div>
           </div>
         </div>
-
-        {/* Reviews List */}
-        {reviews.length === 0 ? (
-          <div className="bg-gray-900/70 rounded-lg border border-gray-800 p-12 text-center">
-            <p className="text-gray-400 mb-4">No reviews yet</p>
-            <Link
-              href="/reviews/new"
-              className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium shadow-lg shadow-blue-500/20"
-            >
-              Be the first to write a review
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-          </div>
-        )}
-      </main>
-
-      {/* Review Modal */}
-      <ReviewModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-    </div>
+      </footer>
+    </main>
   );
 }

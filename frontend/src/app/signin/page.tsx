@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthPanel } from "@/components/auth/AuthPanel";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -12,66 +14,87 @@ export default function SignInPage() {
   const { user, loading } = useAuth();
   const redirectParam = searchParams.get("redirect");
 
-  // Set the modal flag immediately if redirect=review (even before auth check)
+  // Set up redirect for review modal if needed
   useEffect(() => {
     if (redirectParam === "review") {
       localStorage.setItem("openReviewModal", "true");
     }
   }, [redirectParam]);
 
+  // Redirect if already authenticated
   useEffect(() => {
-    // If user is authenticated, redirect to home
     if (!loading && user) {
       router.push("/");
     }
   }, [user, loading, router]);
 
+  // Show loading skeleton while checking auth
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-gray-200">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="h-11 bg-muted animate-pulse rounded-md" />
+              <div className="h-11 bg-muted animate-pulse rounded-md" />
+              <div className="h-11 bg-muted animate-pulse rounded-md" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  // Only show auth panel if user is not authenticated
+  // Don't render if user is authenticated (will redirect)
   if (user) {
-    return null; // Will redirect via useEffect
+    return null;
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-gray-100">
-      <header className="bg-gray-900/80 border-b border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="text-blue-300 hover:text-blue-200 text-sm transition-colors"
-          >
-            ← Back to reviews
-          </Link>
-        </div>
-      </header>
+  const redirectTo = redirectParam === "review" ? "/" : (redirectParam || "/");
 
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="bg-gray-900/70 rounded-xl border border-gray-800 p-6 sm:p-8 text-center space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              {redirectParam === "review"
-                ? "Sign in to write a review"
-                : "Sign in to Internly"}
-            </h1>
-            <p className="text-gray-400">
-              {redirectParam === "review"
-                ? "Reviews are tied to your account so employers can trust the source"
-                : "Access your account to like reviews and manage your profile"}
-            </p>
-          </div>
-          <AuthPanel redirectTo="/" />
-        </div>
-      </main>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
+      {/* Back Button */}
+      <div className="w-full max-w-md mb-4">
+        <Button variant="ghost" asChild className="hover:bg-muted transition-all duration-200 active:scale-95">
+          <Link href="/">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-2"
+            >
+              <path d="m12 19-7-7 7-7" />
+              <path d="M19 12H5" />
+            </svg>
+            Back to home
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">
+            {redirectParam === "review"
+              ? "Sign in to write a review"
+              : "Sign in to Internly"}
+          </CardTitle>
+          <CardDescription>
+            {redirectParam === "review"
+              ? "Share your internship experience with fellow students"
+              : "Sign in with Google or create an account to get started"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AuthPanel redirectTo={redirectTo} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

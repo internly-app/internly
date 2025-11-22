@@ -140,7 +140,7 @@ export function TechnologyAutocomplete({
   return (
     <div className={`relative ${className}`}>
       {/* Input with tags */}
-      <div className="flex flex-wrap gap-2 px-4 py-2 border border-gray-700 rounded-lg bg-gray-950 text-gray-100 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent min-h-[42px]">
+      <div className="flex flex-wrap gap-2 px-4 py-2 border border-input rounded-lg bg-background text-foreground focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent min-h-[42px]">
         {/* Selected tags */}
         {selectedTechs.map((tech) => (
           <span
@@ -180,7 +180,7 @@ export function TechnologyAutocomplete({
           onKeyDown={handleKeyDown}
           onFocus={() => setIsOpen(inputValue.length > 0 || filteredOptions.length > 0)}
           placeholder={selectedTechs.length === 0 ? placeholder : ""}
-          className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-gray-500"
+          className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-muted-foreground"
         />
       </div>
 
@@ -188,7 +188,7 @@ export function TechnologyAutocomplete({
       {isOpen && (filteredOptions.length > 0 || inputValue.trim()) && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-gray-900 border border-gray-700 rounded-lg shadow-lg"
+          className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-popover border border-border rounded-lg shadow-lg"
         >
           {/* Suggestions from list */}
           {filteredOptions.slice(0, 10).map((tech) => (
@@ -196,7 +196,7 @@ export function TechnologyAutocomplete({
               key={tech}
               type="button"
               onClick={() => handleSelect(tech)}
-              className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 focus:bg-gray-800 focus:outline-none"
+              className="w-full text-left px-4 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
             >
               {tech}
             </button>
@@ -211,10 +211,10 @@ export function TechnologyAutocomplete({
               <button
                 type="button"
                 onClick={() => handleSelect(inputValue.trim())}
-                className="w-full text-left px-4 py-2 text-sm text-blue-300 hover:bg-gray-800 focus:bg-gray-800 focus:outline-none border-t border-gray-700"
+                className="w-full text-left px-4 py-2 text-sm text-accent hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none border-t border-border transition-colors"
               >
-                <span className="font-medium">Add "{inputValue.trim()}"</span>
-                <span className="text-xs text-gray-400 ml-2">(custom)</span>
+                <span className="font-medium">Add &quot;{inputValue.trim()}&quot;</span>
+                <span className="text-xs text-muted-foreground ml-2">(custom)</span>
               </button>
             )}
         </div>

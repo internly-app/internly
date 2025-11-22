@@ -1,20 +1,39 @@
 "use client";
 
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { ReviewWithDetails } from "@/lib/types/database";
-import { CompanyTag } from "./CompanyTag";
-import { LikeButton } from "./LikeButton";
+import { useLikeReview } from "@/hooks/useReviews";
+import { useAuth } from "@/components/AuthProvider";
 
 interface ReviewCardProps {
   review: ReviewWithDetails;
 }
 
-export function ReviewCard({ review }: ReviewCardProps) {
+export default function ReviewCard({ review }: ReviewCardProps) {
+  const { user } = useAuth();
+  const { toggleLike, loading: likeLoading } = useLikeReview();
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
+    return new Intl.DateTimeFormat("en-US", {
       month: "short",
-    });
+      year: "numeric",
+    }).format(date);
+  };
+
+  const handleLike = async () => {
+    if (!user) {
+      window.location.href = "/signin";
+      return;
+    }
+    try {
+      await toggleLike(review.id);
+      window.location.reload(); // Temporary - should use state management
+    } catch (error) {
+      console.error("Failed to like review:", error);
+    }
   };
 
   const workStyleBadge = {
@@ -24,135 +43,176 @@ export function ReviewCard({ review }: ReviewCardProps) {
   } satisfies Record<string, string>;
 
   return (
-    <article className="bg-gray-900/70 rounded-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] border border-gray-800 p-6 hover:border-gray-700 transition-colors text-gray-100">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <CompanyTag company={review.company} role={review.role} />
-        <LikeButton
-          reviewId={review.id}
-          initialLiked={review.user_has_liked || false}
-          initialCount={review.like_count}
-        />
-      </div>
+    <Card className="hover:shadow-lg transition-shadow duration-300">
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-sm font-semibold">
+              {review.company.name[0]}
+            </div>
 
-      {/* Meta info */}
-      <div className="flex flex-wrap items-center gap-3 mb-4 text-sm text-gray-400">
-        <span
-          className={`px-3 py-1 rounded-full font-medium ${
-            workStyleBadge[review.work_style]
-          }`}
-        >
-          {review.work_style}
-        </span>
-        {review.work_hours && (
-          <>
-            <span className="px-2 py-1 rounded bg-gray-800 text-gray-300">
+            {/* Company & Position */}
+            <div>
+              <h3 className="font-semibold text-lg">{review.company.name}</h3>
+              <p className="text-sm text-muted-foreground">{review.role.title}</p>
+            </div>
+          </div>
+
+          {/* Term Badge */}
+          <Badge variant="outline" className="h-fit">
+            {review.term}
+          </Badge>
+        </div>
+
+        {/* Meta info badges */}
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <Badge
+            variant="outline"
+            className={`${workStyleBadge[review.work_style]}`}
+          >
+            {review.work_style}
+          </Badge>
+          {review.work_hours && (
+            <Badge variant="outline">
               {review.work_hours === "full-time" ? "Full-time" : "Part-time"}
-            </span>
-          </>
-        )}
-        <span>{review.location}</span>
-        <span>•</span>
-        <span>{review.term}</span>
-        {review.duration_months && (
-          <>
-            <span>•</span>
-            <span>{review.duration_months} {review.duration_months === 1 ? 'month' : 'months'}</span>
-          </>
-        )}
-        {review.team_name && (
-          <>
-            <span>•</span>
-            <span>{review.team_name}</span>
-          </>
-        )}
-        <span>•</span>
-        <span>{formatDate(review.created_at)}</span>
-      </div>
-
-      {/* Technologies */}
-      {review.technologies && (
-        <div className="mb-4">
-          <h4 className="font-semibold text-white mb-2 text-sm">Technologies</h4>
-          <p className="text-gray-300 text-sm">{review.technologies}</p>
+            </Badge>
+          )}
+          <Badge variant="outline">{review.location}</Badge>
+          {review.duration_months && (
+            <Badge variant="outline">
+              {review.duration_months} {review.duration_months === 1 ? "month" : "months"}
+            </Badge>
+          )}
+          {review.team_name && (
+            <Badge variant="outline">{review.team_name}</Badge>
+          )}
         </div>
-      )}
+      </CardHeader>
 
-      {/* Summary */}
-      <div className="mb-4">
-        <h4 className="font-semibold text-white mb-2">Summary</h4>
-        <p className="text-gray-300 leading-relaxed">{review.summary}</p>
-      </div>
+      <CardContent className="space-y-6">
+        {/* Technologies */}
+        {review.technologies && (
+          <div>
+            <h4 className="font-semibold mb-2 text-sm">Technologies</h4>
+            <p className="text-sm text-muted-foreground">{review.technologies}</p>
+          </div>
+        )}
 
-      {/* Best & Hardest */}
-      <div className="grid md:grid-cols-2 gap-4 mb-4">
+        {/* Summary */}
         <div>
-          <h4 className="font-semibold text-white mb-2">Best Part</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">{review.best}</p>
-        </div>
-        <div>
-          <h4 className="font-semibold text-white mb-2">Hardest Part</h4>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {review.hardest}
+          <h4 className="font-semibold mb-2">Summary</h4>
+          <p className="text-base leading-relaxed text-foreground">
+            {review.summary}
           </p>
         </div>
-      </div>
 
-      {/* Advice */}
-      <div className="mb-4">
-        <h4 className="font-semibold text-white mb-2">
-          Advice for Incoming Interns
-        </h4>
-        <p className="text-gray-300 text-sm leading-relaxed">{review.advice}</p>
-      </div>
-
-      {/* Interview */}
-      <div className="border-t border-gray-800 pt-4 mb-4">
-        <h4 className="font-semibold text-white mb-2">Interview Process</h4>
-        <div className="space-y-2 text-sm text-gray-300">
-          <p>
-            <span className="font-medium text-gray-100">Rounds:</span>{" "}
-            {review.interview_round_count}
-          </p>
-          <p>
-            <span className="font-medium text-gray-100">Description:</span>{" "}
-            {review.interview_rounds_description}
-          </p>
-          <p>
-            <span className="font-medium text-gray-100">Tips:</span>{" "}
-            {review.interview_tips}
-          </p>
-        </div>
-      </div>
-
-      {/* Compensation (if provided) */}
-      {(review.wage_hourly || review.housing_provided || review.perks) && (
-        <div className="border-t border-gray-800 pt-4">
-          <h4 className="font-semibold text-white mb-2">Compensation</h4>
-          <div className="space-y-1 text-sm text-gray-300">
-            {review.wage_hourly && (
-              <p>
-                <span className="font-medium text-gray-100">Hourly:</span> $
-                {review.wage_hourly.toFixed(2)} {review.wage_currency || "USD"}
-              </p>
-            )}
-            {review.housing_provided && (
-              <p>
-                <span className="font-medium text-gray-100">Housing:</span>{" "}
-                Provided
-                {review.housing_stipend &&
-                  ` ($${review.housing_stipend.toFixed(2)} stipend)`}
-              </p>
-            )}
-            {review.perks && (
-              <p>
-                <span className="font-medium text-gray-100">Perks:</span>{" "}
-                {review.perks}
-              </p>
-            )}
+        {/* Best & Hardest */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Badge variant="outline" className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800">
+              ✓ Best Part
+            </Badge>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {review.best}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Badge variant="outline" className="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800">
+              ✗ Hardest Part
+            </Badge>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {review.hardest}
+            </p>
           </div>
         </div>
-      )}
-    </article>
+
+        {/* Advice */}
+        {review.advice && (
+          <div>
+            <h4 className="font-semibold mb-2">Advice for Future Interns</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {review.advice}
+            </p>
+          </div>
+        )}
+
+        {/* Interview Process */}
+        <div className="border-t pt-4">
+          <h4 className="font-semibold mb-2">Interview Process</h4>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              <span className="font-medium text-foreground">Rounds:</span>{" "}
+              {review.interview_round_count}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Description:</span>{" "}
+              {review.interview_rounds_description}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Tips:</span>{" "}
+              {review.interview_tips}
+            </p>
+          </div>
+        </div>
+
+        {/* Compensation (if provided) */}
+        {(review.wage_hourly || review.housing_provided || review.perks) && (
+          <div className="border-t pt-4">
+            <h4 className="font-semibold mb-2">Compensation</h4>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              {review.wage_hourly && (
+                <p>
+                  <span className="font-medium text-foreground">Hourly:</span> $
+                  {review.wage_hourly.toFixed(2)} {review.wage_currency || "CAD"}
+                </p>
+              )}
+              {review.housing_provided && (
+                <p>
+                  <span className="font-medium text-foreground">Housing:</span>{" "}
+                  Provided
+                  {review.housing_stipend &&
+                    ` ($${review.housing_stipend.toFixed(2)} stipend)`}
+                </p>
+              )}
+              {review.perks && (
+                <p>
+                  <span className="font-medium text-foreground">Perks:</span>{" "}
+                  {review.perks}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+
+      <CardFooter className="flex items-center justify-between pt-6">
+        <span className="text-sm text-muted-foreground">
+          {formatDate(review.created_at)}
+        </span>
+
+        {/* Like Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLike}
+          disabled={likeLoading}
+          className="gap-2 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill={review.user_has_liked ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className={`transition-all duration-200 ${review.user_has_liked ? "text-red-500" : ""}`}
+          >
+            <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
+          </svg>
+          <span className="text-sm font-medium">{review.like_count}</span>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
