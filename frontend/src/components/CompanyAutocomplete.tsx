@@ -317,7 +317,7 @@ export function CompanyAutocomplete({
               key={companyName}
               type="button"
               onClick={() => handleSelect(companyName)}
-              className="w-full text-left px-4 py-2 text-sm text-card-foreground hover:bg-muted/30 focus:bg-muted/30 focus:outline-none transition-colors"
+              className="w-full text-left px-4 py-2 text-sm text-card-foreground hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none cursor-pointer transition-colors"
             >
               {companyName}
             </button>
@@ -328,7 +328,7 @@ export function CompanyAutocomplete({
             <button
               type="button"
               onClick={handleCreateCompany}
-              className="w-full text-left px-4 py-2 text-sm text-card-foreground hover:bg-muted/50 hover:text-foreground focus:bg-muted/50 focus:text-foreground focus:outline-none border-t border-border transition-colors"
+              className="w-full text-left px-4 py-2 text-sm text-card-foreground hover:!bg-muted hover:!text-foreground focus:!bg-muted focus:!text-foreground focus:outline-none border-t border-border cursor-pointer transition-colors"
             >
               <span className="font-medium">Add &quot;{inputValue.trim()}&quot;</span>
               <span className="text-xs text-muted-foreground ml-2">(create new)</span>
