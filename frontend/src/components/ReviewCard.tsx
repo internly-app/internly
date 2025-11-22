@@ -1,6 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ReviewWithDetails } from "@/lib/types/database";
@@ -54,15 +62,17 @@ export default function ReviewCard({ review }: ReviewCardProps) {
 
             {/* Company & Position */}
             <div>
-              <h3 className="font-semibold text-lg">{review.company.name}</h3>
-              <p className="text-sm text-muted-foreground">{review.role.title}</p>
+              <CardTitle className="text-lg">{review.company.name}</CardTitle>
+              <CardDescription>{review.role.title}</CardDescription>
             </div>
           </div>
 
           {/* Term Badge */}
-          <Badge variant="outline" className="h-fit">
-            {review.term}
-          </Badge>
+          <CardAction>
+            <Badge variant="outline" className="h-fit">
+              {review.term}
+            </Badge>
+          </CardAction>
         </div>
 
         {/* Meta info badges */}
