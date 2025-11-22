@@ -449,7 +449,7 @@ export default function WriteReviewPage() {
                     <Label htmlFor="summary">Summary *</Label>
                     <textarea
                       id="summary"
-                      placeholder="Describe your overall experience..."
+                      placeholder="Share a brief overview of your internship experience. What was the role like? What projects did you work on? What did you learn?"
                       value={formData.summary}
                       onChange={(e) =>
                         setFormData({ ...formData, summary: e.target.value })
@@ -470,7 +470,7 @@ export default function WriteReviewPage() {
                     <Label htmlFor="best">Best Part *</Label>
                     <textarea
                       id="best"
-                      placeholder="What did you enjoy most?"
+                      placeholder="What were the highlights of your internship? What did you enjoy most? (e.g., great mentorship, interesting projects, collaborative team culture, learning opportunities...)"
                       value={formData.best}
                       onChange={(e) =>
                         setFormData({ ...formData, best: e.target.value })
@@ -491,7 +491,7 @@ export default function WriteReviewPage() {
                     <Label htmlFor="hardest">Hardest Part *</Label>
                     <textarea
                       id="hardest"
-                      placeholder="What was most challenging?"
+                      placeholder="What were the biggest challenges you faced? (e.g., steep learning curve, tight deadlines, complex technical problems, communication barriers...)"
                       value={formData.hardest}
                       onChange={(e) =>
                         setFormData({ ...formData, hardest: e.target.value })
@@ -512,7 +512,7 @@ export default function WriteReviewPage() {
                     <Label htmlFor="advice">Advice for Future Interns</Label>
                     <textarea
                       id="advice"
-                      placeholder="Any tips for future interns?"
+                      placeholder="What advice would you give to future interns in this role? (e.g., skills to prepare, what to expect, how to make the most of the experience, networking tips...)"
                       value={formData.advice}
                       onChange={(e) =>
                         setFormData({ ...formData, advice: e.target.value })
@@ -571,7 +571,7 @@ export default function WriteReviewPage() {
                   </Label>
                   <textarea
                     id="interview_rounds_description"
-                    placeholder="Describe each round (e.g., Round 1: HR screening, Round 2: Technical coding challenge...)"
+                    placeholder="Describe each interview round in detail. Include: round number, type of interview (phone screen, technical, behavioral, etc.), what was discussed, duration, and difficulty level. Example: Round 1: 30-min phone screen with recruiter discussing background and interest. Round 2: 1-hour technical coding challenge on HackerRank covering algorithms and data structures..."
                     value={formData.interview_rounds_description}
                     onChange={(e) =>
                       setFormData({
@@ -595,7 +595,7 @@ export default function WriteReviewPage() {
                   <Label htmlFor="interview_tips">Interview Tips *</Label>
                   <textarea
                     id="interview_tips"
-                    placeholder="Any advice for candidates interviewing for this role?"
+                    placeholder="Share your tips and advice for candidates preparing for this interview. What should they study? What topics are commonly asked? How should they prepare? Any specific resources or strategies that helped you?"
                     value={formData.interview_tips}
                     onChange={(e) =>
                       setFormData({ ...formData, interview_tips: e.target.value })
@@ -691,7 +691,7 @@ export default function WriteReviewPage() {
                   <Label htmlFor="perks">Other Perks</Label>
                   <textarea
                     id="perks"
-                    placeholder="e.g., Free lunch, gym membership, relocation bonus..."
+                    placeholder="List any additional perks or benefits you received (e.g., free lunch, gym membership, relocation bonus, transportation allowance, stock options, health insurance, learning budget, team events...)"
                     value={formData.perks}
                     onChange={(e) =>
                       setFormData({ ...formData, perks: e.target.value })
@@ -720,12 +720,13 @@ export default function WriteReviewPage() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex-col gap-2">
+          <CardFooter>
             <div className="flex justify-between w-full">
               <Button
                 variant="outline"
                 onClick={handleBack}
                 disabled={step === 1}
+                className="w-auto"
               >
                 Back
               </Button>
@@ -738,6 +739,7 @@ export default function WriteReviewPage() {
                     (step === 2 && !canProceedFromStep2) ||
                     (step === 3 && !canProceedFromStep3)
                   }
+                  className="w-auto"
                 >
                   Next
                 </Button>
@@ -745,7 +747,7 @@ export default function WriteReviewPage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={submitting || !canProceedFromStep4}
-                  className="w-full"
+                  className="w-auto"
                 >
                   {submitting ? "Submitting..." : "Submit Review"}
                 </Button>

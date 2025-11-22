@@ -298,7 +298,7 @@ export function CompanyAutocomplete({
         }}
         placeholder={placeholder}
         disabled={disabled}
-        className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 shadow-none focus:shadow-none focus-visible:shadow-none disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ${
           error
             ? "border-destructive"
             : ""
