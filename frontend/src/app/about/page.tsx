@@ -29,7 +29,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              We're students who know how overwhelming the internship search can be. Internly exists to make that process a bit easier by connecting you with real experiences from students who've been there. We believe in transparency, community, and helping each other navigate the world of tech internships.
+              We're students who know how overwhelming the internship search can be. Internly exists to make that process a bit easier by connecting you with real experiences from students who've been there. We believe in transparency, community, and helping each other navigate the world of internships.
             </p>
             <p className="text-base leading-relaxed text-muted-foreground">
               Whether you're trying to figure out what skills to learn, how to prepare for interviews, or what to expect at a specific company, Internly gives you the insights you need to make informed decisions about your career.
@@ -118,44 +118,6 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* Values Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl mb-4">Our Values</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">Transparency</h3>
-                <p className="text-base text-muted-foreground">
-                  We believe in honest, authentic reviews that give real insights into internship experiences.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">Community</h3>
-                <p className="text-base text-muted-foreground">
-                  Students helping students. We're all in this together, sharing knowledge and supporting each other.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">Accessibility</h3>
-                <p className="text-base text-muted-foreground">
-                  Making internship information accessible to everyone, regardless of background or connections.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">Relatability</h3>
-                <p className="text-base text-muted-foreground">
-                  Reviews from people who understand the student experience, written in a way that actually makes sense.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* CTA Section */}
         <div className="text-center">
           <Card>
@@ -167,10 +129,10 @@ export default function AboutPage() {
                 Join the community and start exploring internship experiences, or share your own story to help others.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild>
+                <Button asChild className="gap-2 group">
                   <Link href="/write-review">
                     Write a Review
-                    <ArrowRight className="ml-2 size-4" />
+                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>

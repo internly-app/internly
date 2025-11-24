@@ -126,7 +126,7 @@ export default function Navigation() {
                   className="gap-2 group"
                 >
                   <Link href="/write-review">
-                    Write Review
+                    Write a Review
                     <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                 </Button>
