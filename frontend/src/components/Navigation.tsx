@@ -94,6 +94,13 @@ export default function Navigation() {
           {/* Desktop Navigation Links - Center (Absolute positioning for true center) */}
           <div className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
             <Link
+              href="/about"
+              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
+            >
+              About Us
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link
               href="#reviews"
               className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
             >
@@ -105,13 +112,6 @@ export default function Navigation() {
               className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
             >
               Companies
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-            <Link
-              href="#about"
-              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
-            >
-              About
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </div>
@@ -126,7 +126,7 @@ export default function Navigation() {
                   className="gap-2 group"
                 >
                   <Link href="/write-review">
-                    Write Review
+                    Write a Review
                     <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                 </Button>
