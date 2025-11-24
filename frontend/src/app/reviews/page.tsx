@@ -125,7 +125,7 @@ export default function ReviewsPage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
         {/* Header */}
-        <div className="mb-8 sm:mb-12 max-w-4xl mx-auto">
+        <div className="mb-8 sm:mb-12 max-w-4xl mx-auto text-center">
           <h1 className="text-heading-1 mb-4 text-foreground">Browse Reviews</h1>
           <p className="text-lg text-muted-foreground">
             Discover real internship experiences from students. Filter by company, role, location, and more.
