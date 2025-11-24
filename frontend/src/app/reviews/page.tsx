@@ -303,9 +303,9 @@ export default function ReviewsPage() {
         
         {/* Reviews Grid */}
         {!loading && !error && filteredReviews.length > 0 && (
-          <div className="grid gap-6 max-w-4xl mx-auto">
+          <div className="grid gap-4 max-w-4xl mx-auto">
             {filteredReviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
+              <ReviewCard key={review.id} review={review} compact={true} />
             ))}
           </div>
         )}
