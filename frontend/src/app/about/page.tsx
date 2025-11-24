@@ -18,7 +18,7 @@ export default function AboutPage() {
             About Internly
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Your go-to platform for discovering real internship experiences from students like you
+            Discover real internship experiences from students like you
           </p>
         </div>
 
