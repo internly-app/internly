@@ -23,6 +23,9 @@
 
   /* Aurora Animation */
   --animate-aurora: aurora 60s linear infinite;
+
+  /* Gradient Border Animation */
+  --animate-gradient-border: gradient-border 4s ease infinite;
 }
 
 @keyframes aurora {
@@ -32,6 +35,31 @@
   to {
     background-position: 350% 50%, 350% 50%;
   }
+}
+
+@keyframes gradient-border {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
 }
 
 /* Dark Mode - Default */
