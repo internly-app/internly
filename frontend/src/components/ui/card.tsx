@@ -9,20 +9,12 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative rounded-xl p-[0.5px] transition-shadow duration-300 hover:shadow-[0_0_40px_rgba(124,58,237,0.25),0_0_20px_rgba(124,58,237,0.1)]",
+      "rounded-xl bg-card text-card-foreground border border-border shadow-sm",
       className
     )}
-    style={{
-      background:
-        "linear-gradient(135deg, #522081 0%, #7c3aed 25%, #8b5cf6 50%, #a78bfa 75%, #6d28d9 100%)",
-      backgroundSize: "200% 200%",
-      animation: "gradient-shift 3s ease infinite",
-    }}
     {...props}
   >
-    <div className="relative z-10 rounded-xl bg-card text-card-foreground shadow h-full w-full">
-      {children}
-    </div>
+    {children}
   </div>
 ))
 Card.displayName = "Card"

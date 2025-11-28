@@ -33,7 +33,7 @@ export default function Home() {
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Search className="size-6 text-primary" />
-                </div>
+            </div>
                 <CardTitle>Browse Reviews</CardTitle>
                 <CardDescription>
                   Search and filter through hundreds of internship reviews. Find exactly what you&apos;re looking for.
@@ -54,7 +54,7 @@ export default function Home() {
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <FileText className="size-6 text-primary" />
-                </div>
+            </div>
                 <CardTitle>Share Your Experience</CardTitle>
                 <CardDescription>
                   Help other students by sharing your internship experience. Your insights make a difference.
@@ -84,11 +84,11 @@ export default function Home() {
               <CardContent>
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/about">Learn More</Link>
-                </Button>
+              </Button>
               </CardContent>
             </Card>
           </div>
-        </div>
+            </div>
       </section>
 
       {/* CTA Section */}
@@ -112,7 +112,7 @@ export default function Home() {
                 <Button asChild size="lg" variant="outline">
                   <Link href="/write-review">Write a Review</Link>
                 </Button>
-              </div>
+            </div>
             </CardContent>
           </Card>
         </div>
@@ -127,7 +127,7 @@ export default function Home() {
             </div>
             <div className="text-sm text-muted-foreground">
               Want to see a company added or noticed a bug? Feel free to contact us.
-            </div>
+          </div>
           </div>
         </div>
       </footer>

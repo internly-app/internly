@@ -27,13 +27,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               // Always use dark mode
-              document.documentElement.classList.add('dark');
+                  document.documentElement.classList.add('dark');
             `,
           }}
         />
       </head>
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

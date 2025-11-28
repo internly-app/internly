@@ -68,9 +68,9 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
   // Compact view
   if (compact) {
-    return (
+  return (
       <Card
-        className="hover:shadow-lg transition-all duration-300 cursor-pointer"
+        className="transition-all duration-200 cursor-pointer hover:shadow-md"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <CardHeader className="pb-3">
@@ -98,15 +98,15 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             <Badge variant="outline" className="h-fit flex-shrink-0">
               {review.term}
             </Badge>
-          </div>
+      </div>
 
           {/* Key Info Badges */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <Badge
               variant="outline"
               className={`text-xs ${workStyleBadge[review.work_style]}`}
-            >
-              {review.work_style}
+        >
+          {review.work_style}
             </Badge>
             {review.work_hours && (
               <Badge variant="outline" className="text-xs">
@@ -146,7 +146,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
         <CardFooter className="flex items-center justify-between pt-0 pb-3">
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>{formatDate(review.created_at)}</span>
+        <span>{formatDate(review.created_at)}</span>
             <Button
               variant="ghost"
               size="sm"
@@ -174,7 +174,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             ) : (
               <ChevronDown className="size-4" />
             )}
-          </div>
+      </div>
         </CardFooter>
 
         {/* Expanded Content */}
@@ -186,9 +186,9 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {review.summary}
               </p>
-            </div>
+      </div>
 
-            {/* Best & Hardest */}
+      {/* Best & Hardest */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Badge
@@ -287,7 +287,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
   // Full view (original implementation for detail pages)
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-300">
+    <Card>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
@@ -299,7 +299,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             />
 
             {/* Company & Position */}
-            <div>
+        <div>
               <CardTitle className="text-lg">{review.company.name}</CardTitle>
               <CardDescription>{review.role.title}</CardDescription>
             </div>
@@ -371,68 +371,68 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               ✗ Hardest Part
             </Badge>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {review.hardest}
-            </p>
-          </div>
+            {review.hardest}
+          </p>
         </div>
+      </div>
 
-        {/* Advice */}
+      {/* Advice */}
         {review.advice && (
           <div>
             <h4 className="font-semibold mb-2">Advice for Future Interns</h4>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {review.advice}
             </p>
-          </div>
+      </div>
         )}
 
         {/* Interview Process */}
         <div className="border-t pt-4">
           <h4 className="font-semibold mb-2">Interview Process</h4>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>
+          <p>
               <span className="font-medium text-foreground">Rounds:</span>{" "}
-              {review.interview_round_count}
-            </p>
-            <p>
+            {review.interview_round_count}
+          </p>
+          <p>
               <span className="font-medium text-foreground">Description:</span>{" "}
-              {review.interview_rounds_description}
-            </p>
-            <p>
+            {review.interview_rounds_description}
+          </p>
+          <p>
               <span className="font-medium text-foreground">Tips:</span>{" "}
-              {review.interview_tips}
-            </p>
-          </div>
+            {review.interview_tips}
+          </p>
         </div>
+      </div>
 
-        {/* Compensation (if provided) */}
-        {(review.wage_hourly || review.housing_provided || review.perks) && (
+      {/* Compensation (if provided) */}
+      {(review.wage_hourly || review.housing_provided || review.perks) && (
           <div className="border-t pt-4">
             <h4 className="font-semibold mb-2">Compensation</h4>
             <div className="space-y-1 text-sm text-muted-foreground">
-              {review.wage_hourly && (
-                <p>
+            {review.wage_hourly && (
+              <p>
                   <span className="font-medium text-foreground">Hourly:</span> $
                   {review.wage_hourly.toFixed(2)} {review.wage_currency || "CAD"}
-                </p>
-              )}
-              {review.housing_provided && (
-                <p>
+              </p>
+            )}
+            {review.housing_provided && (
+              <p>
                   <span className="font-medium text-foreground">Housing:</span>{" "}
-                  Provided
-                  {review.housing_stipend &&
-                    ` ($${review.housing_stipend.toFixed(2)} stipend)`}
-                </p>
-              )}
-              {review.perks && (
-                <p>
+                Provided
+                {review.housing_stipend &&
+                  ` ($${review.housing_stipend.toFixed(2)} stipend)`}
+              </p>
+            )}
+            {review.perks && (
+              <p>
                   <span className="font-medium text-foreground">Perks:</span>{" "}
-                  {review.perks}
-                </p>
-              )}
-            </div>
+                {review.perks}
+              </p>
+            )}
           </div>
-        )}
+        </div>
+      )}
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-6">

@@ -7,6 +7,8 @@ import ReviewCard from "@/components/ReviewCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useReviews } from "@/hooks/useReviews";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -140,104 +142,102 @@ export default function ReviewsPage() {
               Search & Filters
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Search Bar */}
-            <div className="grid gap-2">
-              <Label htmlFor="search">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  type="text"
-                  placeholder="Search by company, role, location, technologies..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-10"
-                  maxLength={200}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Clear search"
-                  >
-                    <X className="size-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            {/* Filters Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Company Filter */}
-              <div className="grid gap-2">
-                <Label htmlFor="company">Company</Label>
-                <select
-                  id="company"
-                  value={companyFilter}
-                  onChange={(e) => setCompanyFilter(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                >
-                  <option value="">All companies</option>
-                  {loadingCompanies ? (
-                    <option value="loading" disabled>Loading...</option>
-                  ) : (
-                    companies
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map((company) => (
-                        <option key={company.id} value={company.id}>
-                          {company.name}
-                        </option>
-                      ))
+          <CardContent>
+            <FieldGroup>
+              {/* Search Bar */}
+              <Field>
+                <FieldLabel htmlFor="search">Search</FieldLabel>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    type="text"
+                    placeholder="Search by company, role, location, technologies..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-10"
+                    maxLength={200}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X className="size-4" />
+                    </button>
                   )}
-                </select>
-              </div>
+                </div>
+              </Field>
               
-              {/* Work Style Filter */}
-              <div className="grid gap-2">
-                <Label htmlFor="work_style">Work Style</Label>
-                <select
-                  id="work_style"
-                  value={workStyleFilter}
-                  onChange={(e) => setWorkStyleFilter(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                >
-                  <option value="">All styles</option>
-                  <option value="onsite">Onsite</option>
-                  <option value="hybrid">Hybrid</option>
-                  <option value="remote">Remote</option>
-                </select>
-              </div>
-              
-              {/* Sort */}
-              <div className="grid gap-2">
-                <Label htmlFor="sort">Sort By</Label>
-                <select
-                  id="sort"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as "likes" | "recent")}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                >
-                  <option value="likes">Most Liked</option>
-                  <option value="recent">Most Recent</option>
-                </select>
-              </div>
-              
-              {/* Clear Filters */}
-              <div className="grid gap-2">
-                <Label className="opacity-0">Actions</Label>
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    onClick={clearFilters}
-                    className="w-full"
+              {/* Filters Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Company Filter */}
+                <Field>
+                  <FieldLabel htmlFor="company">Company</FieldLabel>
+                  <Select
+                    id="company"
+                    value={companyFilter}
+                    onChange={(e) => setCompanyFilter(e.target.value)}
                   >
-                    <X className="size-4 mr-2" />
-                    Clear Filters
-                  </Button>
-                )}
+                    <option value="">All companies</option>
+                    {loadingCompanies ? (
+                      <option value="loading" disabled>Loading...</option>
+                    ) : (
+                      companies
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((company) => (
+                          <option key={company.id} value={company.id}>
+                            {company.name}
+                          </option>
+                        ))
+                    )}
+                  </Select>
+                </Field>
+                
+                {/* Work Style Filter */}
+                <Field>
+                  <FieldLabel htmlFor="work_style">Work Style</FieldLabel>
+                  <Select
+                    id="work_style"
+                    value={workStyleFilter}
+                    onChange={(e) => setWorkStyleFilter(e.target.value)}
+                  >
+                    <option value="">All styles</option>
+                    <option value="onsite">Onsite</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="remote">Remote</option>
+                  </Select>
+                </Field>
+                
+                {/* Sort */}
+                <Field>
+                  <FieldLabel htmlFor="sort">Sort By</FieldLabel>
+                  <Select
+                    id="sort"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as "likes" | "recent")}
+                  >
+                    <option value="likes">Most Liked</option>
+                    <option value="recent">Most Recent</option>
+                  </Select>
+                </Field>
+                
+                {/* Clear Filters */}
+                <div className="flex items-end">
+                  {hasActiveFilters && (
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      className="w-full"
+                    >
+                      <X className="size-4 mr-2" />
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            </FieldGroup>
           </CardContent>
         </Card>
         
