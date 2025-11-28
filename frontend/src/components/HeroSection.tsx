@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { ArrowRight } from "lucide-react";
 
 const ROTATING_WORDS = [
   "Real experiences",
@@ -59,9 +60,12 @@ export default function HeroSection() {
           <Button
             asChild
             size="lg"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto gap-2 group"
           >
-            <Link href="#reviews">Explore Reviews</Link>
+            <Link href="/reviews">
+              Explore Reviews
+              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </Button>
           <Button
             asChild
@@ -69,7 +73,7 @@ export default function HeroSection() {
             variant="outline"
             className="w-full sm:w-auto"
           >
-            <Link href="/signin?redirect=review">Share Your Experience</Link>
+            <Link href="/write-review">Share Your Experience</Link>
           </Button>
         </div>
       </div>

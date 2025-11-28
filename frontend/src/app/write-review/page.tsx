@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -75,7 +74,7 @@ export default function WriteReviewPage() {
     role_id?: string;
     roleName?: string;
   }>({});
-  
+
   // Submission error (for API/network errors)
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
@@ -280,15 +279,15 @@ export default function WriteReviewPage() {
                   <div className="grid gap-2">
                     <Label htmlFor="company">Company *</Label>
                     <CompanyAutocomplete
-                      value={formData.company_id}
+                    value={formData.company_id}
                       onChange={(companyId, companyName) => {
-                        setFormData({
-                          ...formData,
+                      setFormData({
+                        ...formData,
                           company_id: companyId,
                           companyName: companyName,
-                          role_id: "", // Reset role when company changes
-                          roleName: "",
-                        });
+                        role_id: "", // Reset role when company changes
+                        roleName: "",
+                      });
                         // Clear error when user selects
                         if (fieldErrors.company_id) {
                           setFieldErrors((prev) => ({ ...prev, company_id: undefined }));
@@ -297,18 +296,18 @@ export default function WriteReviewPage() {
                       placeholder="Type to search companies..."
                       error={fieldErrors.company_id}
                     />
-                  </div>
+                </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="role">Role *</Label>
                     <Input
-                      id="role"
+                    id="role"
                       type="text"
                       placeholder="e.g., Software Engineering Intern, Product Design Intern..."
                       value={formData.roleName}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
                           roleName: e.target.value,
                           role_id: "", // Clear role_id when user types
                         });
@@ -316,7 +315,7 @@ export default function WriteReviewPage() {
                         if (fieldErrors.role_id || fieldErrors.roleName) {
                           setFieldErrors((prev) => ({ ...prev, role_id: undefined, roleName: undefined }));
                         }
-                      }}
+                    }}
                       disabled={!formData.company_id}
                       className={
                         fieldErrors.roleName || fieldErrors.role_id
@@ -329,11 +328,11 @@ export default function WriteReviewPage() {
                       <p className="mt-1 text-sm text-destructive">{fieldErrors.roleName || fieldErrors.role_id}</p>
                     )}
                     {!formData.company_id && !fieldErrors.roleName && !fieldErrors.role_id && (
-                      <p className="text-xs text-muted-foreground">
-                        Please select a company first
-                      </p>
-                    )}
-                  </div>
+                    <p className="text-xs text-muted-foreground">
+                      Please select a company first
+                    </p>
+                  )}
+                </div>
                 </div>
               </form>
             )}
@@ -345,29 +344,29 @@ export default function WriteReviewPage() {
                   {/* Basic Details */}
                   <div className="grid gap-2">
                     <Label htmlFor="location">Location *</Label>
-                    <Input
-                      id="location"
-                      placeholder="e.g., San Francisco, CA"
-                      value={formData.location}
-                      onChange={(e) =>
-                        setFormData({ ...formData, location: e.target.value })
-                      }
+                  <Input
+                    id="location"
+                    placeholder="e.g., San Francisco, CA"
+                    value={formData.location}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
                       required
-                    />
-                  </div>
+                  />
+                </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="term">Term *</Label>
-                    <Input
-                      id="term"
-                      placeholder="e.g., Summer 2024"
-                      value={formData.term}
-                      onChange={(e) =>
-                        setFormData({ ...formData, term: e.target.value })
-                      }
+                  <Input
+                    id="term"
+                    placeholder="e.g., Summer 2024"
+                    value={formData.term}
+                    onChange={(e) =>
+                      setFormData({ ...formData, term: e.target.value })
+                    }
                       required
-                    />
-                  </div>
+                  />
+                </div>
 
                   <div className="grid gap-2">
                     <Label>Work Style *</Label>
@@ -382,7 +381,7 @@ export default function WriteReviewPage() {
                       className="flex gap-6"
                       required
                     >
-                      {(["onsite", "hybrid", "remote"] as const).map((style) => (
+                    {(["onsite", "hybrid", "remote"] as const).map((style) => (
                         <div key={style} className="flex items-center space-x-2">
                           <RadioGroupItem value={style} id={style} />
                           <Label htmlFor={style} className="cursor-pointer capitalize">
@@ -402,9 +401,9 @@ export default function WriteReviewPage() {
                       max="24"
                       placeholder="4, 8..."
                       value={formData.duration_months}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
                           duration_months: e.target.value ? parseInt(e.target.value) : "",
                         })
                       }
@@ -420,8 +419,8 @@ export default function WriteReviewPage() {
                         setFormData({
                           ...formData,
                           work_hours: e.target.value as "" | "full-time" | "part-time",
-                        })
-                      }
+                            })
+                          }
                       className={cn(
                         "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                       )}
@@ -442,91 +441,91 @@ export default function WriteReviewPage() {
                         setFormData({ ...formData, team_name: e.target.value })
                       }
                     />
-                  </div>
+                </div>
 
                   {/* Experience Section */}
                   <div className="grid gap-2">
                     <Label htmlFor="summary">Summary *</Label>
-                    <textarea
-                      id="summary"
+                  <textarea
+                    id="summary"
                       placeholder="Share a brief overview of your internship experience. What was the role like? What projects did you work on? What did you learn?"
-                      value={formData.summary}
-                      onChange={(e) =>
-                        setFormData({ ...formData, summary: e.target.value })
-                      }
-                      rows={4}
-                      maxLength={2000}
+                    value={formData.summary}
+                    onChange={(e) =>
+                      setFormData({ ...formData, summary: e.target.value })
+                    }
+                    rows={4}
+                    maxLength={2000}
                       className={cn(
                         "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
-                    />
-                    <p className="text-xs text-muted-foreground text-right">
-                      {formData.summary.length}/2000
-                    </p>
-                  </div>
+                  />
+                  <p className="text-xs text-muted-foreground text-right">
+                    {formData.summary.length}/2000
+                  </p>
+                </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="best">Best Part *</Label>
-                    <textarea
-                      id="best"
+                  <textarea
+                    id="best"
                       placeholder="What were the highlights of your internship? What did you enjoy most? (e.g., great mentorship, interesting projects, collaborative team culture, learning opportunities...)"
-                      value={formData.best}
-                      onChange={(e) =>
-                        setFormData({ ...formData, best: e.target.value })
-                      }
-                      rows={3}
-                      maxLength={1000}
+                    value={formData.best}
+                    onChange={(e) =>
+                      setFormData({ ...formData, best: e.target.value })
+                    }
+                    rows={3}
+                    maxLength={1000}
                       className={cn(
                         "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
-                    />
-                    <p className="text-xs text-muted-foreground text-right">
-                      {formData.best.length}/1000
-                    </p>
-                  </div>
+                  />
+                  <p className="text-xs text-muted-foreground text-right">
+                    {formData.best.length}/1000
+                  </p>
+                </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="hardest">Hardest Part *</Label>
-                    <textarea
-                      id="hardest"
+                  <textarea
+                    id="hardest"
                       placeholder="What were the biggest challenges you faced? (e.g., steep learning curve, tight deadlines, complex technical problems, communication barriers...)"
-                      value={formData.hardest}
-                      onChange={(e) =>
-                        setFormData({ ...formData, hardest: e.target.value })
-                      }
-                      rows={3}
-                      maxLength={1000}
+                    value={formData.hardest}
+                    onChange={(e) =>
+                      setFormData({ ...formData, hardest: e.target.value })
+                    }
+                    rows={3}
+                    maxLength={1000}
                       className={cn(
                         "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
-                    />
-                    <p className="text-xs text-muted-foreground text-right">
-                      {formData.hardest.length}/1000
-                    </p>
-                  </div>
+                  />
+                  <p className="text-xs text-muted-foreground text-right">
+                    {formData.hardest.length}/1000
+                  </p>
+                </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="advice">Advice for Future Interns</Label>
-                    <textarea
-                      id="advice"
+                  <textarea
+                    id="advice"
                       placeholder="What advice would you give to future interns in this role? (e.g., skills to prepare, what to expect, how to make the most of the experience, networking tips...)"
-                      value={formData.advice}
-                      onChange={(e) =>
-                        setFormData({ ...formData, advice: e.target.value })
-                      }
-                      rows={3}
-                      maxLength={1000}
+                    value={formData.advice}
+                    onChange={(e) =>
+                      setFormData({ ...formData, advice: e.target.value })
+                    }
+                    rows={3}
+                    maxLength={1000}
                       className={cn(
                         "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
-                    />
-                    <p className="text-xs text-muted-foreground text-right">
-                      {formData.advice.length}/1000
-                    </p>
-                  </div>
+                  />
+                  <p className="text-xs text-muted-foreground text-right">
+                    {formData.advice.length}/1000
+                  </p>
+                </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="technologies">Technologies & Skills Used</Label>
@@ -534,10 +533,10 @@ export default function WriteReviewPage() {
                       value={formData.technologies}
                       onChange={(value) =>
                         setFormData({ ...formData, technologies: value })
-                      }
+                    }
                       placeholder="Type to search technologies..."
                     />
-                  </div>
+                </div>
                 </div>
               </form>
             )}
@@ -548,22 +547,22 @@ export default function WriteReviewPage() {
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="interview_round_count">Number of Interview Rounds *</Label>
-                    <Input
-                      id="interview_round_count"
-                      type="number"
+                  <Input
+                    id="interview_round_count"
+                    type="number"
                       placeholder="3"
-                      value={formData.interview_round_count}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          interview_round_count: e.target.value,
-                        })
-                      }
-                      min="0"
-                      max="20"
+                    value={formData.interview_round_count}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        interview_round_count: e.target.value,
+                      })
+                    }
+                    min="0"
+                    max="20"
                       required
-                    />
-                  </div>
+                  />
+                </div>
 
                 <div className="grid gap-2">
                   <Label htmlFor="interview_rounds_description">

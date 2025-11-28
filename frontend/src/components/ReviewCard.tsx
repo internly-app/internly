@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardAction,
@@ -14,14 +15,18 @@ import { Button } from "@/components/ui/button";
 import type { ReviewWithDetails } from "@/lib/types/database";
 import { useLikeReview } from "@/hooks/useReviews";
 import { useAuth } from "@/components/AuthProvider";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { CompanyLogo } from "@/components/CompanyLogo";
 
 interface ReviewCardProps {
   review: ReviewWithDetails;
+  compact?: boolean; // If true, shows compact view that can expand
 }
 
-export default function ReviewCard({ review }: ReviewCardProps) {
+export default function ReviewCard({ review, compact = false }: ReviewCardProps) {
   const { user } = useAuth();
   const { toggleLike, loading: likeLoading } = useLikeReview();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -31,7 +36,8 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     }).format(date);
   };
 
-  const handleLike = async () => {
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card expansion when clicking like
     if (!user) {
       window.location.href = "/signin";
       return;
@@ -44,24 +50,247 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     }
   };
 
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength).trim() + "...";
+  };
+
   const workStyleBadge = {
     onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40",
     hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40",
     remote: "bg-green-500/20 text-green-300 border border-green-500/40",
   } satisfies Record<string, string>;
 
+
+  // Compact view
+  if (compact) {
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-300">
+      <Card
+        className="transition-all duration-200 cursor-pointer hover:shadow-md"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              {/* Company Logo */}
+              <CompanyLogo
+                companyName={review.company.name}
+                logoUrl={review.company.logo_url}
+                size={40}
+              />
+
+              {/* Company & Role */}
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-lg font-semibold mb-1 truncate">
+                  {review.company.name}
+                </CardTitle>
+                <CardDescription className="text-sm truncate">
+                  {review.role.title}
+                </CardDescription>
+              </div>
+            </div>
+
+            {/* Term Badge */}
+            <Badge variant="outline" className="h-fit flex-shrink-0">
+              {review.term}
+            </Badge>
+      </div>
+
+          {/* Key Info Badges */}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <Badge
+              variant="outline"
+              className={`text-xs ${workStyleBadge[review.work_style]}`}
+        >
+          {review.work_style}
+            </Badge>
+            {review.work_hours && (
+              <Badge variant="outline" className="text-xs">
+                {review.work_hours === "full-time" ? "Full-time" : "Part-time"}
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-xs">{review.location}</Badge>
+            {review.duration_months && (
+              <Badge variant="outline" className="text-xs">
+                {review.duration_months} {review.duration_months === 1 ? "mo" : "mos"}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-0 pb-3">
+          {/* Truncated Summary */}
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {isExpanded ? review.summary : truncateText(review.summary, 120)}
+          </p>
+        </CardContent>
+
+        <CardFooter className="flex items-center justify-between pt-0 pb-3">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <span>{formatDate(review.created_at)}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLike}
+              disabled={likeLoading}
+              className="h-6 px-2 gap-1.5 hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+                fill={review.user_has_liked ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className={`transition-all ${review.user_has_liked ? "text-red-500" : ""}`}
+              >
+                <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
+              </svg>
+              <span className="text-xs">{review.like_count}</span>
+            </Button>
+          </div>
+          <div className="flex items-center text-muted-foreground">
+            {isExpanded ? (
+              <ChevronUp className="size-4" />
+            ) : (
+              <ChevronDown className="size-4" />
+            )}
+      </div>
+        </CardFooter>
+
+        {/* Expanded Content */}
+        {isExpanded && (
+          <CardContent className="pt-0 pb-4 space-y-4">
+            <div className="border-t border-zinc-700 mt-2 mb-4" />
+            {/* Full Summary */}
+            <div>
+              <h4 className="font-semibold mb-2 text-sm">Summary</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {review.summary}
+              </p>
+      </div>
+
+      {/* Technologies */}
+            {review.technologies && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Technologies Used</h4>
+                <div className="flex flex-wrap gap-2">
+                  {review.technologies.split(",").map((tech, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {tech.trim()}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+      {/* Best & Hardest */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs"
+                >
+                  ✓ Best Part
+                </Badge>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {review.best}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Badge
+                  variant="outline"
+                  className="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 text-xs"
+                >
+                  ✗ Hardest Part
+                </Badge>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {review.hardest}
+                </p>
+              </div>
+            </div>
+
+
+            {/* Advice */}
+            {review.advice && (
+              <div>
+                <h4 className="font-semibold mb-2 text-sm">Advice for Future Interns</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {review.advice}
+                </p>
+              </div>
+            )}
+
+            {/* Interview Process */}
+            <div>
+              <div className="border-t border-zinc-700 mb-4" />
+              <h4 className="font-semibold mb-2 text-sm">Interview Process</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  <span className="font-medium text-foreground">Rounds:</span>{" "}
+                  {review.interview_round_count}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">Description:</span>{" "}
+                  {review.interview_rounds_description}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">Tips:</span>{" "}
+                  {review.interview_tips}
+                </p>
+              </div>
+            </div>
+
+            {/* Compensation */}
+            {(review.wage_hourly || review.housing_provided || review.perks) && (
+              <div>
+                <div className="border-t border-zinc-700 mb-4" />
+                <h4 className="font-semibold mb-2 text-sm">Compensation</h4>
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  {review.wage_hourly && (
+                    <p>
+                      <span className="font-medium text-foreground">Hourly:</span>{" "}
+                      {review.wage_currency || "CAD"} {review.wage_hourly.toFixed(2)}
+                    </p>
+                  )}
+                  {review.housing_provided && (
+                    <p>
+                      <span className="font-medium text-foreground">Housing:</span>{" "}
+                      Provided
+                      {review.housing_stipend &&
+                        ` (${review.wage_currency || "CAD"} ${review.housing_stipend.toFixed(2)} stipend)`}
+                    </p>
+                  )}
+                  {review.perks && (
+                    <p>
+                      <span className="font-medium text-foreground">Perks:</span>{" "}
+                      {review.perks}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+    );
+  }
+
+  // Full view (original implementation for detail pages)
+  return (
+    <Card>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            {/* Avatar */}
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-sm font-semibold">
-              {review.company.name[0]}
-            </div>
+            {/* Company Logo */}
+            <CompanyLogo
+              companyName={review.company.name}
+              logoUrl={review.company.logo_url}
+              size={48}
+            />
 
             {/* Company & Position */}
-            <div>
+        <div>
               <CardTitle className="text-lg">{review.company.name}</CardTitle>
               <CardDescription>{review.role.title}</CardDescription>
             </div>
@@ -91,7 +320,8 @@ export default function ReviewCard({ review }: ReviewCardProps) {
           <Badge variant="outline">{review.location}</Badge>
           {review.duration_months && (
             <Badge variant="outline">
-              {review.duration_months} {review.duration_months === 1 ? "month" : "months"}
+              {review.duration_months}{" "}
+              {review.duration_months === 1 ? "month" : "months"}
             </Badge>
           )}
           {review.team_name && (
@@ -101,13 +331,6 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Technologies */}
-        {review.technologies && (
-          <div>
-            <h4 className="font-semibold mb-2 text-sm">Technologies</h4>
-            <p className="text-sm text-muted-foreground">{review.technologies}</p>
-          </div>
-        )}
 
         {/* Summary */}
         <div>
@@ -132,68 +355,70 @@ export default function ReviewCard({ review }: ReviewCardProps) {
               ✗ Hardest Part
             </Badge>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {review.hardest}
-            </p>
-          </div>
+            {review.hardest}
+          </p>
         </div>
+      </div>
 
-        {/* Advice */}
+      {/* Advice */}
         {review.advice && (
           <div>
             <h4 className="font-semibold mb-2">Advice for Future Interns</h4>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {review.advice}
             </p>
-          </div>
+      </div>
         )}
 
         {/* Interview Process */}
-        <div className="border-t pt-4">
+        <div>
+          <div className="border-t border-zinc-700 my-4" />
           <h4 className="font-semibold mb-2">Interview Process</h4>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>
+          <p>
               <span className="font-medium text-foreground">Rounds:</span>{" "}
-              {review.interview_round_count}
-            </p>
-            <p>
+            {review.interview_round_count}
+          </p>
+          <p>
               <span className="font-medium text-foreground">Description:</span>{" "}
-              {review.interview_rounds_description}
-            </p>
-            <p>
+            {review.interview_rounds_description}
+          </p>
+          <p>
               <span className="font-medium text-foreground">Tips:</span>{" "}
-              {review.interview_tips}
-            </p>
-          </div>
+            {review.interview_tips}
+          </p>
         </div>
+      </div>
 
-        {/* Compensation (if provided) */}
-        {(review.wage_hourly || review.housing_provided || review.perks) && (
-          <div className="border-t pt-4">
+      {/* Compensation (if provided) */}
+      {(review.wage_hourly || review.housing_provided || review.perks) && (
+          <div>
+            <div className="border-t border-zinc-700 my-4" />
             <h4 className="font-semibold mb-2">Compensation</h4>
             <div className="space-y-1 text-sm text-muted-foreground">
-              {review.wage_hourly && (
-                <p>
+            {review.wage_hourly && (
+              <p>
                   <span className="font-medium text-foreground">Hourly:</span> $
                   {review.wage_hourly.toFixed(2)} {review.wage_currency || "CAD"}
-                </p>
-              )}
-              {review.housing_provided && (
-                <p>
+              </p>
+            )}
+            {review.housing_provided && (
+              <p>
                   <span className="font-medium text-foreground">Housing:</span>{" "}
-                  Provided
-                  {review.housing_stipend &&
-                    ` ($${review.housing_stipend.toFixed(2)} stipend)`}
-                </p>
-              )}
-              {review.perks && (
-                <p>
+                Provided
+                {review.housing_stipend &&
+                  ` ($${review.housing_stipend.toFixed(2)} stipend)`}
+              </p>
+            )}
+            {review.perks && (
+              <p>
                   <span className="font-medium text-foreground">Perks:</span>{" "}
-                  {review.perks}
-                </p>
-              )}
-            </div>
+                {review.perks}
+              </p>
+            )}
           </div>
-        )}
+        </div>
+      )}
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-6">

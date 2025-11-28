@@ -87,10 +87,10 @@ export function useCreateReview() {
       let response;
       try {
         response = await fetch("/api/reviews", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(reviewData),
-        });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reviewData),
+      });
       } catch (networkError) {
         throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
       }
@@ -148,8 +148,8 @@ export function useLikeReview() {
       let response;
       try {
         response = await fetch(`/api/reviews/${reviewId}/like`, {
-          method: "POST",
-        });
+        method: "POST",
+      });
       } catch (networkError) {
         throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
       }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Badge } from "@/components/ui/badge";
 
 // Placeholder company logos - will be replaced with actual company data
 const COMPANIES = [

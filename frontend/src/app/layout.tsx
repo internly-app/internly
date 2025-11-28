@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
+  variable: "--font-inter",
   display: "swap",
   weight: ["400", "500", "600", "700"],
 });
@@ -27,13 +27,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               // Always use dark mode
-              document.documentElement.classList.add('dark');
+                  document.documentElement.classList.add('dark');
             `,
           }}
         />
       </head>
-      <body className={dmSans.className}>
-        <AuthProvider>{children}</AuthProvider>
+      <body className={inter.className}>
+          <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
