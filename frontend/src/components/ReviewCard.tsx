@@ -119,21 +119,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
                 {review.duration_months} {review.duration_months === 1 ? "mo" : "mos"}
               </Badge>
             )}
-            {technologiesList.length > 0 && (
-              <>
-                {technologiesList.map((tech, idx) => (
-                  <Badge key={idx} variant="outline" className="text-xs">
-                    {tech}
-                  </Badge>
-                ))}
-                {review.technologies &&
-                  review.technologies.split(",").length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{review.technologies.split(",").length - 3} more
-                    </Badge>
-                  )}
-              </>
-            )}
           </div>
         </CardHeader>
 
@@ -187,6 +172,20 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
                 {review.summary}
               </p>
       </div>
+
+      {/* Technologies */}
+            {review.technologies && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Technologies Used</h4>
+                <div className="flex flex-wrap gap-2">
+                  {review.technologies.split(",").map((tech, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {tech.trim()}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
       {/* Best & Hardest */}
             <div className="grid md:grid-cols-2 gap-4">
