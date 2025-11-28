@@ -164,7 +164,8 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
         {/* Expanded Content */}
         {isExpanded && (
-          <CardContent className="pt-0 pb-4 space-y-4 border-t border-border mt-2">
+          <CardContent className="pt-0 pb-4 space-y-6">
+            <div className="border-t border-zinc-700 mx-4 mt-4" />
             {/* Full Summary */}
             <div>
               <h4 className="font-semibold mb-2 text-sm">Summary</h4>
@@ -213,13 +214,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               </div>
             </div>
 
-            {/* Technologies (if not shown in compact) */}
-            {review.technologies && (
-              <div>
-                <h4 className="font-semibold mb-2 text-sm">Technologies</h4>
-                <p className="text-sm text-muted-foreground">{review.technologies}</p>
-              </div>
-            )}
 
             {/* Advice */}
             {review.advice && (
@@ -232,7 +226,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             )}
 
             {/* Interview Process */}
-            <div className="border-t pt-4">
+            <div className="border-t border-zinc-700 mx-4 pt-4">
               <h4 className="font-semibold mb-2 text-sm">Interview Process</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
@@ -252,7 +246,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
             {/* Compensation */}
             {(review.wage_hourly || review.housing_provided || review.perks) && (
-              <div className="border-t pt-4">
+              <div className="border-t border-zinc-700 mx-4 pt-4">
                 <h4 className="font-semibold mb-2 text-sm">Compensation</h4>
                 <div className="space-y-1 text-sm text-muted-foreground">
                   {review.wage_hourly && (
@@ -339,13 +333,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Technologies */}
-        {review.technologies && (
-          <div>
-            <h4 className="font-semibold mb-2 text-sm">Technologies</h4>
-            <p className="text-sm text-muted-foreground">{review.technologies}</p>
-          </div>
-        )}
 
         {/* Summary */}
         <div>
@@ -386,7 +373,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
         )}
 
         {/* Interview Process */}
-        <div className="border-t pt-4">
+        <div className="border-t border-zinc-700 mx-4 pt-4">
           <h4 className="font-semibold mb-2">Interview Process</h4>
           <div className="space-y-2 text-sm text-muted-foreground">
           <p>
@@ -406,7 +393,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
       {/* Compensation (if provided) */}
       {(review.wage_hourly || review.housing_provided || review.perks) && (
-          <div className="border-t pt-4">
+          <div className="border-t border-zinc-700 mx-4 pt-4">
             <h4 className="font-semibold mb-2">Compensation</h4>
             <div className="space-y-1 text-sm text-muted-foreground">
             {review.wage_hourly && (
