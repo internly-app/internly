@@ -61,10 +61,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
     remote: "bg-green-500/20 text-green-300 border border-green-500/40",
   } satisfies Record<string, string>;
 
-  // Get first few technologies for compact view
-  const technologiesList = review.technologies
-    ? review.technologies.split(",").map((t) => t.trim()).slice(0, 3)
-    : [];
 
   // Compact view
   if (compact) {

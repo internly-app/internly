@@ -29,10 +29,10 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              We're students who know how overwhelming the internship search can be. Internly exists to make that process a bit easier by connecting you with real experiences from students who've been there. We believe in transparency, community, and helping each other navigate the world of internships.
+              We&apos;re students who know how overwhelming the internship search can be. Internly exists to make that process a bit easier by connecting you with real experiences from students who&apos;ve been there. We believe in transparency, community, and helping each other navigate the world of internships.
             </p>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Whether you're trying to figure out what skills to learn, how to prepare for interviews, or what to expect at a specific company, Internly gives you the insights you need to make informed decisions about your career.
+              Whether you&apos;re trying to figure out what skills to learn, how to prepare for interviews, or what to expect at a specific company, Internly gives you the insights you need to make informed decisions about your career.
             </p>
           </CardContent>
         </Card>
@@ -44,10 +44,10 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              Internly is a platform where students can share and explore internship experiences. Think of it as your insider's guide to internships at tech companies, startups, and beyond.
+              Internly is a platform where students can share and explore internship experiences. Think of it as your insider&apos;s guide to internships at tech companies, startups, and beyond.
             </p>
             <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              When you browse reviews on Internly, you'll find out:
+              When you browse reviews on Internly, you&apos;ll find out:
             </p>
             <ul className="list-disc list-inside space-y-2 text-base text-muted-foreground ml-4">
               <li>What past interns actually worked on day to day</li>
@@ -70,21 +70,21 @@ export default function AboutPage() {
             <div>
               <h3 className="text-lg font-semibold mb-2 text-foreground">Student-Focused</h3>
               <p className="text-base leading-relaxed text-muted-foreground">
-                We're built by students, for students. Every review comes from someone who's been in your shoes, navigating classes, side projects, and the job search all at once. No corporate speak, just real experiences.
+                We&apos;re built by students, for students. Every review comes from someone who&apos;s been in your shoes, navigating classes, side projects, and the job search all at once. No corporate speak, just real experiences.
               </p>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold mb-2 text-foreground">Detailed and Actionable</h3>
               <p className="text-base leading-relaxed text-muted-foreground">
-                We go beyond surface-level reviews. Our platform encourages detailed insights about preparation, skills used, and specific experiences. You'll find the kind of information that actually helps you prepare and make decisions.
+                We go beyond surface-level reviews. Our platform encourages detailed insights about preparation, skills used, and specific experiences. You&apos;ll find the kind of information that actually helps you prepare and make decisions.
               </p>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold mb-2 text-foreground">Community-Driven</h3>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Internly thrives on community contributions. Every review helps someone else navigate their journey. It's about students supporting students, sharing knowledge, and making the internship search less intimidating.
+                Internly thrives on community contributions. Every review helps someone else navigate their journey. It&apos;s about students supporting students, sharing knowledge, and making the internship search less intimidating.
               </p>
             </div>
           </CardContent>
@@ -109,10 +109,10 @@ export default function AboutPage() {
             <div>
               <h3 className="text-lg font-semibold mb-2 text-foreground">Browse and Discover</h3>
               <p className="text-base leading-relaxed text-muted-foreground mb-3">
-                Explore reviews from students who've interned at companies you're interested in. Filter by company, role, location, or search for specific skills and technologies.
+                Explore reviews from students who&apos;ve interned at companies you&apos;re interested in. Filter by company, role, location, or search for specific skills and technologies.
               </p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Find out what it's really like to work somewhere, what skills you should focus on, and how others prepared for their interviews. Use this information to tailor your own preparation and applications.
+                Find out what it&apos;s really like to work somewhere, what skills you should focus on, and how others prepared for their interviews. Use this information to tailor your own preparation and applications.
               </p>
             </div>
           </CardContent>
