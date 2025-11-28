@@ -226,7 +226,6 @@ export default function ReviewsPage() {
                 <div className="flex items-end">
                   {hasActiveFilters && (
                     <Button
-                      variant="outline"
                       onClick={clearFilters}
                       className="w-full"
                     >
@@ -283,14 +282,10 @@ export default function ReviewsPage() {
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">
                   {hasActiveFilters
-                    ? "No reviews match your filters. Try adjusting your search criteria."
+                    ? "No reviews match your filters. Try adjusting your search criteria or clear filters above."
                     : "No reviews yet. Be the first to share your experience!"}
                 </p>
-                {hasActiveFilters ? (
-                  <Button onClick={clearFilters} variant="outline">
-                    Clear Filters
-                  </Button>
-                ) : (
+                {!hasActiveFilters && (
                   <Button asChild>
                     <a href="/write-review">Write a Review</a>
                   </Button>
