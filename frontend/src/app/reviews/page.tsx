@@ -126,7 +126,7 @@ export default function ReviewsPage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
         {/* Header */}
-        <div className="mb-8 sm:mb-12 max-w-4xl mx-auto text-center">
+        <div className="mb-8 sm:mb-12 max-w-5xl mx-auto text-center">
           <h1 className="text-heading-1 mb-4 text-foreground">Browse Reviews</h1>
           <p className="text-lg text-muted-foreground">
             Discover real internship experiences from students. Filter by company, role, location, and more.
@@ -134,7 +134,7 @@ export default function ReviewsPage() {
         </div>
         
         {/* Search and Filters */}
-        <Card className="mb-8 max-w-4xl mx-auto">
+        <Card className="mb-8 max-w-5xl mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="size-5" />
@@ -241,7 +241,7 @@ export default function ReviewsPage() {
         </Card>
         
         {/* Results Count */}
-        <div className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-4xl mx-auto">
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-5xl mx-auto">
           <p className="text-sm text-muted-foreground">
             {loading ? (
               "Loading..."
@@ -257,7 +257,7 @@ export default function ReviewsPage() {
         
         {/* Loading State */}
         {loading && (
-          <div className="grid gap-6 max-w-4xl mx-auto">
+          <div className="grid gap-6 max-w-5xl mx-auto">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-64 w-full rounded-xl" />
             ))}
@@ -266,7 +266,7 @@ export default function ReviewsPage() {
         
         {/* Error State */}
         {error && (
-          <Card className="max-w-4xl mx-auto">
+          <Card className="max-w-5xl mx-auto">
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <p className="text-destructive mb-4">Error loading reviews: {error}</p>
@@ -278,7 +278,7 @@ export default function ReviewsPage() {
         
         {/* No Results */}
         {!loading && !error && filteredReviews.length === 0 && (
-          <Card className="max-w-4xl mx-auto">
+          <Card className="max-w-5xl mx-auto">
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">
@@ -302,7 +302,7 @@ export default function ReviewsPage() {
         
         {/* Reviews Grid */}
         {!loading && !error && filteredReviews.length > 0 && (
-          <div className="grid gap-4 max-w-4xl mx-auto">
+          <div className="grid gap-4 max-w-5xl mx-auto">
             {filteredReviews.map((review) => (
               <ReviewCard key={review.id} review={review} compact={true} />
             ))}
