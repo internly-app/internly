@@ -161,7 +161,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
         {/* Expanded Content */}
         {isExpanded && (
           <CardContent className="pt-0 pb-4 space-y-4">
-            <div className="border-t border-zinc-700 my-4" />
+            <div className="border-t border-zinc-700 mt-6 mb-3" />
             {/* Full Summary */}
             <div>
               <h4 className="font-semibold mb-2 text-sm">Summary</h4>
