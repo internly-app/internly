@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useReviews } from "@/hooks/useReviews";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, X, Filter } from "lucide-react";
