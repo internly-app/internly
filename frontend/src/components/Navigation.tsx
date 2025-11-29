@@ -190,13 +190,6 @@ export default function Navigation() {
             ) : (
               <>
                 <Button
-                  variant="ghost"
-                  asChild
-                  className="hidden sm:inline-flex text-sm font-medium hover:bg-muted transition-colors duration-200"
-                >
-                  <Link href="/signin">Sign In</Link>
-                </Button>
-                <Button
                   asChild
                   className="gap-2 group"
                 >
@@ -204,6 +197,13 @@ export default function Navigation() {
                     Write Review
                     <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  asChild
+                  className="hidden sm:inline-flex text-sm font-medium"
+                >
+                  <Link href="/signin">Sign In</Link>
                 </Button>
               </>
             )}
