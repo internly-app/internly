@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { sanitizeText } from "@/lib/security/content-filter";
 
 interface AuthPanelProps {
   redirectTo?: string;
@@ -18,6 +19,8 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [formStatus, setFormStatus] = useState<FormStatus>("idle");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +77,23 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
       return;
     }
 
+    if (mode === "sign-up") {
+      if (!firstName.trim() || !lastName.trim()) {
+        setError("First name and last name are required");
+        setFormStatus("idle");
+        return;
+      }
+      
+      const sanitizedFirstName = sanitizeText(firstName.trim());
+      const sanitizedLastName = sanitizeText(lastName.trim());
+      
+      if (sanitizedFirstName !== firstName.trim() || sanitizedLastName !== lastName.trim()) {
+        setError("Names contain inappropriate content");
+        setFormStatus("idle");
+        return;
+      }
+    }
+
     try {
       if (mode === "sign-in") {
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -96,9 +116,18 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
         }
       } else {
         // Sign up mode
+        const sanitizedFirstName = sanitizeText(firstName.trim());
+        const sanitizedLastName = sanitizeText(lastName.trim());
+        
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              first_name: sanitizedFirstName,
+              last_name: sanitizedLastName,
+            }
+          }
         });
 
         if (signUpError) {
@@ -147,7 +176,7 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
         onClick={handleGoogleSignIn}
         disabled={googleLoading || formStatus === "loading"}
         variant="outline"
-        className="w-full h-11 text-base hover:border-primary hover:text-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+        className="w-full h-11 text-base transition-colors duration-200 disabled:opacity-50"
       >
         {googleLoading ? (
           "Redirecting to Google..."
@@ -179,7 +208,7 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
       <div className="relative">
         <Separator />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="bg-background px-2 text-sm text-muted-foreground">
+          <span className="bg-card px-2 text-sm text-muted-foreground">
             Or
           </span>
         </div>
@@ -201,6 +230,41 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
             disabled={formStatus === "loading" || googleLoading}
           />
         </div>
+        
+        {mode === "sign-up" && (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label htmlFor="firstName" className="text-sm font-medium">
+                  First name
+                </label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  disabled={formStatus === "loading" || googleLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="lastName" className="text-sm font-medium">
+                  Last name
+                </label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  disabled={formStatus === "loading" || googleLoading}
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium">
