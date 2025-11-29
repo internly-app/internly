@@ -220,38 +220,41 @@ export default function WriteReviewPage() {
 
         {/* Progress Indicator */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            {[1, 2, 3, 4].map((s) => (
+          <div className="flex items-center justify-between">
+            {[
+              { num: 1, label: "Company" },
+              { num: 2, label: "Experience" }, 
+              { num: 3, label: "Interview" },
+              { num: 4, label: "Compensation" }
+            ].map((s) => (
               <div
-                key={s}
-                className={`flex items-center ${
-                  s <= step ? "text-primary" : "text-muted-foreground"
-                }`}
+                key={s.num}
+                className="flex flex-col items-center space-y-2"
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
-                    s <= step
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
+                    s.num === step
+                      ? "bg-primary text-primary-foreground shadow-lg"
+                      : s.num < step
+                      ? "bg-green-500 text-white"
+                      : "bg-muted text-muted-foreground border-2 border-zinc-700"
                   }`}
                 >
-                  {s}
+                  {s.num < step ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    s.num
+                  )}
                 </div>
-                {s < 4 && (
-                  <div
-                    className={`w-12 lg:w-24 h-1 mx-2 transition-all duration-200 ${
-                      s < step ? "bg-primary" : "bg-muted"
-                    }`}
-                  />
-                )}
+                <span className={`text-xs transition-colors duration-200 ${
+                  s.num === step ? "text-foreground font-medium" : "text-muted-foreground"
+                }`}>
+                  {s.label}
+                </span>
               </div>
             ))}
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Company</span>
-            <span>Experience</span>
-            <span>Interview</span>
-            <span>Compensation</span>
           </div>
         </div>
 
