@@ -193,9 +193,9 @@ export default function WriteReviewPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -212,8 +212,8 @@ export default function WriteReviewPage() {
               <path d="m12 19-7-7 7-7" />
               <path d="M19 12H5" />
             </svg>
-            Back to home
-          </Link>
+            Back
+          </button>
           <h1 className="text-4xl font-bold text-foreground mb-2">Write a Review</h1>
           <p className="text-muted-foreground">
             Share your internship experience to help fellow students
