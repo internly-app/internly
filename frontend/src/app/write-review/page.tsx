@@ -19,6 +19,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { useCreateReview } from "@/hooks/useReviews";
 import { TechnologyAutocomplete } from "@/components/TechnologyAutocomplete";
 import { CompanyAutocomplete } from "@/components/CompanyAutocomplete";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
+import { TermSelect } from "@/components/TermSelect";
 import { cn } from "@/lib/utils";
 
 export default function WriteReviewPage() {
@@ -347,29 +349,26 @@ export default function WriteReviewPage() {
                   {/* Basic Details */}
                   <div className="grid gap-2">
                     <Label htmlFor="location">Location *</Label>
-                  <Input
-                    id="location"
-                    placeholder="e.g., San Francisco, CA"
-                    value={formData.location}
-                    onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
-                    }
+                    <LocationAutocomplete
+                      value={formData.location}
+                      onChange={(value) =>
+                        setFormData({ ...formData, location: value })
+                      }
+                      placeholder="Select location..."
                       required
-                  />
-                </div>
+                    />
+                  </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="term">Term *</Label>
-                  <Input
-                    id="term"
-                    placeholder="e.g., Summer 2024"
-                    value={formData.term}
-                    onChange={(e) =>
-                      setFormData({ ...formData, term: e.target.value })
-                    }
+                    <TermSelect
+                      value={formData.term}
+                      onChange={(value) =>
+                        setFormData({ ...formData, term: value })
+                      }
                       required
-                  />
-                </div>
+                    />
+                  </div>
 
                   <div className="grid gap-2">
                     <Label>Work Style *</Label>
@@ -425,7 +424,7 @@ export default function WriteReviewPage() {
                             })
                           }
                       className={cn(
-                        "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                        "flex h-9 w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                       )}
                     >
                       <option value="">Select...</option>
@@ -459,7 +458,7 @@ export default function WriteReviewPage() {
                     rows={4}
                     maxLength={2000}
                       className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
                   />
@@ -480,7 +479,7 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={1000}
                       className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
                   />
@@ -501,7 +500,7 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={1000}
                       className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
                   />
@@ -522,7 +521,7 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={1000}
                       className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                   />
                   <p className="text-xs text-muted-foreground text-right">
@@ -630,7 +629,7 @@ export default function WriteReviewPage() {
                         setFormData({ ...formData, wage_currency: e.target.value })
                       }
                       className={cn(
-                        "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                        "flex h-9 w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                       )}
                     >
                       <option value="CAD">CAD - Canadian Dollar</option>
