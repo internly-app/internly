@@ -154,7 +154,7 @@ export default function WriteReviewPage() {
       };
 
       await createReview(reviewData);
-      router.push("/");
+      router.push("/reviews");
     } catch (err) {
       // Extract user-friendly error message
       let errorMessage = "An unexpected error occurred. Please try again.";
@@ -403,12 +403,22 @@ export default function WriteReviewPage() {
                       max="24"
                       placeholder="4, 8..."
                       value={formData.duration_months}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                          duration_months: e.target.value ? parseInt(e.target.value) : "",
-                        })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow digits
+                        if (value === "" || /^\d+$/.test(value)) {
+                          setFormData({
+                            ...formData,
+                            duration_months: value ? parseInt(value) : "",
+                          });
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent e, E, +, -, . from being typed
+                        if (["e", "E", "+", "-", "."].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </div>
 
@@ -552,17 +562,27 @@ export default function WriteReviewPage() {
                   <Input
                     id="interview_round_count"
                     type="number"
-                      placeholder="3"
+                    placeholder="3"
                     value={formData.interview_round_count}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        interview_round_count: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow digits
+                      if (value === "" || /^\d+$/.test(value)) {
+                        setFormData({
+                          ...formData,
+                          interview_round_count: value,
+                        });
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Prevent e, E, +, -, . from being typed
+                      if (["e", "E", "+", "-", "."].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     min="0"
                     max="20"
-                      required
+                    required
                   />
                 </div>
 
@@ -583,7 +603,7 @@ export default function WriteReviewPage() {
                     rows={4}
                     maxLength={1000}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                     required
                   />
@@ -604,7 +624,7 @@ export default function WriteReviewPage() {
                     rows={4}
                     maxLength={1000}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                     required
                   />
@@ -652,9 +672,19 @@ export default function WriteReviewPage() {
                       type="number"
                       placeholder="20, 30, 40..."
                       value={formData.wage_hourly}
-                      onChange={(e) =>
-                        setFormData({ ...formData, wage_hourly: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow digits and decimal point for currency
+                        if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                          setFormData({ ...formData, wage_hourly: value });
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent e, E, +, -, but allow decimal point
+                        if (["e", "E", "+", "-"].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </div>
 
@@ -682,9 +712,19 @@ export default function WriteReviewPage() {
                       type="number"
                       placeholder="1500, 2500, 3500..."
                       value={formData.housing_stipend}
-                      onChange={(e) =>
-                        setFormData({ ...formData, housing_stipend: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow digits and decimal point for currency
+                        if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                          setFormData({ ...formData, housing_stipend: value });
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent e, E, +, -, but allow decimal point
+                        if (["e", "E", "+", "-"].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </div>
 
@@ -700,7 +740,7 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={500}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                   />
                   <p className="text-xs text-muted-foreground text-right">
