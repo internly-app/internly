@@ -140,7 +140,7 @@ export function TechnologyAutocomplete({
   return (
     <div className={`relative ${className}`}>
       {/* Input with tags */}
-      <div className="flex flex-wrap gap-2 px-3 py-1 border border-input rounded-md bg-transparent text-foreground min-h-[36px] items-center shadow-sm">
+      <div className="flex flex-wrap gap-2 px-3 py-1 border border-zinc-700 rounded-md bg-transparent text-foreground min-h-[36px] items-center transition-colors focus-within:outline-none focus-within:ring-1 focus-within:ring-zinc-600">
         {/* Selected tags */}
         {selectedTechs.map((tech) => (
           <span
