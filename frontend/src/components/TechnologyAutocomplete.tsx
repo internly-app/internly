@@ -7,38 +7,38 @@ const TECHNOLOGY_OPTIONS = [
   // Languages
   "JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "Go", "Rust",
   "Ruby", "PHP", "Swift", "Kotlin", "Scala", "R", "MATLAB", "Dart",
-  
+
   // Frontend Frameworks & Libraries
   "React", "Vue.js", "Angular", "Next.js", "Svelte", "Nuxt.js", "Remix",
   "Gatsby", "Astro", "Solid.js", "Preact",
-  
+
   // Backend Frameworks
   "Node.js", "Express", "FastAPI", "Django", "Flask", "Spring Boot",
   "ASP.NET", "Laravel", "Rails", "NestJS", "GraphQL", "REST API",
-  
+
   // Databases
   "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite", "Oracle",
   "Cassandra", "DynamoDB", "Firebase", "Supabase", "Prisma",
-  
+
   // Cloud & DevOps
   "AWS", "Azure", "GCP", "Docker", "Kubernetes", "Terraform",
   "Jenkins", "GitLab CI", "GitHub Actions", "CircleCI", "Ansible",
-  
+
   // Tools & Platforms
   "Git", "GitHub", "GitLab", "Jira", "Confluence", "Figma", "Adobe XD",
   "Postman", "VS Code", "IntelliJ", "Vim", "Emacs",
-  
+
   // Mobile
   "React Native", "Flutter", "iOS", "Android", "Xamarin", "Ionic",
-  
+
   // Data & ML
   "TensorFlow", "PyTorch", "Pandas", "NumPy", "Scikit-learn", "Jupyter",
   "Apache Spark", "Hadoop", "Kafka", "Elasticsearch",
-  
+
   // Testing
   "Jest", "Cypress", "Selenium", "Playwright", "Vitest", "Mocha",
   "Chai", "Pytest", "JUnit",
-  
+
   // Other
   "HTML", "CSS", "SASS", "Tailwind CSS", "Bootstrap", "Webpack", "Vite",
   "NPM", "Yarn", "pnpm", "Linux", "Unix", "Bash", "Shell Scripting",

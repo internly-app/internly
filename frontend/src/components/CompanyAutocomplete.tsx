@@ -122,7 +122,7 @@ export function CompanyAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [dbCompanies, setDbCompanies] = useState<Company[]>([]);
   const [companies, setCompanies] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [selectedCompanyName, setSelectedCompanyName] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -138,7 +138,7 @@ export function CompanyAutocomplete({
           setDbCompanies(data || []);
 
           // Merge popular companies with database companies
-          const dbCompanyNames = new Set((data || []).map((c: Company) => c.name.toLowerCase()));
+          // const dbCompanyNames = new Set((data || []).map((c: Company) => c.name.toLowerCase()));
           const allCompanyNames = [
             ...POPULAR_COMPANIES,
             ...(data || []).map((c: Company) => c.name)

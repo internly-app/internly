@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 
 const COMMON_LOCATIONS = [
   "Remote",
@@ -87,7 +86,7 @@ export function LocationAutocomplete({
   useEffect(() => {
     const isCommonLocation = COMMON_LOCATIONS.includes(value);
     setIsOtherSelected(!isCommonLocation && value !== "");
-    
+
     // If it's a common location or empty, show the location name
     // If it's custom, show the custom value
     if (isCommonLocation || value === "") {
@@ -130,7 +129,7 @@ export function LocationAutocomplete({
 
   const handleInputChange = (newValue: string) => {
     setSearchQuery(newValue);
-    
+
     if (isOtherSelected) {
       // If "Other" is selected, update the actual value
       onChange(newValue);
