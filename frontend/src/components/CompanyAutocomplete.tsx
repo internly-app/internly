@@ -122,7 +122,7 @@ export function CompanyAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [dbCompanies, setDbCompanies] = useState<Company[]>([]);
   const [companies, setCompanies] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [selectedCompanyName, setSelectedCompanyName] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -138,7 +138,7 @@ export function CompanyAutocomplete({
           setDbCompanies(data || []);
 
           // Merge popular companies with database companies
-          const dbCompanyNames = new Set((data || []).map((c: Company) => c.name.toLowerCase()));
+          // const dbCompanyNames = new Set((data || []).map((c: Company) => c.name.toLowerCase()));
           const allCompanyNames = [
             ...POPULAR_COMPANIES,
             ...(data || []).map((c: Company) => c.name)
@@ -298,7 +298,7 @@ export function CompanyAutocomplete({
         }}
         placeholder={placeholder}
         disabled={disabled}
-        className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ${
+        className={`flex h-9 w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ${
           error
             ? "border-destructive"
             : ""

@@ -10,7 +10,7 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
-      
+
       <div className="max-w-4xl mx-auto px-6 py-24">
         {/* Header */}
         <div className="text-center mb-16">
@@ -73,14 +73,14 @@ export default function AboutPage() {
                 We&apos;re built by students, for students. Every review comes from someone who&apos;s been in your shoes, navigating classes, side projects, and the job search all at once. No corporate speak, just real experiences.
               </p>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold mb-2 text-foreground">Detailed and Actionable</h3>
               <p className="text-base leading-relaxed text-muted-foreground">
                 We go beyond surface-level reviews. Our platform encourages detailed insights about preparation, skills used, and specific experiences. You&apos;ll find the kind of information that actually helps you prepare and make decisions.
               </p>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold mb-2 text-foreground">Community-Driven</h3>
               <p className="text-base leading-relaxed text-muted-foreground">
