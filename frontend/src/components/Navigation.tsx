@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -18,6 +19,7 @@ import { useAuth } from "@/components/AuthProvider";
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,16 +75,23 @@ export default function Navigation() {
   };
 
   const userName = getUserDisplayName();
+  const isLandingPage = pathname === "/";
+
+  // Conditionally use motion.nav or regular nav
+  const NavComponent = isLandingPage ? motion.nav : "nav";
+  const navProps = isLandingPage ? {
+    initial: { y: -100, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: {
+      duration: 1.6,
+      ease: [0.4, 0, 0.2, 1],
+      delay: 0
+    }
+  } : {};
 
   return (
-    <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{
-        duration: 1.6,
-        ease: [0.4, 0, 0.2, 1], // Smoother cubic-bezier
-        delay: 0
-      }}
+    <NavComponent
+      {...navProps}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
           ? "bg-background/95 backdrop-blur-sm"
@@ -116,7 +125,7 @@ export default function Navigation() {
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link
-              href="#companies"
+              href="/reviews"
               className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
             >
               Companies
@@ -218,6 +227,6 @@ export default function Navigation() {
           </div>
         </div>
       </div>
-    </motion.nav>
+    </NavComponent>
   );
 }
