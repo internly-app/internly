@@ -129,7 +129,12 @@ export async function GET(request: NextRequest) {
       offset: searchParams.get("offset") || "0",
     });
 
-    // Build query
+    // Check if user is authenticated first
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Build query with user likes included in single query
     let dbQuery = supabase.from("reviews").select(
       `
         *,
@@ -172,27 +177,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if user is authenticated to add like status
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     let reviewsWithLikeStatus: ReviewWithDetails[] = reviews || [];
 
     if (user && reviews && reviews.length > 0) {
-      // Get user's likes for these reviews
+      // Get user's likes for these reviews in a single optimized query
       const reviewIds = reviews.map((r) => r.id);
-      const { data: userLikes } = await supabase
+      const { data: userLikes, error: likesError } = await supabase
         .from("review_likes")
         .select("review_id")
         .eq("user_id", user.id)
         .in("review_id", reviewIds);
+
+      if (likesError) {
+        console.error('[API] Error fetching user likes:', likesError);
+      }
 
       const likedReviewIds = new Set(userLikes?.map((l) => l.review_id) || []);
 
       reviewsWithLikeStatus = reviews.map((review) => ({
         ...review,
         user_has_liked: likedReviewIds.has(review.id),
+      }));
+    } else {
+      // If no user, just set user_has_liked to false for all
+      reviewsWithLikeStatus = (reviews || []).map((review) => ({
+        ...review,
+        user_has_liked: false,
       }));
     }
 
@@ -201,6 +211,12 @@ export async function GET(request: NextRequest) {
       total: count || 0,
       limit: query.limit,
       offset: query.offset,
+    }, {
+      headers: {
+        // No cache - always fetch fresh data for user_has_liked accuracy
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+      },
     });
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {

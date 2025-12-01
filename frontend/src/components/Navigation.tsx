@@ -201,7 +201,7 @@ export default function Navigation() {
                   asChild
                   className="gap-2 group"
                 >
-                  <Link href="/signin?redirect=review">
+                  <Link href="/signin?redirect=/write-review">
                     Write Review
                     <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
