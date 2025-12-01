@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -18,6 +19,7 @@ import { useAuth } from "@/components/AuthProvider";
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,16 +75,10 @@ export default function Navigation() {
   };
 
   const userName = getUserDisplayName();
+  const isLandingPage = pathname === "/";
 
-  return (
-    <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{
-        duration: 1.6,
-        ease: [0.4, 0, 0.2, 1], // Smoother cubic-bezier
-        delay: 0
-      }}
+  const navElement = (
+    <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
           ? "bg-background/95 backdrop-blur-sm"
@@ -218,6 +214,25 @@ export default function Navigation() {
           </div>
         </div>
       </div>
-    </motion.nav>
+    </nav>
   );
+
+  // Only apply animation on landing page
+  if (isLandingPage) {
+    return (
+      <motion.div
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{
+          duration: 1.6,
+          ease: [0.4, 0, 0.2, 1],
+          delay: 0
+        }}
+      >
+        {navElement}
+      </motion.div>
+    );
+  }
+
+  return navElement;
 }
