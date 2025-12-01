@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Search, Edit, Users } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -115,6 +116,7 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </main>
   );
 }

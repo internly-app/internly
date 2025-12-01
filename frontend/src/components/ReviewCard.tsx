@@ -204,13 +204,15 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               <svg
                 width="16"
                 height="16"
-                viewBox="0 0 16 16"
+                viewBox="0 0 24 24"
                 fill={likeData.hasLiked ? "currentColor" : "none"}
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className={`transition-all flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
               >
-                <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
               <span className="text-xs whitespace-nowrap ml-3">{likeData.likeCount}</span>
             </Button>
@@ -503,13 +505,15 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           <svg
             width="18"
             height="18"
-            viewBox="0 0 16 16"
+            viewBox="0 0 24 24"
             fill={likeData.hasLiked ? "currentColor" : "none"}
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
           >
-            <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
           <span className="text-sm font-medium ml-4">{likeData.likeCount}</span>
         </Button>
