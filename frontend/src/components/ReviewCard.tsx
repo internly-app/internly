@@ -136,15 +136,17 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               className="h-6 px-2 gap-1.5 hover:bg-muted transition-colors disabled:opacity-50"
             >
               <svg
-                width="14"
-                height="14"
-                viewBox="0 0 16 16"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
                 fill={review.user_has_liked ? "currentColor" : "none"}
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className={`transition-all ${review.user_has_liked ? "text-red-500" : ""}`}
               >
-                <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
               <span className="text-xs">{review.like_count}</span>
             </Button>
@@ -435,15 +437,17 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           className="gap-2 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
         >
           <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
             fill={review.user_has_liked ? "currentColor" : "none"}
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className={`transition-all duration-200 ${review.user_has_liked ? "text-red-500" : ""}`}
           >
-            <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
           <span className="text-sm font-medium">{review.like_count}</span>
         </Button>

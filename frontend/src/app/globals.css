@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -57,9 +59,122 @@
   }
 }
 
+/* Simple, clean animations */
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
 .animate-gradient-shift {
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
+}
+
+/* Hero Animation Classes - Clean and Simple */
+.animate-fade-down {
+  animation: fadeDown 1s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-down-delay {
+  animation: fadeDown 1s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay {
+  animation: fadeIn 1s ease-out 0.6s forwards;
+  opacity: 0;
+}
+
+.animate-fade-up-1 {
+  animation: fadeUp 0.8s ease-out 0.8s forwards;
+  opacity: 0;
+}
+
+.animate-fade-up-2 {
+  animation: fadeUp 0.8s ease-out 1s forwards;
+  opacity: 0;
+}
+
+.animate-fade-up-3 {
+  animation: fadeUp 0.8s ease-out 1.2s forwards;
+  opacity: 0;
+}
+
+.float-animation {
+  animation: subtleFloat 4s ease-in-out infinite;
+}
+
+.float-animation-delay {
+  animation: subtleFloat 4s ease-in-out infinite 1.3s;
+}
+
+.float-animation-offset {
+  animation: subtleFloat 4s ease-in-out infinite 2.6s;
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
 /* Dark Mode - Default */
@@ -142,30 +257,41 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* Typography Utilities */
+/* Typography Utilities - Size and spacing only, fonts handled by Tailwind */
 .text-display {
   font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
+/* Typography - Clean font override for display elements */
+.text-display,
+h1,
+h2,
+h3 {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* Playfair Display for rotating hero text */
+.text-display .rotating-text {
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+}
+
+
 .text-heading-1 {
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
 
 .text-heading-2 {
   font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 600;
   line-height: 1.3;
 }
 
 .text-heading-3 {
   font-size: clamp(1.25rem, 2vw, 1.5rem);
-  font-weight: 600;
   line-height: 1.4;
 }
 
