@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Search, Edit, Users } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,138 +11,108 @@ export default function AboutPage() {
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="max-w-4xl mx-auto px-6 py-24">
+      <div className="max-w-3xl mx-auto px-6 py-24">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-heading-1 mb-4 text-foreground">
-            About Internly
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4 text-foreground">
+            What is Internly?
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover real internship experiences from students like you
+          <p className="text-xl text-muted-foreground">
+            Real internship reviews from students, for students.
           </p>
         </div>
 
-        {/* Mission Section */}
+        {/* What is Internly */}
+        <div className="mb-12 text-center">
+          <p className="text-xl text-muted-foreground">
+            Students share detailed internship reviews: what they actually worked on, how they prepared, interview processes, compensation, and honest advice.
+          </p>
+        </div>
+
+        {/* How to Use It */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl mb-4">Our Mission</CardTitle>
+            <CardTitle className="text-2xl">How to Maximize Your Success</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              We&apos;re students who know how overwhelming the internship search can be. Internly exists to make that process a bit easier by connecting you with real experiences from students who&apos;ve been there. We believe in transparency, community, and helping each other navigate the world of internships.
-            </p>
-            <p className="text-base leading-relaxed text-muted-foreground">
-              Whether you&apos;re trying to figure out what skills to learn, how to prepare for interviews, or what to expect at a specific company, Internly gives you the insights you need to make informed decisions about your career.
-            </p>
+          <CardContent className="space-y-6">
+            <div className="flex gap-4">
+              <Search className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">1. Research Before Applying</h3>
+                <p className="text-muted-foreground">
+                  Search for companies you&apos;re interested in. Learn what technologies they use, how they interview, and what past interns actually worked on. Tailor your applications accordingly.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Users className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">2. Prepare Strategically</h3>
+                <p className="text-muted-foreground">
+                  Use interview tips and preparation advice from students who got the roles you want. Focus on the skills and topics they mention.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Edit className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">3. Share Your Experience</h3>
+                <p className="text-muted-foreground">
+                  After your internship, write a detailed review. Help the next person and build the community that helped you.
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* What is Internly Section */}
-        <Card className="mb-8">
+        {/* What Makes Us Different */}
+        <Card className="mb-12">
           <CardHeader>
-            <CardTitle className="text-2xl mb-4">What is Internly?</CardTitle>
+            <CardTitle className="text-2xl">What Makes Us Different</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              Internly is a platform where students can share and explore internship experiences. Think of it as your insider&apos;s guide to internships at tech companies, startups, and beyond.
-            </p>
-            <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              When you browse reviews on Internly, you&apos;ll find out:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-base text-muted-foreground ml-4">
-              <li>What past interns actually worked on day to day</li>
-              <li>How they prepared for their interviews</li>
-              <li>What skills and technologies they used</li>
-              <li>Which courses helped them land their roles</li>
-              <li>What the interview process was really like</li>
-              <li>Compensation details and perks</li>
-              <li>Honest advice about the best and hardest parts</li>
+            <ul className="space-y-3 text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span><strong>No corporate BS:</strong> Real reviews from students who actually did the work</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span><strong>Actionable details:</strong> Specific technologies, interview questions, and preparation tips</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span><strong>Transparent:</strong> Compensation data, work culture, and honest pros/cons</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span><strong>Student-focused:</strong> Built by students who understand your challenges</span>
+              </li>
             </ul>
           </CardContent>
         </Card>
 
-        {/* What Sets Us Apart Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl mb-4">What Sets Internly Apart?</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Student-Focused</h3>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                We&apos;re built by students, for students. Every review comes from someone who&apos;s been in your shoes, navigating classes, side projects, and the job search all at once. No corporate speak, just real experiences.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Detailed and Actionable</h3>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                We go beyond surface-level reviews. Our platform encourages detailed insights about preparation, skills used, and specific experiences. You&apos;ll find the kind of information that actually helps you prepare and make decisions.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Community-Driven</h3>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Internly thrives on community contributions. Every review helps someone else navigate their journey. It&apos;s about students supporting students, sharing knowledge, and making the internship search less intimidating.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Core Features Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl mb-4">What You Can Do</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Share Your Experience</h3>
-              <p className="text-base leading-relaxed text-muted-foreground mb-3">
-                Write a review about your internship experience. Share details about the company, your role, what you worked on, how you prepared, and what you learned. Your insights help other students make better decisions.
-              </p>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Our review form covers everything from basic details like location and term, to your experience, interview process, and compensation. You can be as detailed as you want to help others.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Browse and Discover</h3>
-              <p className="text-base leading-relaxed text-muted-foreground mb-3">
-                Explore reviews from students who&apos;ve interned at companies you&apos;re interested in. Filter by company, role, location, or search for specific skills and technologies.
-              </p>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Find out what it&apos;s really like to work somewhere, what skills you should focus on, and how others prepared for their interviews. Use this information to tailor your own preparation and applications.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* CTA Section */}
-        <div className="text-center">
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="text-2xl font-semibold mb-4 text-foreground">
-                Ready to Get Started?
-              </h2>
-              <p className="text-base text-muted-foreground mb-6">
-                Join the community and start exploring internship experiences, or share your own story to help others.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild className="gap-2 group">
-                  <Link href="/write-review">
-                    Write a Review
-                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/">
-                    Browse Reviews
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        {/* CTA */}
+        <div className="text-center bg-muted/30 rounded-lg p-8">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
+            Start Using Internly
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild className="gap-2 group">
+              <Link href="/write-review">
+                Write a Review
+                <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="gap-2 group">
+              <Link href="/">
+                Browse Reviews
+                <Search className="size-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </main>

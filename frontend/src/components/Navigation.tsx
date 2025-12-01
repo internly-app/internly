@@ -157,7 +157,7 @@ export default function Navigation() {
                       </svg>
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 border border-white/20 shadow-lg shadow-black/50">
+                  <DropdownMenuContent align="end" className="w-56 border border-white/20">
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium">{userName.full}</p>
