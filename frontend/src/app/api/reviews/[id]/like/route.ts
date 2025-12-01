@@ -57,8 +57,22 @@ export async function POST(
         );
       }
 
+      // Get updated like count from database
+      const { data: updatedReview, error: fetchError } = await supabase
+        .from("reviews")
+        .select("like_count")
+        .eq("id", reviewId)
+        .single();
+
+      if (fetchError) {
+        console.error("Failed to fetch review after unlike:", fetchError);
+      }
+
+      console.log("Unlike - Review data:", updatedReview);
+
       return NextResponse.json({
         liked: false,
+        likeCount: updatedReview?.like_count ?? 0,
         message: "Review unliked",
       });
     } else {
@@ -71,6 +85,21 @@ export async function POST(
         });
 
       if (insertError) {
+        // If duplicate key error (user already liked), just return current state
+        if (insertError.code === '23505') {
+          const { data: currentReview } = await supabase
+            .from("reviews")
+            .select("like_count")
+            .eq("id", reviewId)
+            .single();
+
+          return NextResponse.json({
+            liked: true,
+            likeCount: currentReview?.like_count || 0,
+            message: "Review already liked",
+          });
+        }
+
         console.error("Like insert error:", insertError);
         return NextResponse.json(
           { error: "Failed to like review" },
@@ -78,13 +107,31 @@ export async function POST(
         );
       }
 
+      // Get updated like count from database
+      const { data: updatedReview, error: fetchError } = await supabase
+        .from("reviews")
+        .select("like_count")
+        .eq("id", reviewId)
+        .single();
+
+      if (fetchError) {
+        console.error("Failed to fetch review after like:", fetchError);
+      }
+
+      console.log("Like - Review data:", updatedReview);
+
       return NextResponse.json({
         liked: true,
+        likeCount: updatedReview?.like_count ?? 0,
         message: "Review liked",
       });
     }
   } catch (error) {
-    console.error("POST /api/reviews/[id]/like error:", error);
+    console.error("POST /api/reviews/[id]/like error:", {
+      error,
+      reviewId: (await params).id,
+      timestamp: new Date().toISOString(),
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

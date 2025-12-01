@@ -14,19 +14,13 @@ export default function SignInPage() {
   const { user, loading } = useAuth();
   const redirectParam = searchParams.get("redirect");
 
-  // Set up redirect for review modal if needed
-  useEffect(() => {
-    if (redirectParam === "review") {
-      localStorage.setItem("openReviewModal", "true");
-    }
-  }, [redirectParam]);
-
   // Redirect if already authenticated
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      const redirectTo = redirectParam || "/";
+      router.push(redirectTo);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirectParam]);
 
   // Show loading skeleton while checking auth
   if (loading) {
@@ -50,7 +44,8 @@ export default function SignInPage() {
     return null;
   }
 
-  const redirectTo = redirectParam === "review" ? "/" : (redirectParam || "/");
+  const redirectTo = redirectParam || "/";
+  const isWriteReview = redirectParam === "/write-review";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
@@ -81,12 +76,12 @@ export default function SignInPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">
-            {redirectParam === "review"
+            {isWriteReview
               ? "Sign in to write a review"
               : "Sign in to Internly"}
           </CardTitle>
           <CardDescription>
-            {redirectParam === "review"
+            {isWriteReview
               ? "Share your internship experience with fellow students"
               : "Sign in with Google or create an account to get started"}
           </CardDescription>

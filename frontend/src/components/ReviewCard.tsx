@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardAction,
@@ -24,9 +24,37 @@ interface ReviewCardProps {
 }
 
 export default function ReviewCard({ review, compact = false }: ReviewCardProps) {
-  const { user } = useAuth();
-  const { toggleLike, loading: likeLoading } = useLikeReview();
+  const { user, loading: authLoading } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
+
+  // Local state for like data - synced with review prop
+  const [likeData, setLikeData] = useState({
+    hasLiked: review.user_has_liked,
+    likeCount: review.like_count,
+  });
+
+  // Sync with prop changes (when data refreshes from API)
+  useEffect(() => {
+    // Don't update while auth is loading to prevent flash
+    if (authLoading) return;
+
+    const newHasLiked = user ? review.user_has_liked : false;
+
+    console.log('[ReviewCard] Update:', {
+      reviewId: review.id.substring(0, 8),
+      user: !!user,
+      authLoading,
+      'review.user_has_liked': review.user_has_liked,
+      newHasLiked,
+      likeCount: review.like_count
+    });
+
+    setLikeData({
+      hasLiked: newHasLiked,
+      likeCount: review.like_count,
+    });
+  }, [review.user_has_liked, review.like_count, user, authLoading]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -38,15 +66,53 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card expansion when clicking like
+
+    // Prevent multiple simultaneous clicks
+    if (isLiking) return;
+
     if (!user) {
       window.location.href = "/signin";
       return;
     }
+
+    setIsLiking(true);
+
+    // Store previous state for rollback
+    const previousState = { ...likeData };
+
+    // Optimistic update - instant UI feedback
+    const newLikedState = !likeData.hasLiked;
+    setLikeData({
+      hasLiked: newLikedState,
+      likeCount: newLikedState
+        ? likeData.likeCount + 1
+        : Math.max(0, likeData.likeCount - 1),
+    });
+
     try {
-      await toggleLike(review.id);
-      window.location.reload(); // Temporary - should use state management
+      const response = await fetch(`/api/reviews/${review.id}/like`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle like");
+      }
+
+      const data = await response.json();
+
+      // Update with actual database values to ensure consistency
+      setLikeData({
+        hasLiked: data.liked,
+        likeCount: data.likeCount,
+      });
     } catch (error) {
       console.error("Failed to like review:", error);
+      // Rollback to previous state on error
+      setLikeData(previousState);
+      // Show error to user
+      alert("Failed to update like. Please try again.");
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -125,31 +191,31 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           </p>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between pt-0 pb-3">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-        <span>{formatDate(review.created_at)}</span>
+        <CardFooter className="flex items-center justify-between pt-0 pb-3 px-4">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-1">
+        <span className="whitespace-nowrap">{formatDate(review.created_at)}</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLike}
-              disabled={likeLoading}
-              className="h-6 px-2 gap-1.5 hover:bg-muted transition-colors disabled:opacity-50"
+              disabled={isLiking}
+              className="h-6 px-2 gap-0 hover:bg-muted transition-colors disabled:opacity-50"
             >
               <svg
-                width="14"
-                height="14"
+                width="16"
+                height="16"
                 viewBox="0 0 16 16"
-                fill={review.user_has_liked ? "currentColor" : "none"}
+                fill={likeData.hasLiked ? "currentColor" : "none"}
                 stroke="currentColor"
                 strokeWidth="1.5"
-                className={`transition-all ${review.user_has_liked ? "text-red-500" : ""}`}
+                className={`transition-all flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
               >
                 <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
               </svg>
-              <span className="text-xs">{review.like_count}</span>
+              <span className="text-xs whitespace-nowrap ml-3">{likeData.likeCount}</span>
             </Button>
           </div>
-          <div className="flex items-center text-muted-foreground">
+          <div className="flex items-center text-muted-foreground flex-shrink-0 ml-2">
             {isExpanded ? (
               <ChevronUp className="size-4" />
             ) : (
@@ -431,21 +497,21 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           variant="ghost"
           size="sm"
           onClick={handleLike}
-          disabled={likeLoading}
-          className="gap-2 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
+          disabled={isLiking}
+          className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
         >
           <svg
-            width="16"
-            height="16"
+            width="18"
+            height="18"
             viewBox="0 0 16 16"
-            fill={review.user_has_liked ? "currentColor" : "none"}
+            fill={likeData.hasLiked ? "currentColor" : "none"}
             stroke="currentColor"
             strokeWidth="1.5"
-            className={`transition-all duration-200 ${review.user_has_liked ? "text-red-500" : ""}`}
+            className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
           >
             <path d="M8 14s-6-4-6-8c0-2.21 1.79-4 4-4 1.42 0 2.66.74 3.36 1.85C9.84 2.74 11.08 2 12.5 2c2.21 0 4 1.79 4 4 0 4-6 8-6 8z" />
           </svg>
-          <span className="text-sm font-medium">{review.like_count}</span>
+          <span className="text-sm font-medium ml-4">{likeData.likeCount}</span>
         </Button>
       </CardFooter>
     </Card>

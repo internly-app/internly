@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { ReviewWithDetails } from "@/lib/types/database";
 import type { ReviewsQuery, ReviewCreate } from "@/lib/validations/schemas";
+import { useAuth } from "@/components/AuthProvider";
 
 interface ReviewsResponse {
   reviews: ReviewWithDetails[];
@@ -16,8 +17,12 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    // Wait for auth to finish loading before fetching reviews
+    if (authLoading) return;
+
     const fetchReviews = async () => {
       setLoading(true);
       setError(null);
@@ -32,7 +37,12 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
         if (query.limit) params.set("limit", query.limit.toString());
         if (query.offset) params.set("offset", query.offset.toString());
 
-        const response = await fetch(`/api/reviews?${params.toString()}`);
+        const response = await fetch(`/api/reviews?${params.toString()}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
 
         if (!response.ok) {
           // Try to extract error message from response
@@ -70,6 +80,8 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
     query.sort,
     query.limit,
     query.offset,
+    user, // Refetch when user changes (sign in/out)
+    authLoading, // Wait for auth to load
   ]);
 
   return { reviews, total, loading, error };
