@@ -116,7 +116,7 @@ export default function Navigation() {
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link
-              href="#companies"
+              href="/reviews"
               className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white"
             >
               Companies
