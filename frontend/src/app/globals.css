@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* Fonts are loaded via next/font in layout.tsx - no duplicate imports needed */
 @import "tailwindcss";
 
 @theme {
@@ -177,6 +176,21 @@
   animation-delay: 4s;
 }
 
+/* GPU Acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Smooth transform animations */
+.transform-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
 /* Dark Mode - Default */
 :root {
   --color-background: #000000;
@@ -264,18 +278,12 @@ body {
   letter-spacing: -0.02em;
 }
 
-/* Typography - Clean font override for display elements */
+/* Typography - Clean font using Inter from next/font */
 .text-display,
 h1,
 h2,
 h3 {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-}
-
-/* Playfair Display for rotating hero text */
-.text-display .rotating-text {
-  font-family: "Playfair Display", Georgia, serif;
-  font-style: italic;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 
@@ -300,21 +308,31 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Focus Visible */
-*:focus-visible:not(button):not([role="button"]):not(input):not(textarea):not(select) {
+/* Focus Visible - Accessible focus states */
+*:focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
 }
 
-/* Remove outline from buttons, inputs, and dropdown items */
+/* Custom focus ring for buttons and interactive elements */
 button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Custom focus ring for form inputs - handled by component styles */
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible,
-[role="button"]:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--color-ring);
+}
+
+/* Remove default outline from dropdown menu items (they have their own bg highlight) */
 [role="menuitem"]:focus-visible,
 [data-radix-collection-item]:focus-visible {
-  outline: none !important;
+  outline: none;
 }
 
 /* Force update background and text colors in dark mode */

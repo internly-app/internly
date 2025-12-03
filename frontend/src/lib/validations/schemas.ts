@@ -91,21 +91,6 @@ export const reviewCreateSchema = z.object({
     .transform((val) => (val ? sanitizeText(val) : val)),
 
   // Written content (no minimum length required)
-  summary: z
-    .string()
-    .max(2000)
-    .transform((val) => sanitizeText(val))
-    .refine(
-      (val) => {
-        if (!val) return true; // Empty is allowed
-        const validation = validateReviewContent(val, "Summary");
-        return validation.isValid;
-      },
-      (val) => {
-        const validation = validateReviewContent(val, "Summary");
-        return { message: validation.reason || "Summary contains inappropriate content" };
-      }
-    ),
   hardest: z
     .string()
     .max(1000)

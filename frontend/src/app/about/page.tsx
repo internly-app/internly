@@ -2,35 +2,66 @@
 
 import Link from "next/link";
 import { ArrowRight, Search, Edit, Users } from "lucide-react";
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Animation variants for staggered entrance
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut" as const,
+    },
+  },
+};
 
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="max-w-3xl mx-auto px-6 py-24">
+      <motion.div
+        className="max-w-3xl mx-auto px-6 py-24"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div variants={itemVariants} className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 text-foreground">
             What is Internly?
           </h1>
           <p className="text-xl text-muted-foreground">
             Real internship reviews from students, for students.
           </p>
-        </div>
+        </motion.div>
 
         {/* What is Internly */}
-        <div className="mb-12 text-center">
+        <motion.div variants={itemVariants} className="mb-12 text-center">
           <p className="text-xl text-muted-foreground">
             Students share detailed internship reviews: what they actually worked on, how they prepared, interview processes, compensation, and honest advice.
           </p>
-        </div>
+        </motion.div>
 
         {/* How to Use It */}
+        <motion.div variants={itemVariants}>
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-2xl">How to Maximize Your Success</CardTitle>
@@ -67,8 +98,10 @@ export default function AboutPage() {
             </div>
           </CardContent>
         </Card>
+        </motion.div>
 
         {/* What Makes Us Different */}
+        <motion.div variants={itemVariants}>
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="text-2xl">What Makes Us Different</CardTitle>
@@ -94,9 +127,10 @@ export default function AboutPage() {
             </ul>
           </CardContent>
         </Card>
+        </motion.div>
 
         {/* CTA */}
-        <div className="text-center bg-muted/30 rounded-lg p-8">
+        <motion.div variants={itemVariants} className="text-center bg-muted/30 rounded-lg p-8">
           <h2 className="text-2xl font-semibold mb-4 text-foreground">
             Start Using Internly
           </h2>
@@ -114,8 +148,8 @@ export default function AboutPage() {
               </Link>
             </Button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
       <Footer />
     </main>
   );
