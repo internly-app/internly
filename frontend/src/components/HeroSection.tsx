@@ -211,14 +211,17 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
           className="flex flex-col sm:flex-row gap-4 justify-center mb-16 md:mb-20 lg:mb-24"
         >
-          <Button asChild size="lg" className="gap-2 group">
+          <Button asChild size="lg" variant="outline" className="gap-2 group">
             <Link href="/reviews">
               Explore Reviews
               <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/write-review">Share Your Experience</Link>
+          <Button asChild size="lg" className="gap-2 group">
+            <Link href="/write-review">
+              Share Your Experience
+              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </Button>
         </motion.div>
 

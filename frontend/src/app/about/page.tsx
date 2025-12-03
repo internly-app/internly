@@ -142,7 +142,7 @@ export default function AboutPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild className="gap-2 group">
-              <Link href="/">
+              <Link href="/reviews">
                 Browse Reviews
                 <Search className="size-4" />
               </Link>
