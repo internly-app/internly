@@ -53,7 +53,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
     setIsSaved(!isSaved);
 
     try {
-      const response = await fetch(`/api/companies/${company.id}/save`, {
+      const response = await fetch(`/api/companies/save/${company.id}`, {
         method: isSaved ? "DELETE" : "POST",
       });
 
