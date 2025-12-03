@@ -195,9 +195,9 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
         </CardHeader>
 
         <CardContent className="pt-0 pb-3">
-          {/* Truncated Summary */}
+          {/* Truncated Best Part */}
           <p className="text-sm text-muted-foreground line-clamp-2">
-            {isExpanded ? review.summary : truncateText(review.summary, 120)}
+            {isExpanded ? review.best : truncateText(review.best, 120)}
           </p>
         </CardContent>
 
@@ -243,13 +243,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
         {isExpanded && (
           <CardContent className="pt-0 pb-4 space-y-4">
             <div className="border-t border-zinc-700 mt-2 mb-4" />
-            {/* Full Summary */}
-            <div>
-              <h4 className="font-semibold mb-2 text-sm">Summary</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {review.summary}
-              </p>
-      </div>
 
       {/* Technologies */}
             {review.technologies && (
@@ -413,13 +406,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
       <CardContent className="space-y-6">
 
-        {/* Summary */}
-        <div>
-          <h4 className="font-semibold mb-2">Summary</h4>
-          <p className="text-base leading-relaxed text-foreground">
-            {review.summary}
-          </p>
-        </div>
 
         {/* Best & Hardest */}
         <div className="grid md:grid-cols-2 gap-6">

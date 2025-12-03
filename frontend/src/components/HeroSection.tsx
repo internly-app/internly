@@ -46,7 +46,6 @@ const mockReviews: ReviewWithDetails[] = [
     work_hours: "full-time" as const,
     duration_months: 3,
     team_name: "Cloud Infrastructure",
-    summary: "Amazing learning experience with world-class mentorship. The scale of impact was incredible - worked on products serving billions of users. Culture was inclusive and collaborative.",
     best: "The mentorship and learning opportunities were unparalleled. Access to cutting-edge technology and the ability to work on projects with global impact.",
     hardest: "The pace was intense and the codebase was massive. It took time to understand the complex systems and development workflows.",
     advice: "Come prepared to learn quickly and don't be afraid to ask questions. Take advantage of all the learning resources and networking opportunities.",
@@ -93,7 +92,6 @@ const mockReviews: ReviewWithDetails[] = [
     work_hours: "full-time" as const,
     duration_months: 4,
     team_name: "Growth",
-    summary: "Worked on cutting-edge AI systems at unprecedented scale. Incredible mentorship and exposure to state-of-the-art ML research. Fast-paced environment with huge impact.",
     best: "The level of responsibility and autonomy given to interns. I led a major feature from conception to launch.",
     hardest: "The fast pace and high expectations. You need to be self-directed and comfortable with ambiguity.",
     advice: "Be proactive and take ownership. The team respects initiative and you'll learn exponentially more by diving in.",
@@ -140,7 +138,6 @@ const mockReviews: ReviewWithDetails[] = [
     work_hours: "full-time" as const,
     duration_months: 3,
     team_name: "AI Research",
-    summary: "Working on cutting-edge AI research with brilliant minds. Every day brought new challenges. Startup environment with huge learning potential and direct impact on product.",
     best: "Direct access to founders and ability to shape the product. Working with state-of-the-art AI models and research.",
     hardest: "Less structured than bigger companies. Need to be comfortable with uncertainty and changing priorities.",
     advice: "Be ready to wear multiple hats and learn quickly. Great opportunity if you want to experience startup life.",
@@ -204,7 +201,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="text-base sm:text-lg md:text-xl text-center text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-12"
         >
-          Discover what it's really like to intern at top companies. Read authentic reviews from students who've been there.
+          Discover what it&apos;s really like to intern at top companies. Read authentic reviews from students who&apos;ve been there.
         </motion.p>
 
         {/* CTA Buttons - Normal fade */}

@@ -52,7 +52,6 @@ export default function WriteReviewPage() {
     duration_months: "" as string | number,
     work_hours: "" as string,
     team_name: "",
-    summary: "",
     best: "",
     hardest: "",
     advice: "",
@@ -138,7 +137,6 @@ export default function WriteReviewPage() {
         work_hours: formData.work_hours && formData.work_hours !== "" ? (formData.work_hours as "full-time" | "part-time") : undefined,
         team_name: formData.team_name || undefined,
         technologies: formData.technologies || undefined,
-        summary: formData.summary,
         best: formData.best,
         hardest: formData.hardest,
         advice: formData.advice,
@@ -171,7 +169,7 @@ export default function WriteReviewPage() {
   };
 
   const canProceedFromStep1 = formData.company_id && formData.roleName && formData.roleName.trim();
-  const canProceedFromStep2 = formData.location && formData.term && formData.summary && formData.best && formData.hardest;
+  const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_rounds_description && formData.interview_tips;
   const canProceedFromStep4 = true; // Compensation is optional
 
@@ -442,24 +440,6 @@ export default function WriteReviewPage() {
                 </div>
 
                   {/* Experience Section */}
-                  <div className={FORM_STYLES.formSection}>
-                    <Label htmlFor="summary">Summary *</Label>
-                  <textarea
-                    id="summary"
-                      placeholder="Share a brief overview of your internship experience. What was the role like? What projects did you work on? What did you learn?"
-                    value={formData.summary}
-                    onChange={(e) =>
-                      setFormData({ ...formData, summary: e.target.value })
-                    }
-                    rows={4}
-                    maxLength={2000}
-                      className={cn(FORM_STYLES.textarea)}
-                      required
-                  />
-                  <p className={FORM_STYLES.characterCounter}>
-                    {formData.summary.length}/2000
-                  </p>
-                </div>
 
                   <div className={FORM_STYLES.formSection}>
                     <Label htmlFor="best">Best Part *</Label>

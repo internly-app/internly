@@ -80,7 +80,6 @@ export interface Database {
           work_hours: string | null;
           team_name: string | null;
           technologies: string | null;
-          summary: string;
           hardest: string;
           best: string;
           advice: string;
@@ -108,7 +107,6 @@ export interface Database {
           work_hours?: string | null;
           team_name?: string | null;
           technologies?: string | null;
-          summary: string;
           hardest: string;
           best: string;
           advice: string;
@@ -136,7 +134,6 @@ export interface Database {
           work_hours?: string | null;
           team_name?: string | null;
           technologies?: string | null;
-          summary?: string;
           hardest?: string;
           best?: string;
           advice?: string;
