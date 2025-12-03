@@ -134,6 +134,16 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
       <Card
         className="transition-all duration-200 cursor-pointer hover:shadow-md"
         onClick={() => setIsExpanded(!isExpanded)}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        aria-label={`Review of ${review.role.title} at ${review.company.name}. Click to ${isExpanded ? 'collapse' : 'expand'} details.`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-4">
@@ -200,6 +210,8 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               onClick={handleLike}
               disabled={isLiking}
               className="h-6 px-2 gap-0 hover:bg-muted transition-colors disabled:opacity-50"
+              aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
+              aria-pressed={likeData.hasLiked}
             >
               <svg
                 width="16"
@@ -211,13 +223,14 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className={`transition-all flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
+                aria-hidden="true"
               >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
-              <span className="text-xs whitespace-nowrap ml-3">{likeData.likeCount}</span>
+              <span className="text-xs whitespace-nowrap ml-3" aria-hidden="true">{likeData.likeCount}</span>
             </Button>
           </div>
-          <div className="flex items-center text-muted-foreground flex-shrink-0 ml-2">
+          <div className="flex items-center text-muted-foreground flex-shrink-0 ml-2" aria-hidden="true">
             {isExpanded ? (
               <ChevronUp className="size-4" />
             ) : (
@@ -501,6 +514,8 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           onClick={handleLike}
           disabled={isLiking}
           className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
+          aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
+          aria-pressed={likeData.hasLiked}
         >
           <svg
             width="18"
@@ -512,10 +527,11 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             strokeLinecap="round"
             strokeLinejoin="round"
             className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
+            aria-hidden="true"
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <span className="text-sm font-medium ml-4">{likeData.likeCount}</span>
+          <span className="text-sm font-medium ml-4" aria-hidden="true">{likeData.likeCount}</span>
         </Button>
       </CardFooter>
     </Card>

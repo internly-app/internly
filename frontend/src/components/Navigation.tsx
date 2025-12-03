@@ -95,6 +95,7 @@ export default function Navigation() {
           <Link
             href="/"
             className="text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-opacity duration-200 mr-8"
+            aria-label="Internly - Go to homepage"
           >
             Internly
           </Link>
@@ -142,8 +143,11 @@ export default function Navigation() {
                 {/* Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-none focus-within:outline-none active:outline-none border-none outline-none">
-                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
+                    <button 
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer"
+                      aria-label={`User menu for ${userName.full}`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold" aria-hidden="true">
                         {userName.initials}
                       </div>
                       <span className="text-sm font-medium text-foreground hidden sm:block">
@@ -160,6 +164,7 @@ export default function Navigation() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className="hidden sm:block"
+                        aria-hidden="true"
                       >
                         <polyline points="6 9 12 15 18 9" />
                       </svg>

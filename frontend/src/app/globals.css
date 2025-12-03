@@ -308,21 +308,31 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Focus Visible */
-*:focus-visible:not(button):not([role="button"]):not(input):not(textarea):not(select) {
+/* Focus Visible - Accessible focus states */
+*:focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
 }
 
-/* Remove outline from buttons, inputs, and dropdown items */
+/* Custom focus ring for buttons and interactive elements */
 button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Custom focus ring for form inputs - handled by component styles */
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible,
-[role="button"]:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--color-ring);
+}
+
+/* Remove default outline from dropdown menu items (they have their own bg highlight) */
 [role="menuitem"]:focus-visible,
 [data-radix-collection-item]:focus-visible {
-  outline: none !important;
+  outline: none;
 }
 
 /* Force update background and text colors in dark mode */
