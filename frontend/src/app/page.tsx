@@ -9,7 +9,7 @@ import { Search, FileText, Users } from "lucide-react";
 export default function Home() {
   return (
     <main className="min-h-screen">
-      <Navigation />
+      <Navigation animate={true} />
       <HeroSection />
 
       {/* Key Benefits Section */}

@@ -27,25 +27,24 @@ import {
 import type { CompanyWithStats, ReviewWithDetails } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
 
-// Animation variants
+// Animation variants - fade in only (no y movement)
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      staggerChildren: 0.05,
+      delayChildren: 0,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
     transition: {
-      duration: 0.5,
+      duration: 0.3,
       ease: "easeOut" as const,
     },
   },
@@ -195,8 +194,8 @@ export default function CompanyDetailPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
         {/* Back Button */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
           <Link
@@ -210,9 +209,9 @@ export default function CompanyDetailPage() {
 
         {/* Company Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
           <Card className="mb-8">
             <CardContent className="pt-6">

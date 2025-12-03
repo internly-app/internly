@@ -13,25 +13,24 @@ import { useAuth } from "@/components/AuthProvider";
 import { FileText, Bookmark, ArrowRight, User } from "lucide-react";
 import type { ReviewWithDetails, CompanyWithStats } from "@/lib/types/database";
 
-// Animation variants
+// Animation variants - fade in only (no y movement for smoother loading)
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
+      staggerChildren: 0.05,
+      delayChildren: 0,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
     transition: {
-      duration: 0.5,
+      duration: 0.3,
       ease: "easeOut" as const,
     },
   },
@@ -181,9 +180,9 @@ export default function ProfilePage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
         {/* Profile Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
           className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8"
         >
           <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-semibold">
@@ -197,9 +196,9 @@ export default function ProfilePage() {
 
         {/* Tabs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
           className="flex gap-2 mb-8"
         >
           <Button
@@ -222,11 +221,7 @@ export default function ProfilePage() {
 
         {/* My Reviews Tab */}
         {activeTab === "reviews" && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <>
             {loadingReviews ? (
               <div className="grid gap-4">
                 {[1, 2, 3].map((i) => (
@@ -234,7 +229,11 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : myReviews.length === 0 ? (
-              <motion.div variants={itemVariants}>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center py-12">
@@ -254,24 +253,25 @@ export default function ProfilePage() {
                 </Card>
               </motion.div>
             ) : (
-              <div className="grid gap-4">
+              <motion.div
+                className="grid gap-4"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
                 {myReviews.map((review) => (
                   <motion.div key={review.id} variants={itemVariants}>
                     <ReviewCard review={review} compact={true} />
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
-          </motion.div>
+          </>
         )}
 
         {/* Saved Companies Tab */}
         {activeTab === "saved" && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <>
             {loadingSaved ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[1, 2, 3, 4].map((i) => (
@@ -279,7 +279,11 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : savedCompanies.length === 0 ? (
-              <motion.div variants={itemVariants}>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center py-12">
@@ -299,15 +303,20 @@ export default function ProfilePage() {
                 </Card>
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
                 {savedCompanies.map((company) => (
                   <motion.div key={company.id} variants={itemVariants}>
                     <CompanyCard company={company} onSaveToggle={handleUnsave} />
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
-          </motion.div>
+          </>
         )}
       </div>
     </main>

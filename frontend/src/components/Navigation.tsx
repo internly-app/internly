@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/components/AuthProvider";
 
-export default function Navigation() {
+interface NavigationProps {
+  animate?: boolean; // Only animate on landing page
+}
+
+export default function Navigation({ animate = false }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
 
@@ -76,13 +80,13 @@ export default function Navigation() {
 
   return (
     <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{
+      initial={animate ? { y: -100, opacity: 0 } : false}
+      animate={animate ? { y: 0, opacity: 1 } : undefined}
+      transition={animate ? {
         duration: 1.6,
-        ease: [0.4, 0, 0.2, 1], // Smoother cubic-bezier
+        ease: [0.4, 0, 0.2, 1],
         delay: 0,
-      }}
+      } : undefined}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
           ? "bg-background/95 backdrop-blur-sm"
@@ -178,7 +182,7 @@ export default function Navigation() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild className="cursor-pointer">
+                    <DropdownMenuItem asChild className="cursor-pointer focus:bg-muted">
                       <Link href="/profile" className="flex items-center">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

@@ -13,25 +13,24 @@ import { Search, X, Building2 } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
 import type { CompanyWithStats } from "@/lib/types/database";
 
-// Animation variants matching About page
+// Animation variants - fade in only (no y movement for smoother loading)
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1,
+      staggerChildren: 0.03,
+      delayChildren: 0,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
     transition: {
-      duration: 0.5,
+      duration: 0.3,
       ease: "easeOut" as const,
     },
   },
@@ -117,9 +116,9 @@ export default function CompaniesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
           className="mb-8 sm:mb-12 max-w-5xl mx-auto text-center"
         >
           <h1 className="text-heading-1 mb-4 text-foreground">Browse Companies</h1>
@@ -130,9 +129,9 @@ export default function CompaniesPage() {
 
         {/* Search */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
         >
           <Card className="mb-8 max-w-5xl mx-auto">
             <CardHeader>

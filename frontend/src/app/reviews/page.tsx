@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { sanitizeText } from "@/lib/security/content-filter";
 export default function ReviewsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [companyFilter, setCompanyFilter] = useState(searchParams.get("company") || "");
@@ -51,7 +51,7 @@ export default function ReviewsPage() {
   
   // Build query params with validation
   const queryParams = useMemo(() => {
-    const params: Record<string, string | number> = {
+    const params: any = {
       sort: sortBy,
       limit: 20,
     };
@@ -125,10 +125,15 @@ export default function ReviewsPage() {
     <main className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+      <motion.div 
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         {/* Header */}
         <div className="mb-8 sm:mb-12 max-w-5xl mx-auto text-center">
-          <h1 className="text-heading-1 mb-4 text-foreground font-semibold">Browse Reviews</h1>
+          <h1 className="text-heading-1 mb-4 text-foreground">Browse Reviews</h1>
           <p className="text-lg text-muted-foreground">
             Discover real internship experiences from students. Filter by company, role, location, and more.
           </p>
@@ -161,7 +166,7 @@ export default function ReviewsPage() {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       aria-label="Clear search"
                     >
                       <X className="size-4" />
@@ -295,7 +300,7 @@ export default function ReviewsPage() {
             </CardContent>
           </Card>
         )}
-        
+
         {/* Reviews Grid */}
         {!loading && !error && filteredReviews.length > 0 && (
           <div className="grid gap-4 max-w-5xl mx-auto">
@@ -304,8 +309,7 @@ export default function ReviewsPage() {
             ))}
           </div>
         )}
-      </div>
-      <Footer />
+      </motion.div>
     </main>
   );
 }
