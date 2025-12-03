@@ -244,9 +244,21 @@ export default function HeroSection() {
                 ease: "easeInOut",
               }}
               className="hidden lg:block -mr-20 z-10"
+              style={{
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+                transform: "translateZ(0)",
+              }}
             >
-              <div className="transform scale-90 rotate-[-4deg] opacity-80 blur-[0.5px]">
-                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden">
+              <div 
+                className="opacity-80 rounded-xl"
+                style={{
+                  transform: "scale(0.9) rotate(-4deg) translateZ(0)",
+                  filter: "blur(0.5px)",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden rounded-xl">
                   <ReviewCard review={mockReviews[0]} compact={true} />
                 </div>
               </div>
@@ -264,9 +276,22 @@ export default function HeroSection() {
                 delay: 0.5,
               }}
               className="z-20"
+              style={{
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+                perspective: 1000,
+                transform: "translateZ(0)",
+              }}
             >
-              <div className="transform scale-105 shadow-2xl">
-                <div className="w-[400px] md:w-[420px] h-[280px] md:h-[300px] pointer-events-none overflow-hidden">
+              <div 
+                className="shadow-2xl rounded-xl"
+                style={{
+                  transform: "scale(1.05) translateZ(0)",
+                  backfaceVisibility: "hidden",
+                  WebkitFontSmoothing: "antialiased",
+                }}
+              >
+                <div className="w-[400px] md:w-[420px] h-[280px] md:h-[300px] pointer-events-none overflow-hidden rounded-xl">
                   <ReviewCard review={mockReviews[1]} compact={true} />
                 </div>
               </div>
@@ -284,9 +309,21 @@ export default function HeroSection() {
                 delay: 1,
               }}
               className="hidden lg:block -ml-20 z-10"
+              style={{
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+                transform: "translateZ(0)",
+              }}
             >
-              <div className="transform scale-90 rotate-[4deg] opacity-80 blur-[0.5px]">
-                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden">
+              <div 
+                className="opacity-80 rounded-xl"
+                style={{
+                  transform: "scale(0.9) rotate(4deg) translateZ(0)",
+                  filter: "blur(0.5px)",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden rounded-xl">
                   <ReviewCard review={mockReviews[2]} compact={true} />
                 </div>
               </div>
