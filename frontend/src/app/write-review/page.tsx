@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,8 +192,15 @@ export default function WriteReviewPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/"
+          <button
+            onClick={() => {
+              // Go back if there's history, otherwise go to home
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/");
+              }
+            }}
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
             <svg
@@ -212,8 +218,8 @@ export default function WriteReviewPage() {
               <path d="m12 19-7-7 7-7" />
               <path d="M19 12H5" />
             </svg>
-            Back to home
-          </Link>
+            Back
+          </button>
           <h1 className="text-4xl font-bold text-foreground mb-2">Write a Review</h1>
           <p className="text-muted-foreground">
             Share your internship experience to help fellow students
