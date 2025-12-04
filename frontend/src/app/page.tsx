@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
@@ -9,7 +8,7 @@ import { Search, FileText, Users } from "lucide-react";
 export default function Home() {
   return (
     <main className="min-h-screen">
-      <Navigation />
+      <Navigation animate={true} />
       <HeroSection />
 
       {/* Key Benefits Section */}

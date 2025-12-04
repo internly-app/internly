@@ -11,7 +11,7 @@ import type { ReviewWithDetails } from "@/lib/types/database";
 
 const ROTATING_WORDS = [
   "Real experiences",
-  "Honest reviews", 
+  "Honest reviews",
   "Student insights",
   "Career guidance",
 ];
@@ -113,8 +113,8 @@ const mockReviews: ReviewWithDetails[] = [
     id: "3",
     company: {
       id: "rootly",
-      name: "Rootly AI",
-      logo_url: "/logos/rootly.svg",
+      name: "Rootly",
+      logo_url: null,
       website: "https://rootly.com",
       industry: "AI/SaaS",
       size: "50-100",
@@ -185,7 +185,7 @@ export default function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-300 inline-block leading-normal"
+                className="text-foreground inline-block leading-normal"
               >
                 {ROTATING_WORDS[currentWordIndex]}
               </motion.span>

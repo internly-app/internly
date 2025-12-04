@@ -77,14 +77,14 @@ export function TechnologyAutocomplete({
   const filteredOptions = TECHNOLOGY_OPTIONS.filter(
     (tech) =>
       !selectedTechs.includes(tech) &&
-      (inputValue.trim() === "" || tech.toLowerCase().includes(inputValue.toLowerCase()))
+      (inputValue === "" || tech.toLowerCase().includes(inputValue.toLowerCase()))
   );
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setInputValue(val);
-    setIsOpen(val.length > 0);
+    setIsOpen(true); // Always show dropdown when typing or focusing
   };
 
   // Handle selecting a technology
@@ -98,7 +98,8 @@ export function TechnologyAutocomplete({
   };
 
   // Handle removing a tag
-  const handleRemove = (techToRemove: string) => {
+  const handleRemove = (techToRemove: string, e?: React.MouseEvent) => {
+    e?.stopPropagation(); // Prevent triggering parent events
     const newTechs = selectedTechs.filter((tech) => tech !== techToRemove);
     setSelectedTechs(newTechs);
     onChange(newTechs.join(", "));
@@ -114,7 +115,8 @@ export function TechnologyAutocomplete({
       }
     } else if (e.key === "Backspace" && inputValue === "" && selectedTechs.length > 0) {
       // Remove last tag on backspace when input is empty
-      handleRemove(selectedTechs[selectedTechs.length - 1]);
+      const lastTech = selectedTechs[selectedTechs.length - 1];
+      handleRemove(lastTech);
     } else if (e.key === "Escape") {
       setIsOpen(false);
     }
@@ -140,7 +142,12 @@ export function TechnologyAutocomplete({
   return (
     <div className={`relative ${className}`}>
       {/* Input with tags */}
-      <div className="flex flex-wrap gap-2 px-3 py-1 border border-zinc-700 rounded-md bg-transparent text-foreground min-h-[36px] items-center transition-colors focus-within:outline-none focus-within:ring-1 focus-within:ring-zinc-600">
+      <div 
+        className="flex flex-wrap gap-2 px-3 py-1 border border-zinc-700 rounded-md bg-transparent text-foreground min-h-[36px] items-center transition-colors focus-within:border-zinc-600 [&:focus-within]:outline-none"
+        onClick={() => {
+          inputRef.current?.focus();
+          setIsOpen(true);
+        }}>
         {/* Selected tags */}
         {selectedTechs.map((tech) => (
           <span
@@ -150,7 +157,8 @@ export function TechnologyAutocomplete({
             {tech}
             <button
               type="button"
-              onClick={() => handleRemove(tech)}
+              onClick={(e) => handleRemove(tech, e)}
+              onMouseDown={(e) => e.preventDefault()} // Prevent input blur
               className="hover:text-destructive focus:outline-none transition-colors"
               aria-label={`Remove ${tech}`}
             >
@@ -180,18 +188,18 @@ export function TechnologyAutocomplete({
           onKeyDown={handleKeyDown}
           onFocus={() => setIsOpen(true)}
           placeholder={selectedTechs.length === 0 ? placeholder : ""}
-          className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-muted-foreground text-sm"
+          className="flex-1 min-w-[120px] bg-transparent outline-none focus:outline-none focus-visible:outline-none placeholder:text-muted-foreground text-sm"
         />
       </div>
 
       {/* Dropdown suggestions */}
-      {isOpen && (filteredOptions.length > 0 || inputValue.trim()) && (
+      {isOpen && (filteredOptions.length > 0 || (inputValue.trim() && !selectedTechs.includes(inputValue.trim()))) && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-card border border-border rounded-md shadow-lg"
         >
-          {/* Show all technologies on focus, filtered when typing */}
-          {(inputValue.trim() ? filteredOptions : TECHNOLOGY_OPTIONS)
+          {/* Show filtered technologies */}
+          {filteredOptions
             .slice(0, 25)
             .map((tech) => (
               <button

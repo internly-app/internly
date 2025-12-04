@@ -190,6 +190,26 @@ export interface Database {
           value?: string | null;
         };
       };
+      saved_companies: {
+        Row: {
+          id: string;
+          user_id: string;
+          company_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          company_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          company_id?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }
@@ -202,10 +222,30 @@ export type RoleInsert = Database["public"]["Tables"]["roles"]["Insert"];
 export type Review = Database["public"]["Tables"]["reviews"]["Row"];
 export type ReviewInsert = Database["public"]["Tables"]["reviews"]["Insert"];
 export type ReviewLike = Database["public"]["Tables"]["review_likes"]["Row"];
+export type SavedCompany = Database["public"]["Tables"]["saved_companies"]["Row"];
 
 // Extended review with joined data
 export interface ReviewWithDetails extends Review {
   company: Company;
   role: Role;
   user_has_liked?: boolean;
+}
+
+// Company with aggregated stats from reviews
+export interface CompanyWithStats extends Company {
+  review_count: number;
+  avg_pay_cad: number | null;
+  avg_pay_usd: number | null;
+  avg_interview_rounds: number | null;
+  common_interview_format: string | null;
+  work_style_breakdown: {
+    onsite: number;
+    hybrid: number;
+    remote: number;
+  };
+  common_roles: string[];
+  common_locations: string[];
+  avg_duration_months: number | null;
+  common_technologies: string[];
+  user_has_saved?: boolean;
 }
