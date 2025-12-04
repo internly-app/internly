@@ -113,8 +113,8 @@ const mockReviews: ReviewWithDetails[] = [
     id: "3",
     company: {
       id: "rootly",
-      name: "Rootly AI",
-      logo_url: "/logos/rootly.svg",
+      name: "Rootly",
+      logo_url: null,
       website: "https://rootly.com",
       industry: "AI/SaaS",
       size: "50-100",
