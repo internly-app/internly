@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import ReviewCard from "@/components/ReviewCard";
 import CompanyCard from "@/components/CompanyCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/AuthProvider";
-import { FileText, Bookmark, ArrowRight, User } from "lucide-react";
+import { FileText, Bookmark, ArrowRight } from "lucide-react";
 import type { ReviewWithDetails, CompanyWithStats } from "@/lib/types/database";
 
 // Animation variants - fade in only (no y movement for smoother loading)
@@ -243,10 +244,10 @@ export default function ProfilePage() {
                         Share your internship experience and help other students.
                       </p>
                       <Button asChild className="gap-2">
-                        <a href="/write-review">
+                        <Link href="/write-review">
                           Write a Review
                           <ArrowRight className="size-4" />
-                        </a>
+                        </Link>
                       </Button>
                     </div>
                   </CardContent>
@@ -293,10 +294,10 @@ export default function ProfilePage() {
                         Save companies you&apos;re interested in to easily find them later.
                       </p>
                       <Button asChild className="gap-2">
-                        <a href="/companies">
+                        <Link href="/companies">
                           Browse Companies
                           <ArrowRight className="size-4" />
-                        </a>
+                        </Link>
                       </Button>
                     </div>
                   </CardContent>

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { CompanyWithStats } from "@/lib/types/database";
 
@@ -6,7 +6,7 @@ import type { CompanyWithStats } from "@/lib/types/database";
  * GET /api/user/saved-companies
  * Get current user's saved companies with stats
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient();
 
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const companiesWithStats: CompanyWithStats[] = savedCompanies
       .filter((s) => s.company) // Filter out any null companies
       .map((savedCompany) => {
-        const company = savedCompany.company as any;
+        const company = savedCompany.company as { id: string; name: string; slug: string; logo_url: string | null; website: string | null; industry: string | null; created_at: string; updated_at: string };
         const companyReviews = (reviews || []).filter(
           (r) => r.company_id === company.id
         );
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         // Common roles
         const roleCounts: Record<string, number> = {};
         companyReviews.forEach((r) => {
-          const roleTitle = (r.role as any)?.title;
+          const roleTitle = (r.role as { title?: string })?.title;
           if (roleTitle) {
             roleCounts[roleTitle] = (roleCounts[roleTitle] || 0) + 1;
           }

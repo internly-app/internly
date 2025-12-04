@@ -11,7 +11,7 @@ import type { ReviewWithDetails } from "@/lib/types/database";
 
 const ROTATING_WORDS = [
   "Real experiences",
-  "Honest reviews", 
+  "Honest reviews",
   "Student insights",
   "Career guidance",
 ];

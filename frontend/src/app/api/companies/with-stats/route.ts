@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       // Common roles (count occurrences)
       const roleCounts: Record<string, number> = {};
       companyReviews.forEach((r) => {
-        const roleTitle = (r.role as any)?.title;
+        const roleTitle = (r.role as { title?: string })?.title;
         if (roleTitle) {
           roleCounts[roleTitle] = (roleCounts[roleTitle] || 0) + 1;
         }

@@ -51,7 +51,7 @@ export default function ReviewsPage() {
   
   // Build query params with validation
   const queryParams = useMemo(() => {
-    const params: any = {
+    const params: Record<string, string | number> = {
       sort: sortBy,
       limit: 20,
     };

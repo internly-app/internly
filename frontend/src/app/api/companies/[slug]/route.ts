@@ -36,7 +36,7 @@ export async function GET(
     }
 
     // Fetch all reviews for this company with role data
-    let reviewsQuery = supabase
+    const reviewsQuery = supabase
       .from("reviews")
       .select(`
         *,

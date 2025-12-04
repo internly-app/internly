@@ -13,7 +13,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ReviewWithDetails } from "@/lib/types/database";
-import { useLikeReview } from "@/hooks/useReviews";
 import { useAuth } from "@/components/AuthProvider";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
@@ -40,15 +39,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
     if (authLoading) return;
 
     const newHasLiked = user ? review.user_has_liked : false;
-
-    console.log('[ReviewCard] Update:', {
-      reviewId: review.id.substring(0, 8),
-      user: !!user,
-      authLoading,
-      'review.user_has_liked': review.user_has_liked,
-      newHasLiked,
-      likeCount: review.like_count
-    });
 
     setLikeData({
       hasLiked: newHasLiked,

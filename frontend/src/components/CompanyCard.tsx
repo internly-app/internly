@@ -72,7 +72,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
   };
 
   // Format currency
-  const formatPay = (amount: number | null, currency: string) => {
+  const formatPay = (amount: number | null) => {
     if (!amount) return null;
     return `$${amount.toFixed(0)}`;
   };

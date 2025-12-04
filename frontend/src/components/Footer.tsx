@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Linkedin, Instagram, Github } from "lucide-react";
+import { Linkedin, Instagram } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -26,7 +26,7 @@ export default function Footer() {
             </div>
             <div className="relative group">
               <Link
-                href="https://twitter.com/tejasthind" // Tejas X
+                href="https://twitter.com/tejasthind4" // Tejas X
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
@@ -42,7 +42,7 @@ export default function Footer() {
             </div>
             <div className="relative group">
               <Link
-                href="https://instagram.com/tejasthind" // Tejas Instagram
+                href="https://instagram.com/tejastnd" // Tejas Instagram
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
@@ -57,7 +57,7 @@ export default function Footer() {
             <div className="w-px h-6 bg-border/50 self-center mx-1" />
             <div className="relative group">
               <Link
-                href="https://linkedin.com/in/srinikesh" // Srinikesh LinkedIn
+                href="https://linkedin.com/in/srinikesh-singarapu" // Srinikesh LinkedIn
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
@@ -71,7 +71,7 @@ export default function Footer() {
             </div>
             <div className="relative group">
               <Link
-                href="https://twitter.com/srinikesh" // Srinikesh X
+                href="https://twitter.com/SingarapuSrini" // Srinikesh X
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
