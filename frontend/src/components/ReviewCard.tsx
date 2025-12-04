@@ -198,7 +198,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             <button
               onClick={handleLike}
               disabled={isLiking}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
               aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
               aria-pressed={likeData.hasLiked}
             >
@@ -469,7 +469,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           size="sm"
           onClick={handleLike}
           disabled={isLiking}
-          className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
+          className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer"
           aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
           aria-pressed={likeData.hasLiked}
         >
