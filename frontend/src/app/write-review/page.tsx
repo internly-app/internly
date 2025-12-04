@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -618,21 +619,20 @@ export default function WriteReviewPage() {
                     />
                   </div>
 
-                  <div className="grid gap-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.housing_provided}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            housing_provided: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring"
-                      />
-                      <span className="text-sm font-medium">Housing Provided</span>
-                    </label>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="housing_provided"
+                      checked={formData.housing_provided}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          housing_provided: checked === true,
+                        })
+                      }
+                    />
+                    <Label htmlFor="housing_provided" className="cursor-pointer">
+                      Housing Provided
+                    </Label>
                   </div>
 
                   <div className="grid gap-2">
