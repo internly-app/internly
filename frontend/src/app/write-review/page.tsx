@@ -201,7 +201,7 @@ export default function WriteReviewPage() {
                 router.push("/");
               }
             }}
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -172,7 +172,7 @@ export default function CompanyDetailPage() {
                 router.push("/companies");
               }
             }}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
           >
             <ArrowLeft className="size-4" />
             Back
@@ -213,7 +213,7 @@ export default function CompanyDetailPage() {
                 router.push("/companies");
               }
             }}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
           >
             <ArrowLeft className="size-4" />
             Back
