@@ -185,7 +185,7 @@ export default function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-300 inline-block leading-normal"
+                className="text-foreground inline-block leading-normal"
               >
                 {ROTATING_WORDS[currentWordIndex]}
               </motion.span>

@@ -182,7 +182,7 @@ export default function Navigation({ animate = false }: NavigationProps) {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild className="cursor-pointer focus:bg-muted">
+                    <DropdownMenuItem asChild className="cursor-pointer text-foreground focus:text-foreground focus:bg-white/10">
                       <Link href="/profile" className="flex items-center">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

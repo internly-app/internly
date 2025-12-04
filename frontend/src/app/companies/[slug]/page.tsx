@@ -132,9 +132,9 @@ export default function CompanyDetailPage() {
   };
 
   const workStyleBadge = {
-    onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40",
-    hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40",
-    remote: "bg-green-500/20 text-green-300 border border-green-500/40",
+    onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/20",
+    hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/20",
+    remote: "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/20",
   } as const;
 
   const formatPay = (amount: number | null) => {

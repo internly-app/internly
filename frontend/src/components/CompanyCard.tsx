@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -72,25 +71,6 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
     }
   };
 
-  const workStyleBadge = {
-    onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40",
-    hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40",
-    remote: "bg-green-500/20 text-green-300 border border-green-500/40",
-  } as const;
-
-  // Get dominant work style
-  const getDominantWorkStyle = () => {
-    const { onsite, hybrid, remote } = company.work_style_breakdown;
-    const total = onsite + hybrid + remote;
-    if (total === 0) return null;
-    
-    if (onsite >= hybrid && onsite >= remote) return "onsite";
-    if (hybrid >= onsite && hybrid >= remote) return "hybrid";
-    return "remote";
-  };
-
-  const dominantWorkStyle = getDominantWorkStyle();
-
   // Format currency
   const formatPay = (amount: number | null, currency: string) => {
     if (!amount) return null;
@@ -144,14 +124,6 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
               <MessageSquare className="size-3 mr-1" />
               {company.review_count} {company.review_count === 1 ? "review" : "reviews"}
             </Badge>
-            {dominantWorkStyle && (
-              <Badge
-                variant="outline"
-                className={`text-xs ${workStyleBadge[dominantWorkStyle]}`}
-              >
-                {dominantWorkStyle}
-              </Badge>
-            )}
           </div>
         </CardHeader>
 
@@ -195,22 +167,14 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
             </div>
           )}
 
-          {/* Common Roles */}
+          {/* Common Roles - show as text for cleaner look */}
           {company.common_roles.length > 0 && (
             <div className="flex items-start gap-2 text-sm">
               <Briefcase className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <div className="flex flex-wrap gap-1.5">
-                {company.common_roles.slice(0, 3).map((role) => (
-                  <Badge key={role} variant="outline" className="text-xs">
-                    {role}
-                  </Badge>
-                ))}
-                {company.common_roles.length > 3 && (
-                  <Badge variant="outline" className="text-xs text-muted-foreground">
-                    +{company.common_roles.length - 3}
-                  </Badge>
-                )}
-              </div>
+              <span className="text-foreground line-clamp-1">
+                {company.common_roles.slice(0, 2).join(", ")}
+                {company.common_roles.length > 2 && ` +${company.common_roles.length - 2}`}
+              </span>
             </div>
           )}
 
@@ -225,31 +189,17 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
             </div>
           )}
 
-          {/* Technologies */}
+          {/* Technologies - show as text, not badges for cleaner look */}
           {company.common_technologies.length > 0 && (
             <div className="flex items-start gap-2 text-sm">
               <Code className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <div className="flex flex-wrap gap-1.5">
-                {company.common_technologies.slice(0, 5).map((tech) => (
-                  <Badge key={tech} variant="outline" className="text-xs">
-                    {tech}
-                  </Badge>
-                ))}
-                {company.common_technologies.length > 5 && (
-                  <Badge variant="outline" className="text-xs text-muted-foreground">
-                    +{company.common_technologies.length - 5}
-                  </Badge>
-                )}
-              </div>
+              <span className="text-foreground line-clamp-1">
+                {company.common_technologies.slice(0, 4).join(", ")}
+                {company.common_technologies.length > 4 && ` +${company.common_technologies.length - 4}`}
+              </span>
             </div>
           )}
         </CardContent>
-
-        <CardFooter className="pt-0 pb-3 px-6">
-          <p className="text-xs text-muted-foreground">
-            Click to view all reviews →
-          </p>
-        </CardFooter>
       </Card>
     </Link>
   );
