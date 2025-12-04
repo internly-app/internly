@@ -274,17 +274,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               </div>
             </div>
 
-
-            {/* Advice */}
-            {review.advice && (
-              <div>
-                <h4 className="font-semibold mb-2 text-sm">Advice for Future Interns</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {review.advice}
-                </p>
-              </div>
-            )}
-
             {/* Interview Process */}
             <div>
               <div className="border-t border-zinc-700 mb-4" />
@@ -416,16 +405,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           </p>
         </div>
       </div>
-
-      {/* Advice */}
-        {review.advice && (
-          <div>
-            <h4 className="font-semibold mb-2">Advice for Future Interns</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {review.advice}
-            </p>
-      </div>
-        )}
 
         {/* Interview Process */}
         <div>

@@ -124,7 +124,8 @@ export const reviewCreateSchema = z.object({
   advice: z
     .string()
     .max(1000)
-    .transform((val) => sanitizeText(val))
+    .optional()
+    .transform((val) => val ? sanitizeText(val) : undefined)
     .refine(
       (val) => {
         if (!val) return true;

@@ -50,10 +50,8 @@ export default function WriteReviewPage() {
     duration_months: "" as string | number,
     work_hours: "" as string,
     team_name: "",
-    summary: "",
     best: "",
     hardest: "",
-    advice: "",
     technologies: "",
 
     // Interview (Step 3)
@@ -138,10 +136,8 @@ export default function WriteReviewPage() {
         work_hours: formData.work_hours && formData.work_hours !== "" ? (formData.work_hours as "full-time" | "part-time") : undefined,
         team_name: formData.team_name || undefined,
         technologies: formData.technologies || undefined,
-        summary: formData.summary,
         best: formData.best,
         hardest: formData.hardest,
-        advice: formData.advice,
         wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
         wage_currency: formData.wage_currency || "CAD",
         housing_provided: formData.housing_provided,
@@ -171,7 +167,7 @@ export default function WriteReviewPage() {
   };
 
   const canProceedFromStep1 = formData.company_id && formData.roleName && formData.roleName.trim();
-  const canProceedFromStep2 = formData.location && formData.term && formData.summary && formData.best && formData.hardest;
+  const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_rounds_description && formData.interview_tips;
   const canProceedFromStep4 = true; // Compensation is optional
 
@@ -453,27 +449,6 @@ export default function WriteReviewPage() {
 
                   {/* Experience Section */}
                   <div className="grid gap-2">
-                    <Label htmlFor="summary">Summary *</Label>
-                  <textarea
-                    id="summary"
-                      placeholder="Share a brief overview of your internship experience. What was the role like? What projects did you work on? What did you learn?"
-                    value={formData.summary}
-                    onChange={(e) =>
-                      setFormData({ ...formData, summary: e.target.value })
-                    }
-                    rows={4}
-                    maxLength={2000}
-                      className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                      )}
-                      required
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.summary.length}/2000
-                  </p>
-                </div>
-
-                  <div className="grid gap-2">
                     <Label htmlFor="best">Best Part *</Label>
                   <textarea
                     id="best"
@@ -512,26 +487,6 @@ export default function WriteReviewPage() {
                   />
                   <p className="text-xs text-muted-foreground text-right">
                     {formData.hardest.length}/1000
-                  </p>
-                </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="advice">Advice for Future Interns</Label>
-                  <textarea
-                    id="advice"
-                      placeholder="What advice would you give to future interns in this role? (e.g., skills to prepare, what to expect, how to make the most of the experience, networking tips...)"
-                    value={formData.advice}
-                    onChange={(e) =>
-                      setFormData({ ...formData, advice: e.target.value })
-                    }
-                    rows={3}
-                    maxLength={1000}
-                      className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                      )}
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.advice.length}/1000
                   </p>
                 </div>
 
