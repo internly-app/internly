@@ -94,7 +94,13 @@ export default function Footer() {
           
           {/* Contact */}
           <div className="text-sm text-muted-foreground text-center">
-            Want to see a company added or noticed a bug? Feel free to contact us.
+            Want to see a company added or noticed a bug?{" "}
+            <a 
+              href="mailto:tejas.st0544@gmail.com" 
+              className="text-foreground hover:text-primary transition-colors underline underline-offset-2"
+            >
+              Contact us
+            </a>
           </div>
         </div>
       </div>
