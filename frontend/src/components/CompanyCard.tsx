@@ -79,7 +79,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
 
   return (
     <Link href={`/companies/${company.slug}`}>
-      <Card className="transition-all duration-200 hover:shadow-md hover:border-zinc-600 cursor-pointer h-full">
+      <Card className="transition-all duration-200 hover:shadow-md hover:border-zinc-500 cursor-pointer h-full">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 flex-1 min-w-0">

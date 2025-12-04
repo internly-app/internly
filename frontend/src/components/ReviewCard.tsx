@@ -122,7 +122,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
   if (compact) {
   return (
       <Card
-        className="transition-all duration-200 cursor-pointer hover:shadow-md"
+        className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500"
         onClick={() => setIsExpanded(!isExpanded)}
         role="button"
         tabIndex={0}
