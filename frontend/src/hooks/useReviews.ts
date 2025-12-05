@@ -103,7 +103,7 @@ export function useCreateReview() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reviewData),
       });
-      } catch (networkError) {
+      } catch {
         throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
       }
 
@@ -162,7 +162,7 @@ export function useLikeReview() {
         response = await fetch(`/api/reviews/${reviewId}/like`, {
         method: "POST",
       });
-      } catch (networkError) {
+      } catch {
         throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
       }
 

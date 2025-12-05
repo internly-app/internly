@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -22,7 +23,6 @@ import { CompanyAutocomplete } from "@/components/CompanyAutocomplete";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { TermSelect } from "@/components/TermSelect";
 import { cn } from "@/lib/utils";
-import { FORM_STYLES } from "@/lib/form-styles";
 
 export default function WriteReviewPage() {
   const router = useRouter();
@@ -52,10 +52,8 @@ export default function WriteReviewPage() {
     duration_months: "" as string | number,
     work_hours: "" as string,
     team_name: "",
-    summary: "",
     best: "",
     hardest: "",
-    advice: "",
     technologies: "",
 
     // Interview (Step 3)
@@ -80,6 +78,8 @@ export default function WriteReviewPage() {
 
   // Submission error (for API/network errors)
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+
   const handleNext = () => {
     if (step < 4) setStep(step + 1);
   };
@@ -138,10 +138,9 @@ export default function WriteReviewPage() {
         work_hours: formData.work_hours && formData.work_hours !== "" ? (formData.work_hours as "full-time" | "part-time") : undefined,
         team_name: formData.team_name || undefined,
         technologies: formData.technologies || undefined,
-        summary: formData.summary,
         best: formData.best,
         hardest: formData.hardest,
-        advice: formData.advice,
+        advice: undefined,
         wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
         wage_currency: formData.wage_currency || "CAD",
         housing_provided: formData.housing_provided,
@@ -157,13 +156,13 @@ export default function WriteReviewPage() {
     } catch (err) {
       // Extract user-friendly error message
       let errorMessage = "An unexpected error occurred. Please try again.";
-
+      
       if (err instanceof Error) {
         errorMessage = err.message;
       } else if (typeof err === "string") {
         errorMessage = err;
       }
-
+      
       // Set submission error to display to user
       setSubmissionError(errorMessage);
       console.error("Failed to submit review:", err);
@@ -171,7 +170,7 @@ export default function WriteReviewPage() {
   };
 
   const canProceedFromStep1 = formData.company_id && formData.roleName && formData.roleName.trim();
-  const canProceedFromStep2 = formData.location && formData.term && formData.summary && formData.best && formData.hardest;
+  const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_rounds_description && formData.interview_tips;
   const canProceedFromStep4 = true; // Compensation is optional
 
@@ -193,7 +192,14 @@ export default function WriteReviewPage() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              // Go back if there's history, otherwise go to home
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/");
+              }
+            }}
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
           >
             <svg
@@ -224,7 +230,7 @@ export default function WriteReviewPage() {
           <div className="flex items-center justify-between">
             {[
               { num: 1, label: "Company" },
-              { num: 2, label: "Experience" },
+              { num: 2, label: "Experience" }, 
               { num: 3, label: "Interview" },
               { num: 4, label: "Compensation" }
             ].map((s) => (
@@ -280,7 +286,7 @@ export default function WriteReviewPage() {
             {step === 1 && (
               <form>
                 <div className="flex flex-col gap-6">
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="company">Company *</Label>
                     <CompanyAutocomplete
                     value={formData.company_id}
@@ -302,7 +308,7 @@ export default function WriteReviewPage() {
                     />
                 </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="role">Role *</Label>
                     <Input
                     id="role"
@@ -346,7 +352,7 @@ export default function WriteReviewPage() {
               <form>
                 <div className="flex flex-col gap-6">
                   {/* Basic Details */}
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="location">Location *</Label>
                     <LocationAutocomplete
                       value={formData.location}
@@ -358,7 +364,7 @@ export default function WriteReviewPage() {
                     />
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="term">Term *</Label>
                     <TermSelect
                       value={formData.term}
@@ -369,7 +375,7 @@ export default function WriteReviewPage() {
                     />
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label>Work Style *</Label>
                     <RadioGroup
                       value={formData.work_style}
@@ -393,24 +399,25 @@ export default function WriteReviewPage() {
                     </RadioGroup>
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="duration_months">Duration (Months)</Label>
-                    <NumberInput
+                    <Input
                       id="duration_months"
+                      type="number"
                       min="1"
                       max="24"
                       placeholder="4, 8..."
                       value={formData.duration_months}
-                      onValueChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          duration_months: value ? parseInt(value) : "",
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                          duration_months: e.target.value ? parseInt(e.target.value) : "",
                         })
                       }
                     />
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="work_hours">Work Hours</Label>
                     <select
                       id="work_hours"
@@ -421,7 +428,9 @@ export default function WriteReviewPage() {
                           work_hours: e.target.value as "" | "full-time" | "part-time",
                             })
                           }
-                      className={cn(FORM_STYLES.select)}
+                      className={cn(
+                        "flex h-9 w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      )}
                     >
                       <option value="">Select...</option>
                       <option value="full-time">Full-time (40+ hrs/week)</option>
@@ -429,7 +438,7 @@ export default function WriteReviewPage() {
                     </select>
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="team_name">Team Name</Label>
                     <Input
                       id="team_name"
@@ -442,26 +451,7 @@ export default function WriteReviewPage() {
                 </div>
 
                   {/* Experience Section */}
-                  <div className={FORM_STYLES.formSection}>
-                    <Label htmlFor="summary">Summary *</Label>
-                  <textarea
-                    id="summary"
-                      placeholder="Share a brief overview of your internship experience. What was the role like? What projects did you work on? What did you learn?"
-                    value={formData.summary}
-                    onChange={(e) =>
-                      setFormData({ ...formData, summary: e.target.value })
-                    }
-                    rows={4}
-                    maxLength={2000}
-                      className={cn(FORM_STYLES.textarea)}
-                      required
-                  />
-                  <p className={FORM_STYLES.characterCounter}>
-                    {formData.summary.length}/2000
-                  </p>
-                </div>
-
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="best">Best Part *</Label>
                   <textarea
                     id="best"
@@ -472,15 +462,17 @@ export default function WriteReviewPage() {
                     }
                     rows={3}
                     maxLength={1000}
-                      className={cn(FORM_STYLES.textarea)}
+                      className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      )}
                       required
                   />
-                  <p className={FORM_STYLES.characterCounter}>
+                  <p className="text-xs text-muted-foreground text-right">
                     {formData.best.length}/1000
                   </p>
                 </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="hardest">Hardest Part *</Label>
                   <textarea
                     id="hardest"
@@ -491,33 +483,17 @@ export default function WriteReviewPage() {
                     }
                     rows={3}
                     maxLength={1000}
-                      className={cn(FORM_STYLES.textarea)}
+                      className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      )}
                       required
                   />
-                  <p className={FORM_STYLES.characterCounter}>
+                  <p className="text-xs text-muted-foreground text-right">
                     {formData.hardest.length}/1000
                   </p>
                 </div>
 
-                  <div className={FORM_STYLES.formSection}>
-                    <Label htmlFor="advice">Advice for Future Interns</Label>
-                  <textarea
-                    id="advice"
-                      placeholder="What advice would you give to future interns in this role? (e.g., skills to prepare, what to expect, how to make the most of the experience, networking tips...)"
-                    value={formData.advice}
-                    onChange={(e) =>
-                      setFormData({ ...formData, advice: e.target.value })
-                    }
-                    rows={3}
-                    maxLength={1000}
-                      className={cn(FORM_STYLES.textarea)}
-                  />
-                  <p className={FORM_STYLES.characterCounter}>
-                    {formData.advice.length}/1000
-                  </p>
-                </div>
-
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="technologies">Technologies & Skills Used</Label>
                     <TechnologyAutocomplete
                       value={formData.technologies}
@@ -535,21 +511,22 @@ export default function WriteReviewPage() {
             {step === 3 && (
               <form>
                 <div className="flex flex-col gap-6">
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="interview_round_count">Number of Interview Rounds *</Label>
-                  <NumberInput
+                  <Input
                     id="interview_round_count"
-                    placeholder="3"
+                    type="number"
+                      placeholder="2, 3, 4..."
                     value={formData.interview_round_count}
-                    onValueChange={(value) =>
+                    onChange={(e) =>
                       setFormData({
                         ...formData,
-                        interview_round_count: value,
+                        interview_round_count: e.target.value,
                       })
                     }
                     min="0"
                     max="20"
-                    required
+                      required
                   />
                 </div>
 
@@ -570,11 +547,11 @@ export default function WriteReviewPage() {
                     rows={4}
                     maxLength={1000}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                     required
                   />
-                  <p className={FORM_STYLES.characterCounter}>
+                  <p className="text-xs text-muted-foreground text-right">
                     {formData.interview_rounds_description.length}/1000
                   </p>
                 </div>
@@ -591,11 +568,11 @@ export default function WriteReviewPage() {
                     rows={4}
                     maxLength={1000}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                     required
                   />
-                  <p className={FORM_STYLES.characterCounter}>
+                  <p className="text-xs text-muted-foreground text-right">
                     {formData.interview_tips.length}/1000
                   </p>
                 </div>
@@ -607,15 +584,14 @@ export default function WriteReviewPage() {
             {step === 4 && (
               <form>
                 <div className="flex flex-col gap-6">
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="wage_currency">Currency</Label>
-                    <select
+                    <Select
                       id="wage_currency"
                       value={formData.wage_currency}
                       onChange={(e) =>
                         setFormData({ ...formData, wage_currency: e.target.value })
                       }
-                      className={cn(FORM_STYLES.select)}
                     >
                       <option value="CAD">CAD - Canadian Dollar</option>
                       <option value="USD">USD - US Dollar</option>
@@ -627,49 +603,48 @@ export default function WriteReviewPage() {
                       <option value="CNY">CNY - Chinese Yuan</option>
                       <option value="INR">INR - Indian Rupee</option>
                       <option value="SGD">SGD - Singapore Dollar</option>
-                    </select>
+                    </Select>
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="wage_hourly">Hourly Wage</Label>
-                    <NumberInput
+                    <Input
                       id="wage_hourly"
+                      type="number"
                       placeholder="20, 30, 40..."
                       value={formData.wage_hourly}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, wage_hourly: value })
+                      onChange={(e) =>
+                        setFormData({ ...formData, wage_hourly: e.target.value })
                       }
-                      allowDecimal
                     />
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.housing_provided}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            housing_provided: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring"
-                      />
-                      <span className="text-sm font-medium">Housing Provided</span>
-                    </label>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="housing_provided"
+                      checked={formData.housing_provided}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          housing_provided: checked === true,
+                        })
+                      }
+                    />
+                    <Label htmlFor="housing_provided" className="cursor-pointer">
+                      Housing Provided
+                    </Label>
                   </div>
 
-                  <div className={FORM_STYLES.formSection}>
+                  <div className="grid gap-2">
                     <Label htmlFor="housing_stipend">Monthly Housing Stipend</Label>
-                    <NumberInput
+                    <Input
                       id="housing_stipend"
+                      type="number"
                       placeholder="1500, 2500, 3500..."
                       value={formData.housing_stipend}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, housing_stipend: value })
+                      onChange={(e) =>
+                        setFormData({ ...formData, housing_stipend: e.target.value })
                       }
-                      allowDecimal
                     />
                   </div>
 
@@ -685,10 +660,10 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={500}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                   />
-                  <p className={FORM_STYLES.characterCounter}>
+                  <p className="text-xs text-muted-foreground text-right">
                     {formData.perks.length}/500
                   </p>
                 </div>

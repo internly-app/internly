@@ -11,7 +11,7 @@ import type { ReviewWithDetails } from "@/lib/types/database";
 
 const ROTATING_WORDS = [
   "Real experiences",
-  "Honest reviews", 
+  "Honest reviews",
   "Student insights",
   "Career guidance",
 ];
@@ -45,7 +45,6 @@ const mockReviews: ReviewWithDetails[] = [
     work_hours: "full-time" as const,
     duration_months: 3,
     team_name: "Cloud Infrastructure",
-    summary: "Amazing learning experience with world-class mentorship. The scale of impact was incredible - worked on products serving billions of users. Culture was inclusive and collaborative.",
     best: "The mentorship and learning opportunities were unparalleled. Access to cutting-edge technology and the ability to work on projects with global impact.",
     hardest: "The pace was intense and the codebase was massive. It took time to understand the complex systems and development workflows.",
     advice: "Come prepared to learn quickly and don't be afraid to ask questions. Take advantage of all the learning resources and networking opportunities.",
@@ -91,7 +90,6 @@ const mockReviews: ReviewWithDetails[] = [
     work_hours: "full-time" as const,
     duration_months: 4,
     team_name: "Growth",
-    summary: "Worked on cutting-edge AI systems at unprecedented scale. Incredible mentorship and exposure to state-of-the-art ML research. Fast-paced environment with huge impact.",
     best: "The level of responsibility and autonomy given to interns. I led a major feature from conception to launch.",
     hardest: "The fast pace and high expectations. You need to be self-directed and comfortable with ambiguity.",
     advice: "Be proactive and take ownership. The team respects initiative and you'll learn exponentially more by diving in.",
@@ -137,7 +135,6 @@ const mockReviews: ReviewWithDetails[] = [
     work_hours: "full-time" as const,
     duration_months: 3,
     team_name: "AI Research",
-    summary: "Working on cutting-edge AI research with brilliant minds. Every day brought new challenges. Startup environment with huge learning potential and direct impact on product.",
     best: "Direct access to founders and ability to shape the product. Working with state-of-the-art AI models and research.",
     hardest: "Less structured than bigger companies. Need to be comfortable with uncertainty and changing priorities.",
     advice: "Be ready to wear multiple hats and learn quickly. Great opportunity if you want to experience startup life.",
@@ -185,7 +182,7 @@ export default function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-300 inline-block leading-normal"
+                className="text-foreground inline-block leading-normal"
               >
                 {ROTATING_WORDS[currentWordIndex]}
               </motion.span>
@@ -201,7 +198,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="text-base sm:text-lg md:text-xl text-center text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-12"
         >
-          Discover what it's really like to intern at top companies. Read authentic reviews from students who've been there.
+          Discover what it&apos;s really like to intern at top companies. Read authentic reviews from students who&apos;ve been there.
         </motion.p>
 
         {/* CTA Buttons - Normal fade */}
@@ -244,9 +241,21 @@ export default function HeroSection() {
                 ease: "easeInOut",
               }}
               className="hidden lg:block -mr-20 z-10"
+              style={{
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+                transform: "translateZ(0)",
+              }}
             >
-              <div className="transform scale-90 rotate-[-4deg] opacity-80 blur-[0.5px]">
-                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden">
+              <div 
+                className="opacity-80 rounded-xl"
+                style={{
+                  transform: "scale(0.9) rotate(-4deg) translateZ(0)",
+                  filter: "blur(0.5px)",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden rounded-xl">
                   <ReviewCard review={mockReviews[0]} compact={true} />
                 </div>
               </div>
@@ -264,9 +273,22 @@ export default function HeroSection() {
                 delay: 0.5,
               }}
               className="z-20"
+              style={{
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+                perspective: 1000,
+                transform: "translateZ(0)",
+              }}
             >
-              <div className="transform scale-105 shadow-2xl">
-                <div className="w-[400px] md:w-[420px] h-[280px] md:h-[300px] pointer-events-none overflow-hidden">
+              <div 
+                className="shadow-2xl rounded-xl"
+                style={{
+                  transform: "scale(1.05) translateZ(0)",
+                  backfaceVisibility: "hidden",
+                  WebkitFontSmoothing: "antialiased",
+                }}
+              >
+                <div className="w-[400px] md:w-[420px] h-[280px] md:h-[300px] pointer-events-none overflow-hidden rounded-xl">
                   <ReviewCard review={mockReviews[1]} compact={true} />
                 </div>
               </div>
@@ -284,9 +306,21 @@ export default function HeroSection() {
                 delay: 1,
               }}
               className="hidden lg:block -ml-20 z-10"
+              style={{
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+                transform: "translateZ(0)",
+              }}
             >
-              <div className="transform scale-90 rotate-[4deg] opacity-80 blur-[0.5px]">
-                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden">
+              <div 
+                className="opacity-80 rounded-xl"
+                style={{
+                  transform: "scale(0.9) rotate(4deg) translateZ(0)",
+                  filter: "blur(0.5px)",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden rounded-xl">
                   <ReviewCard review={mockReviews[2]} compact={true} />
                 </div>
               </div>

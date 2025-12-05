@@ -13,7 +13,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ReviewWithDetails } from "@/lib/types/database";
-import { useLikeReview } from "@/hooks/useReviews";
 import { useAuth } from "@/components/AuthProvider";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
@@ -40,15 +39,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
     if (authLoading) return;
 
     const newHasLiked = user ? review.user_has_liked : false;
-
-    console.log('[ReviewCard] Update:', {
-      reviewId: review.id.substring(0, 8),
-      user: !!user,
-      authLoading,
-      'review.user_has_liked': review.user_has_liked,
-      newHasLiked,
-      likeCount: review.like_count
-    });
 
     setLikeData({
       hasLiked: newHasLiked,
@@ -133,10 +123,20 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
   if (compact) {
   return (
       <Card
-        className="transition-all duration-200 cursor-pointer hover:shadow-md"
+        className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500"
         onClick={() => setIsExpanded(!isExpanded)}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        aria-label={`Review of ${review.role.title} at ${review.company.name}. Click to ${isExpanded ? 'collapse' : 'expand'} details.`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
       >
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 px-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {/* Company Logo */}
@@ -148,7 +148,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
               {/* Company & Role */}
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg font-semibold mb-1 truncate">
+                <CardTitle className="text-lg font-semibold mb-0.5 truncate">
                   {review.company.name}
                 </CardTitle>
                 <CardDescription className="text-sm truncate">
@@ -158,18 +158,18 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             </div>
 
             {/* Term Badge */}
-            <Badge variant="outline" className="h-fit flex-shrink-0">
+            <Badge variant="outline" className="h-fit flex-shrink-0 text-xs">
               {review.term}
             </Badge>
-      </div>
+          </div>
 
           {/* Key Info Badges */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <Badge
               variant="outline"
               className={`text-xs ${workStyleBadge[review.work_style]}`}
-        >
-          {review.work_style}
+            >
+              {review.work_style}
             </Badge>
             {review.work_hours && (
               <Badge variant="outline" className="text-xs">
@@ -185,59 +185,56 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0 pb-3">
-          {/* Truncated Summary */}
+        <CardContent className="pt-0 pb-3 px-4">
+          {/* Truncated Best Part */}
           <p className="text-sm text-muted-foreground line-clamp-2">
-            {isExpanded ? review.summary : truncateText(review.summary, 120)}
+            {truncateText(review.best, 150)}
           </p>
         </CardContent>
 
         <CardFooter className="flex items-center justify-between pt-0 pb-3 px-4">
-          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-1">
-        <span className="whitespace-nowrap">{formatDate(review.created_at)}</span>
-            <Button
-              variant="ghost"
-              size="sm"
+          {/* Left side: Date and Like */}
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
+            <button
               onClick={handleLike}
               disabled={isLiking}
-              className="h-6 px-2 gap-0 hover:bg-muted transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
+              aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
+              aria-pressed={likeData.hasLiked}
             >
               <svg
-                width="16"
-                height="16"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill={likeData.hasLiked ? "currentColor" : "none"}
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`transition-all flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
+                className={`transition-colors ${likeData.hasLiked ? "text-red-500" : ""}`}
+                aria-hidden="true"
               >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
-              <span className="text-xs whitespace-nowrap ml-3">{likeData.likeCount}</span>
-            </Button>
+              <span className="text-xs">{likeData.likeCount}</span>
+            </button>
           </div>
-          <div className="flex items-center text-muted-foreground flex-shrink-0 ml-2">
+          
+          {/* Right side: Expand/Collapse indicator */}
+          <div className="text-muted-foreground" aria-hidden="true">
             {isExpanded ? (
               <ChevronUp className="size-4" />
             ) : (
               <ChevronDown className="size-4" />
             )}
-      </div>
+          </div>
         </CardFooter>
 
         {/* Expanded Content */}
         {isExpanded && (
-          <CardContent className="pt-0 pb-4 space-y-4">
-            <div className="border-t border-zinc-700 mt-2 mb-4" />
-            {/* Full Summary */}
-            <div>
-              <h4 className="font-semibold mb-2 text-sm">Summary</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {review.summary}
-              </p>
-      </div>
+          <CardContent className="pt-0 pb-4 px-4 space-y-4">
+            <div className="border-t border-zinc-700 mb-4" />
 
       {/* Technologies */}
             {review.technologies && (
@@ -278,17 +275,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
                 </p>
               </div>
             </div>
-
-
-            {/* Advice */}
-            {review.advice && (
-              <div>
-                <h4 className="font-semibold mb-2 text-sm">Advice for Future Interns</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {review.advice}
-                </p>
-              </div>
-            )}
 
             {/* Interview Process */}
             <div>
@@ -401,13 +387,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
 
       <CardContent className="space-y-6">
 
-        {/* Summary */}
-        <div>
-          <h4 className="font-semibold mb-2">Summary</h4>
-          <p className="text-base leading-relaxed text-foreground">
-            {review.summary}
-          </p>
-        </div>
 
         {/* Best & Hardest */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -428,16 +407,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           </p>
         </div>
       </div>
-
-      {/* Advice */}
-        {review.advice && (
-          <div>
-            <h4 className="font-semibold mb-2">Advice for Future Interns</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {review.advice}
-            </p>
-      </div>
-        )}
 
         {/* Interview Process */}
         <div>
@@ -501,7 +470,9 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           size="sm"
           onClick={handleLike}
           disabled={isLiking}
-          className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
+          className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer"
+          aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
+          aria-pressed={likeData.hasLiked}
         >
           <svg
             width="18"
@@ -513,10 +484,11 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             strokeLinecap="round"
             strokeLinejoin="round"
             className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
+            aria-hidden="true"
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <span className="text-sm font-medium ml-4">{likeData.likeCount}</span>
+          <span className="text-sm font-medium ml-4" aria-hidden="true">{likeData.likeCount}</span>
         </Button>
       </CardFooter>
     </Card>
