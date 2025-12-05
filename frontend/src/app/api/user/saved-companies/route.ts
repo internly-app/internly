@@ -127,6 +127,26 @@ export async function GET() {
           .slice(0, 10)
           .map(([tech]) => tech);
 
+        // Common interview format (most mentioned pattern)
+        const formatCounts: Record<string, number> = {};
+        companyReviews.forEach((r) => {
+          if (r.interview_rounds_description) {
+            const desc = r.interview_rounds_description.toLowerCase();
+            if (desc.includes("technical") && desc.includes("behavioral")) {
+              formatCounts["Technical + Behavioral"] =
+                (formatCounts["Technical + Behavioral"] || 0) + 1;
+            } else if (desc.includes("technical")) {
+              formatCounts["Technical"] = (formatCounts["Technical"] || 0) + 1;
+            } else if (desc.includes("behavioral")) {
+              formatCounts["Behavioral"] = (formatCounts["Behavioral"] || 0) + 1;
+            } else if (desc.includes("case study") || desc.includes("case-study")) {
+              formatCounts["Case Study"] = (formatCounts["Case Study"] || 0) + 1;
+            }
+          }
+        });
+        const commonInterviewFormat =
+          Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
         return {
           ...company,
           review_count: companyReviews.length,
@@ -147,7 +167,7 @@ export async function GET() {
                   0
                 ) / reviewsWithRounds.length
               : null,
-          common_interview_format: null,
+          common_interview_format: commonInterviewFormat,
           work_style_breakdown: workStyleBreakdown,
           common_roles: commonRoles,
           common_locations: commonLocations,
