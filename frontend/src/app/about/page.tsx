@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Search, Edit, Users } from "lucide-react";
+import { ArrowRight, Search, Edit, Users, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -133,7 +133,7 @@ export default function AboutPage() {
           <h2 className="text-2xl font-semibold mb-4 text-foreground">
             Start Using Internly
           </h2>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
             <Button asChild className="gap-2 group">
               <Link href="/write-review">
                 Write a Review
@@ -144,6 +144,12 @@ export default function AboutPage() {
               <Link href="/reviews">
                 Browse Reviews
                 <Search className="size-4" />
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="gap-2 group">
+              <Link href="/companies">
+                Browse Companies
+                <Building2 className="size-4" />
               </Link>
             </Button>
           </div>

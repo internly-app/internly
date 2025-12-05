@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -52,6 +52,7 @@ const itemVariants = {
 
 export default function CompanyDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
   const { user } = useAuth();
 
@@ -163,13 +164,19 @@ export default function CompanyDetailPage() {
       <main className="min-h-screen bg-background">
         <Navigation />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
-          <Link
-            href="/companies"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+          <button
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/companies");
+              }
+            }}
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
           >
             <ArrowLeft className="size-4" />
-            Back to companies
-          </Link>
+            Back
+          </button>
           <Card>
             <CardContent className="pt-6">
               <div className="text-center py-12">
@@ -198,13 +205,19 @@ export default function CompanyDetailPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <Link
-            href="/companies"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+          <button
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/companies");
+              }
+            }}
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
           >
             <ArrowLeft className="size-4" />
-            Back to companies
-          </Link>
+            Back
+          </button>
         </motion.div>
 
         {/* Company Header */}

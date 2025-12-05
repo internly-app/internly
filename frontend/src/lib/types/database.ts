@@ -82,7 +82,7 @@ export interface Database {
           technologies: string | null;
           hardest: string;
           best: string;
-          advice: string;
+          advice: string | null;
           wage_hourly: number | null;
           wage_currency: string | null;
           housing_provided: boolean | null;
@@ -109,7 +109,7 @@ export interface Database {
           technologies?: string | null;
           hardest: string;
           best: string;
-          advice: string;
+          advice?: string | null;
           wage_hourly?: number | null;
           wage_currency?: string | null;
           housing_provided?: boolean | null;

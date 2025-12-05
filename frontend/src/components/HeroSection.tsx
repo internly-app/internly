@@ -66,8 +66,8 @@ const mockReviews: ReviewWithDetails[] = [
   {
     id: "2",
     company: {
-      id: "openai",
-      name: "OpenAI",
+      id: "ramp",
+      name: "Ramp",
       logo_url: null,
       website: "https://ramp.com",
       industry: "Fintech",

@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -51,10 +52,8 @@ export default function WriteReviewPage() {
     duration_months: "" as string | number,
     work_hours: "" as string,
     team_name: "",
-    summary: "",
     best: "",
     hardest: "",
-    advice: "",
     technologies: "",
 
     // Interview (Step 3)
@@ -139,10 +138,9 @@ export default function WriteReviewPage() {
         work_hours: formData.work_hours && formData.work_hours !== "" ? (formData.work_hours as "full-time" | "part-time") : undefined,
         team_name: formData.team_name || undefined,
         technologies: formData.technologies || undefined,
-        summary: formData.summary,
         best: formData.best,
         hardest: formData.hardest,
-        advice: formData.advice,
+        advice: undefined,
         wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
         wage_currency: formData.wage_currency || "CAD",
         housing_provided: formData.housing_provided,
@@ -172,7 +170,7 @@ export default function WriteReviewPage() {
   };
 
   const canProceedFromStep1 = formData.company_id && formData.roleName && formData.roleName.trim();
-  const canProceedFromStep2 = formData.location && formData.term && formData.summary && formData.best && formData.hardest;
+  const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_rounds_description && formData.interview_tips;
   const canProceedFromStep4 = true; // Compensation is optional
 
@@ -193,9 +191,16 @@ export default function WriteReviewPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          <button
+            onClick={() => {
+              // Go back if there's history, otherwise go to home
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/");
+              }
+            }}
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -212,8 +217,8 @@ export default function WriteReviewPage() {
               <path d="m12 19-7-7 7-7" />
               <path d="M19 12H5" />
             </svg>
-            Back to home
-          </Link>
+            Back
+          </button>
           <h1 className="text-4xl font-bold text-foreground mb-2">Write a Review</h1>
           <p className="text-muted-foreground">
             Share your internship experience to help fellow students
@@ -447,27 +452,6 @@ export default function WriteReviewPage() {
 
                   {/* Experience Section */}
                   <div className="grid gap-2">
-                    <Label htmlFor="summary">Summary *</Label>
-                  <textarea
-                    id="summary"
-                      placeholder="Share a brief overview of your internship experience. What was the role like? What projects did you work on? What did you learn?"
-                    value={formData.summary}
-                    onChange={(e) =>
-                      setFormData({ ...formData, summary: e.target.value })
-                    }
-                    rows={4}
-                    maxLength={2000}
-                      className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                      )}
-                      required
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.summary.length}/2000
-                  </p>
-                </div>
-
-                  <div className="grid gap-2">
                     <Label htmlFor="best">Best Part *</Label>
                   <textarea
                     id="best"
@@ -479,7 +463,7 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={1000}
                       className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
                   />
@@ -500,32 +484,12 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={1000}
                       className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
                   />
                   <p className="text-xs text-muted-foreground text-right">
                     {formData.hardest.length}/1000
-                  </p>
-                </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="advice">Advice for Future Interns</Label>
-                  <textarea
-                    id="advice"
-                      placeholder="What advice would you give to future interns in this role? (e.g., skills to prepare, what to expect, how to make the most of the experience, networking tips...)"
-                    value={formData.advice}
-                    onChange={(e) =>
-                      setFormData({ ...formData, advice: e.target.value })
-                    }
-                    rows={3}
-                    maxLength={1000}
-                      className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                      )}
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.advice.length}/1000
                   </p>
                 </div>
 
@@ -552,7 +516,7 @@ export default function WriteReviewPage() {
                   <Input
                     id="interview_round_count"
                     type="number"
-                      placeholder="3"
+                      placeholder="2, 3, 4..."
                     value={formData.interview_round_count}
                     onChange={(e) =>
                       setFormData({
@@ -583,7 +547,7 @@ export default function WriteReviewPage() {
                     rows={4}
                     maxLength={1000}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                     required
                   />
@@ -604,7 +568,7 @@ export default function WriteReviewPage() {
                     rows={4}
                     maxLength={1000}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                     required
                   />
@@ -622,15 +586,12 @@ export default function WriteReviewPage() {
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="wage_currency">Currency</Label>
-                    <select
+                    <Select
                       id="wage_currency"
                       value={formData.wage_currency}
                       onChange={(e) =>
                         setFormData({ ...formData, wage_currency: e.target.value })
                       }
-                      className={cn(
-                        "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                      )}
                     >
                       <option value="CAD">CAD - Canadian Dollar</option>
                       <option value="USD">USD - US Dollar</option>
@@ -642,7 +603,7 @@ export default function WriteReviewPage() {
                       <option value="CNY">CNY - Chinese Yuan</option>
                       <option value="INR">INR - Indian Rupee</option>
                       <option value="SGD">SGD - Singapore Dollar</option>
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="grid gap-2">
@@ -658,21 +619,20 @@ export default function WriteReviewPage() {
                     />
                   </div>
 
-                  <div className="grid gap-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.housing_provided}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            housing_provided: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring"
-                      />
-                      <span className="text-sm font-medium">Housing Provided</span>
-                    </label>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="housing_provided"
+                      checked={formData.housing_provided}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          housing_provided: checked === true,
+                        })
+                      }
+                    />
+                    <Label htmlFor="housing_provided" className="cursor-pointer">
+                      Housing Provided
+                    </Label>
                   </div>
 
                   <div className="grid gap-2">
@@ -700,7 +660,7 @@ export default function WriteReviewPage() {
                     rows={3}
                     maxLength={500}
                     className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
                   />
                   <p className="text-xs text-muted-foreground text-right">
