@@ -148,9 +148,9 @@ export default function ProfilePage() {
   // Loading state (auth check)
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-background">
+      <main className="min-h-screen bg-background flex flex-col">
         <Navigation />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+        <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
           <div className="flex items-center gap-4 mb-8">
             <Skeleton className="h-16 w-16 rounded-full" />
             <div>
@@ -164,6 +164,7 @@ export default function ProfilePage() {
             <Skeleton className="h-64 w-full rounded-xl" />
           </div>
         </div>
+        <Footer />
       </main>
     );
   }
@@ -176,10 +177,10 @@ export default function ProfilePage() {
   const userInfo = getUserInfo();
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+      <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
         {/* Profile Header */}
         <motion.div
           initial={{ opacity: 0 }}

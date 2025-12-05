@@ -147,14 +147,15 @@ export default function CompanyDetailPage() {
   // Loading state
   if (loading) {
     return (
-      <main className="min-h-screen bg-background">
+      <main className="min-h-screen bg-background flex flex-col">
         <Navigation />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+        <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
           <Skeleton className="h-8 w-32 mb-6" />
           <Skeleton className="h-48 w-full rounded-xl mb-8" />
           <Skeleton className="h-64 w-full rounded-xl mb-4" />
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
+        <Footer />
       </main>
     );
   }
@@ -162,9 +163,9 @@ export default function CompanyDetailPage() {
   // Error state
   if (error) {
     return (
-      <main className="min-h-screen bg-background">
+      <main className="min-h-screen bg-background flex flex-col">
         <Navigation />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+        <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
           <button
             onClick={() => {
               if (window.history.length > 1) {
@@ -189,6 +190,7 @@ export default function CompanyDetailPage() {
             </CardContent>
           </Card>
         </div>
+        <Footer />
       </main>
     );
   }
@@ -196,10 +198,10 @@ export default function CompanyDetailPage() {
   if (!company) return null;
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+      <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
         {/* Back Button */}
         <motion.div
           initial={{ opacity: 0 }}
