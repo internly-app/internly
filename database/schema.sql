@@ -144,7 +144,7 @@ CREATE POLICY "Companies are viewable by everyone"
 
 CREATE POLICY "Authenticated users can create companies"
   ON companies FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK ((SELECT auth.uid()) IS NOT NULL);
 
 -- Roles: Public read, authenticated write
 ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
@@ -155,7 +155,7 @@ CREATE POLICY "Roles are viewable by everyone"
 
 CREATE POLICY "Authenticated users can create roles"
   ON roles FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK ((SELECT auth.uid()) IS NOT NULL);
 
 -- Reviews: Public read, users manage their own
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
@@ -166,16 +166,16 @@ CREATE POLICY "Reviews are viewable by everyone"
 
 CREATE POLICY "Users can create their own reviews"
   ON reviews FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can update their own reviews"
   ON reviews FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can delete their own reviews"
   ON reviews FOR DELETE
-  USING (auth.uid() = user_id);
+  USING ((SELECT auth.uid()) = user_id);
 
 -- Review likes: Users manage their own likes
 ALTER TABLE review_likes ENABLE ROW LEVEL SECURITY;
@@ -186,8 +186,8 @@ CREATE POLICY "Review likes are viewable by everyone"
 
 CREATE POLICY "Users can create their own likes"
   ON review_likes FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can delete their own likes"
   ON review_likes FOR DELETE
-  USING (auth.uid() = user_id);
+  USING ((SELECT auth.uid()) = user_id);

@@ -22,13 +22,12 @@ const mockReviews: ReviewWithDetails[] = [
     company: {
       id: "microsoft",
       name: "Microsoft",
+      slug: "microsoft",
       logo_url: null,
       website: "https://google.com",
       industry: "Technology",
-      size: "10000+",
-      description: "Leading technology company",
-      founded_year: 1998,
-      headquarters: "Mountain View, CA"
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     role: {
       id: "pm-intern",
@@ -66,15 +65,14 @@ const mockReviews: ReviewWithDetails[] = [
   {
     id: "2",
     company: {
-      id: "ramp",
-      name: "Ramp",
+      id: "openai",
+      name: "OpenAI",
+      slug: "openai",
       logo_url: null,
       website: "https://ramp.com",
       industry: "Fintech",
-      size: "500-1000",
-      description: "Corporate card and expense management platform",
-      founded_year: 2019,
-      headquarters: "New York, NY"
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     role: {
       id: "swe-intern",
@@ -113,14 +111,13 @@ const mockReviews: ReviewWithDetails[] = [
     id: "3",
     company: {
       id: "rootly",
-      name: "Rootly",
-      logo_url: null,
+      name: "Rootly AI",
+      slug: "rootly-ai",
+      logo_url: "/logos/rootly.svg",
       website: "https://rootly.com",
       industry: "AI/SaaS",
-      size: "50-100",
-      description: "AI-powered incident management platform",
-      founded_year: 2020,
-      headquarters: "San Francisco, CA"
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     role: {
       id: "pe-intern",

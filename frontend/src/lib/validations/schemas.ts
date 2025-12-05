@@ -139,11 +139,16 @@ export const reviewCreateSchema = z.object({
     ),
 
   // Compensation (optional)
-  wage_hourly: z.number().positive().optional(),
+  wage_hourly: z.number().positive().optional().nullable(),
   wage_currency: z.string().length(3).default("CAD"),
-  housing_provided: z.boolean().optional(),
-  housing_stipend: z.number().positive().optional(),
-  perks: z.string().max(500).optional(),
+  housing_provided: z.boolean().optional().nullable(),
+  housing_stipend: z.number().nonnegative().optional().nullable(), // Allow 0 for no stipend
+  perks: z
+    .string()
+    .max(500)
+    .optional()
+    .nullable()
+    .transform((val) => (val ? sanitizeText(val) : val)),
 
   // Interview (required, no minimum length)
   interview_round_count: z.number().int().min(0).max(20),

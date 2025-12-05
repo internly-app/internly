@@ -106,7 +106,8 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
     }
   };
 
-  const truncateText = (text: string, maxLength: number) => {
+  const truncateText = (text: string | null | undefined, maxLength: number) => {
+    if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength).trim() + "...";
   };
