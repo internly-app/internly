@@ -26,6 +26,20 @@ export default function Footer() {
             </div>
             <div className="relative group">
               <Link
+                href="https://instagram.com/tejastnd" // Tejas Instagram
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+                aria-label="Instagram"
+              >
+                <Instagram className="size-4" />
+              </Link>
+              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                Tejas
+              </span>
+            </div>
+            <div className="relative group">
+              <Link
                 href="https://twitter.com/tejasthind4" // Tejas X
                 target="_blank"
                 rel="noopener noreferrer"
@@ -35,20 +49,6 @@ export default function Footer() {
                 <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
-              </Link>
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Tejas
-              </span>
-            </div>
-            <div className="relative group">
-              <Link
-                href="https://instagram.com/tejastnd" // Tejas Instagram
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
-                aria-label="Instagram"
-              >
-                <Instagram className="size-4" />
               </Link>
               <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                 Tejas

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import CompanyCard from "@/components/CompanyCard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -320,6 +321,7 @@ export default function ProfilePage() {
           </>
         )}
       </div>
+      <Footer />
     </main>
   );
 }

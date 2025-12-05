@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { Button } from "@/components/ui/button";
@@ -517,6 +518,7 @@ export default function CompanyDetailPage() {
           )}
         </motion.div>
       </div>
+      <Footer />
     </main>
   );
 }
