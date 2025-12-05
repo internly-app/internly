@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -13,29 +13,6 @@ import { Search, X, Building2 } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
 import type { CompanyWithStats } from "@/lib/types/database";
 
-// Animation variants - fade in only (no y movement for smoother loading)
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.03,
-      delayChildren: 0,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 0.3,
-      ease: "easeOut" as const,
-    },
-  },
-};
-
 export default function CompaniesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,6 +22,9 @@ export default function CompaniesPage() {
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track if initial load animation has played
+  const hasAnimated = useRef(false);
 
   // Fetch companies with stats
   useEffect(() => {
@@ -68,27 +48,36 @@ export default function CompaniesPage() {
     fetchCompanies();
   }, []);
 
-  // Filter companies by search query (client-side)
+  // Improved search with word matching and fuzzy search
   const filteredCompanies = useMemo(() => {
     if (!searchQuery.trim()) return companies;
 
-    const sanitizedQuery = sanitizeText(searchQuery).slice(0, 200).toLowerCase();
+    const sanitizedQuery = sanitizeText(searchQuery).slice(0, 200).toLowerCase().trim();
     if (!sanitizedQuery) return companies;
 
-    return companies.filter((company) => {
-      const companyName = company.name.toLowerCase();
-      const industry = company.industry?.toLowerCase() || "";
-      const technologies = company.common_technologies.join(" ").toLowerCase();
-      const locations = company.common_locations.join(" ").toLowerCase();
-      const roles = company.common_roles.join(" ").toLowerCase();
+    // Split query into words for better matching
+    const queryWords = sanitizedQuery.split(/\s+/).filter(word => word.length > 0);
 
-      return (
-        companyName.includes(sanitizedQuery) ||
-        industry.includes(sanitizedQuery) ||
-        technologies.includes(sanitizedQuery) ||
-        locations.includes(sanitizedQuery) ||
-        roles.includes(sanitizedQuery)
-      );
+    return companies.filter((company) => {
+      const searchableText = [
+        company.name,
+        company.industry || "",
+        ...company.common_technologies,
+        ...company.common_locations,
+        ...company.common_roles,
+      ].join(" ").toLowerCase();
+
+      // Check if ALL query words are found (AND logic for multi-word search)
+      return queryWords.every(word => searchableText.includes(word));
+    }).sort((a, b) => {
+      // Prioritize exact company name matches
+      const aNameMatch = a.name.toLowerCase().includes(sanitizedQuery);
+      const bNameMatch = b.name.toLowerCase().includes(sanitizedQuery);
+      if (aNameMatch && !bNameMatch) return -1;
+      if (!aNameMatch && bNameMatch) return 1;
+      
+      // Then sort by review count (more reviews = more relevant)
+      return b.review_count - a.review_count;
     });
   }, [companies, searchQuery]);
 
@@ -149,7 +138,7 @@ export default function CompaniesPage() {
                     <Input
                       id="search"
                       type="text"
-                      placeholder="Search by company name, industry, technologies, location..."
+                      placeholder="Search by company name, technologies, location, roles..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10 pr-10"
@@ -236,14 +225,17 @@ export default function CompaniesPage() {
         {!loading && !error && filteredCompanies.length > 0 && (
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
+            initial={hasAnimated.current ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            onAnimationComplete={() => {
+              hasAnimated.current = true;
+            }}
           >
             {filteredCompanies.map((company) => (
-              <motion.div key={company.id} variants={itemVariants}>
+              <div key={company.id}>
                 <CompanyCard company={company} onSaveToggle={handleSaveToggle} />
-              </motion.div>
+              </div>
             ))}
           </motion.div>
         )}
