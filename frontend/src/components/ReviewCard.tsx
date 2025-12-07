@@ -16,15 +16,16 @@ import type { ReviewWithDetails } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
 import { ChevronDown, ChevronUp, Trash2, Pencil } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import Link from "next/link";
 
 interface ReviewCardProps {
   review: ReviewWithDetails;
   compact?: boolean; // If true, shows compact view that can expand
   onDelete?: (reviewId: string) => void; // If provided, shows delete button (for My Reviews page)
-  onEdit?: (review: ReviewWithDetails) => void; // If provided, shows edit button (for My Reviews page)
+  showEditButton?: boolean; // If true, shows edit button (for My Reviews page)
 }
 
-export default function ReviewCard({ review, compact = false, onDelete, onEdit }: ReviewCardProps) {
+export default function ReviewCard({ review, compact = false, onDelete, showEditButton }: ReviewCardProps) {
   const { user, loading: authLoading } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
@@ -216,17 +217,15 @@ export default function ReviewCard({ review, compact = false, onDelete, onEdit }
                 </svg>
                 <span className="text-sm font-medium">{likeData.likeCount}</span>
               </button>
-              {onEdit && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(review);
-                  }}
+              {showEditButton && (
+                <Link
+                  href={`/write-review?edit=${review.id}`}
+                  onClick={(e) => e.stopPropagation()}
                   className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
                   aria-label="Edit this review"
                 >
                   <Pencil className="size-4" aria-hidden="true" />
-                </button>
+                </Link>
               )}
               {onDelete && (
                 <button

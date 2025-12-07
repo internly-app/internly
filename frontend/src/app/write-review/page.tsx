@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,11 +23,19 @@ import { CompanyAutocomplete } from "@/components/CompanyAutocomplete";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { TermSelect } from "@/components/TermSelect";
 import { cn } from "@/lib/utils";
+import type { ReviewWithDetails } from "@/lib/types/database";
 
 export default function WriteReviewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const isEditMode = !!editId;
+  
   const { user, loading: authLoading } = useAuth();
   const { createReview, loading: submitting, error } = useCreateReview();
+  
+  const [loadingReview, setLoadingReview] = useState(isEditMode);
+  const [editingReview, setEditingReview] = useState<ReviewWithDetails | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -36,8 +44,62 @@ export default function WriteReviewPage() {
     }
   }, [user, authLoading, router]);
 
-  // Form state
-  const [step, setStep] = useState(1);
+  // Fetch review data if in edit mode
+  useEffect(() => {
+    if (!editId || !user) return;
+
+    const fetchReview = async () => {
+      try {
+        const response = await fetch(`/api/reviews/${editId}`);
+        if (response.ok) {
+          const review = await response.json();
+          // Verify ownership
+          if (review.user_id !== user.id) {
+            router.push("/profile");
+            return;
+          }
+          setEditingReview(review);
+          // Pre-fill form data
+          setFormData({
+            company_id: review.company_id,
+            role_id: review.role_id,
+            companyName: review.company?.name || "",
+            roleName: review.role?.title || "",
+            location: review.location,
+            term: review.term,
+            work_style: review.work_style,
+            duration_months: review.duration_months || "",
+            team_name: review.team_name || "",
+            best: review.best,
+            hardest: review.hardest,
+            technologies: review.technologies || "",
+            interview_round_count: review.interview_round_count?.toString() || "",
+            interview_rounds_description: review.interview_rounds_description || "",
+            interview_tips: review.interview_tips || "",
+            wage_hourly: review.wage_hourly?.toString() || "",
+            wage_currency: review.wage_currency || "CAD",
+            housing_provided: review.housing_provided || false,
+            housing_stipend: review.housing_stipend?.toString() || "",
+            perks: review.perks || "",
+          });
+          // Skip to step 2 in edit mode (company/role already set)
+          setStep(2);
+        } else {
+          router.push("/profile");
+        }
+      } catch (err) {
+        console.error("Failed to fetch review:", err);
+        router.push("/profile");
+      } finally {
+        setLoadingReview(false);
+      }
+    };
+
+    fetchReview();
+  }, [editId, user, router]);
+
+  // Form state - start at step 2 if editing
+  const [step, setStep] = useState(isEditMode ? 2 : 1);
   const [formData, setFormData] = useState({
     // Company & Role (Step 1)
     company_id: "",
@@ -92,65 +154,103 @@ export default function WriteReviewPage() {
     setFieldErrors({});
     setSubmissionError(null);
 
-    // Validate required fields
-    const errors: { company_id?: string; roleName?: string } = {};
-    if (!formData.company_id) {
-      errors.company_id = "Please select a company";
-    }
-    if (!formData.roleName || !formData.roleName.trim()) {
-      errors.roleName = "Please enter a role name";
-    }
+    // Validate required fields (skip company/role validation in edit mode)
+    if (!isEditMode) {
+      const errors: { company_id?: string; roleName?: string } = {};
+      if (!formData.company_id) {
+        errors.company_id = "Please select a company";
+      }
+      if (!formData.roleName || !formData.roleName.trim()) {
+        errors.roleName = "Please enter a role name";
+      }
 
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
     }
 
     try {
-      // Create or get role
-      const roleResponse = await fetch("/api/roles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: formData.roleName.trim(),
+      if (isEditMode && editId) {
+        // Update existing review
+        const updateData = {
+          location: formData.location,
+          term: formData.term,
+          work_style: formData.work_style,
+          duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
+          team_name: formData.team_name || undefined,
+          technologies: formData.technologies || undefined,
+          best: formData.best,
+          hardest: formData.hardest,
+          wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
+          wage_currency: formData.wage_currency || "CAD",
+          housing_provided: formData.housing_provided,
+          housing_stipend: formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
+          perks: formData.perks || undefined,
+          interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
+          interview_rounds_description: formData.interview_rounds_description,
+          interview_tips: formData.interview_tips,
+        };
+
+        const response = await fetch(`/api/reviews/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to update review");
+        }
+
+        router.push("/profile");
+      } else {
+        // Create new review
+        // Create or get role
+        const roleResponse = await fetch("/api/roles", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: formData.roleName.trim(),
+            company_id: formData.company_id,
+            slug: formData.roleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          }),
+        });
+
+        if (!roleResponse.ok) {
+          const error = await roleResponse.json();
+          throw new Error(error.error || "Failed to create role");
+        }
+
+        const role = await roleResponse.json();
+
+        const reviewData = {
           company_id: formData.company_id,
-          slug: formData.roleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        }),
-      });
+          role_id: role.id,
+          location: formData.location,
+          term: formData.term,
+          work_style: formData.work_style,
+          duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
+          team_name: formData.team_name || undefined,
+          technologies: formData.technologies || undefined,
+          best: formData.best,
+          hardest: formData.hardest,
+          advice: undefined,
+          wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
+          wage_currency: formData.wage_currency || "CAD",
+          housing_provided: formData.housing_provided,
+          housing_stipend: formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
+          perks: formData.perks || undefined,
+          interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
+          interview_rounds_description: formData.interview_rounds_description,
+          interview_tips: formData.interview_tips,
+        };
 
-      if (!roleResponse.ok) {
-        const error = await roleResponse.json();
-        throw new Error(error.error || "Failed to create role");
+        await createReview(reviewData);
+        router.push("/reviews");
       }
-
-      const role = await roleResponse.json();
-
-      const reviewData = {
-        company_id: formData.company_id,
-        role_id: role.id,
-        location: formData.location,
-        term: formData.term,
-        work_style: formData.work_style,
-        duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
-        team_name: formData.team_name || undefined,
-        technologies: formData.technologies || undefined,
-        best: formData.best,
-        hardest: formData.hardest,
-        advice: undefined,
-        wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
-        wage_currency: formData.wage_currency || "CAD",
-        housing_provided: formData.housing_provided,
-        housing_stipend: formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
-        perks: formData.perks || undefined,
-        interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
-        interview_rounds_description: formData.interview_rounds_description,
-        interview_tips: formData.interview_tips,
-      };
-
-      await createReview(reviewData);
-      router.push("/reviews");
     } catch (err) {
       // Extract user-friendly error message
       let errorMessage = "An unexpected error occurred. Please try again.";
@@ -167,12 +267,16 @@ export default function WriteReviewPage() {
     }
   };
 
-  const canProceedFromStep1 = formData.company_id && formData.roleName && formData.roleName.trim();
+  const canProceedFromStep1 = isEditMode || (formData.company_id && formData.roleName && formData.roleName.trim());
   const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_rounds_description && formData.interview_tips;
   const canProceedFromStep4 = true; // Compensation is optional
 
-  if (authLoading) {
+  // Total steps: 4 for create, 3 for edit (skip step 1)
+  const totalSteps = isEditMode ? 3 : 4;
+  const displayStep = isEditMode ? step - 1 : step; // For progress display in edit mode
+
+  if (authLoading || loadingReview) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -217,21 +321,33 @@ export default function WriteReviewPage() {
             </svg>
             Back
           </button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Write a Review</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">
+            {isEditMode ? "Edit Review" : "Write a Review"}
+          </h1>
           <p className="text-muted-foreground">
-            Share your internship experience to help fellow students
+            {isEditMode 
+              ? `Editing your review for ${editingReview?.company?.name || "this company"}`
+              : "Share your internship experience to help fellow students"
+            }
           </p>
         </div>
 
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            {[
-              { num: 1, label: "Company" },
-              { num: 2, label: "Experience" }, 
-              { num: 3, label: "Interview" },
-              { num: 4, label: "Compensation" }
-            ].map((s) => (
+            {(isEditMode 
+              ? [
+                  { num: 2, label: "Experience" }, 
+                  { num: 3, label: "Interview" },
+                  { num: 4, label: "Compensation" }
+                ]
+              : [
+                  { num: 1, label: "Company" },
+                  { num: 2, label: "Experience" }, 
+                  { num: 3, label: "Interview" },
+                  { num: 4, label: "Compensation" }
+                ]
+            ).map((s, index) => (
               <div
                 key={s.num}
                 className="flex flex-col items-center space-y-2"
@@ -250,7 +366,7 @@ export default function WriteReviewPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    s.num
+                    index + 1
                   )}
                 </div>
                 <span className={`text-xs transition-colors duration-200 ${
@@ -687,7 +803,10 @@ export default function WriteReviewPage() {
                   disabled={submitting || !canProceedFromStep4}
                   className="w-auto"
                 >
-                  {submitting ? "Submitting..." : "Submit Review"}
+                  {submitting 
+                    ? (isEditMode ? "Saving..." : "Submitting...") 
+                    : (isEditMode ? "Save Changes" : "Submit Review")
+                  }
                 </Button>
               )}
             </div>

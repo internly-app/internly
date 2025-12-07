@@ -3,6 +3,42 @@ import { createClient } from "@/lib/supabase/server";
 import { reviewUpdateSchema } from "@/lib/validations/schemas";
 
 /**
+ * GET /api/reviews/[id]
+ * Get a single review by ID
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient();
+    const { id: reviewId } = await params;
+
+    const { data: review, error } = await supabase
+      .from("reviews")
+      .select(`
+        *,
+        company:companies(*),
+        role:roles(*)
+      `)
+      .eq("id", reviewId)
+      .single();
+
+    if (error || !review) {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(review, { status: 200 });
+  } catch (error) {
+    console.error("GET /api/reviews/[id] error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * PATCH /api/reviews/[id]
  * Update a review (only the owner can update their own review)
  */
