@@ -82,9 +82,9 @@ export interface Database {
           hardest: string;
           best: string;
           advice: string | null;
-          wage_hourly: number | null;
-          wage_currency: string | null;
-          housing_provided: boolean | null;
+          wage_hourly: number;
+          wage_currency: string;
+          housing_stipend_provided: boolean;
           housing_stipend: number | null;
           perks: string | null;
           interview_round_count: number;
@@ -108,9 +108,9 @@ export interface Database {
           hardest: string;
           best: string;
           advice?: string | null;
-          wage_hourly?: number | null;
-          wage_currency?: string | null;
-          housing_provided?: boolean | null;
+          wage_hourly: number;
+          wage_currency?: string;
+          housing_stipend_provided?: boolean;
           housing_stipend?: number | null;
           perks?: string | null;
           interview_round_count: number;
@@ -134,9 +134,9 @@ export interface Database {
           hardest?: string;
           best?: string;
           advice?: string;
-          wage_hourly?: number | null;
-          wage_currency?: string | null;
-          housing_provided?: boolean | null;
+          wage_hourly?: number;
+          wage_currency?: string;
+          housing_stipend_provided?: boolean;
           housing_stipend?: number | null;
           perks?: string | null;
           interview_round_count?: number;

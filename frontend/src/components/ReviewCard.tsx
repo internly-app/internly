@@ -351,34 +351,31 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             </div>
 
             {/* Compensation */}
-            {(review.wage_hourly || review.housing_provided || review.perks) && (
-              <div>
-                <div className="border-t border-zinc-700 mb-4" />
-                <h4 className="font-semibold mb-2 text-sm">Compensation</h4>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  {review.wage_hourly && (
-                    <p>
-                      <span className="font-medium text-foreground">Hourly:</span>{" "}
-                      {review.wage_currency || "CAD"} {review.wage_hourly.toFixed(2)}
-                    </p>
-                  )}
-                  {review.housing_provided && (
-                    <p>
-                      <span className="font-medium text-foreground">Housing:</span>{" "}
-                      Provided
-                      {review.housing_stipend &&
-                        ` (${review.wage_currency || "CAD"} ${review.housing_stipend.toFixed(2)} stipend)`}
-                    </p>
-                  )}
-                  {review.perks && (
-                    <p>
-                      <span className="font-medium text-foreground">Perks:</span>{" "}
-                      {review.perks}
-                    </p>
-                  )}
-                </div>
+            <div>
+              <div className="border-t border-zinc-700 mb-4" />
+              <h4 className="font-semibold mb-2 text-sm">Compensation</h4>
+              <div className="space-y-1 text-sm text-muted-foreground">
+                <p>
+                  <span className="font-medium text-foreground">Hourly:</span>{" "}
+                  {review.wage_currency || "CAD"} {review.wage_hourly?.toFixed(2) || "N/A"}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">Housing Stipend:</span>{" "}
+                  {review.housing_stipend_provided 
+                    ? review.housing_stipend 
+                      ? `${review.wage_currency || "CAD"} ${review.housing_stipend.toFixed(2)}/month`
+                      : "Provided (amount not specified)"
+                    : "Not provided"
+                  }
+                </p>
+                {review.perks && (
+                  <p>
+                    <span className="font-medium text-foreground">Perks:</span>{" "}
+                    {review.perks}
+                  </p>
+                )}
               </div>
-            )}
+            </div>
           </CardContent>
         )}
       </Card>
@@ -477,35 +474,32 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         </div>
       </div>
 
-      {/* Compensation (if provided) */}
-      {(review.wage_hourly || review.housing_provided || review.perks) && (
-          <div>
-            <div className="border-t border-zinc-700 my-4" />
-            <h4 className="font-semibold mb-2">Compensation</h4>
-            <div className="space-y-1 text-sm text-muted-foreground">
-            {review.wage_hourly && (
-              <p>
-                  <span className="font-medium text-foreground">Hourly:</span> $
-                  {review.wage_hourly.toFixed(2)} {review.wage_currency || "CAD"}
-              </p>
-            )}
-            {review.housing_provided && (
-              <p>
-                  <span className="font-medium text-foreground">Housing:</span>{" "}
-                Provided
-                {review.housing_stipend &&
-                  ` ($${review.housing_stipend.toFixed(2)} stipend)`}
-              </p>
-            )}
-            {review.perks && (
-              <p>
-                  <span className="font-medium text-foreground">Perks:</span>{" "}
-                {review.perks}
-              </p>
-            )}
-          </div>
+      {/* Compensation */}
+      <div>
+        <div className="border-t border-zinc-700 my-4" />
+        <h4 className="font-semibold mb-2">Compensation</h4>
+        <div className="space-y-1 text-sm text-muted-foreground">
+          <p>
+            <span className="font-medium text-foreground">Hourly:</span>{" "}
+            {review.wage_currency || "CAD"} {review.wage_hourly?.toFixed(2) || "N/A"}
+          </p>
+          <p>
+            <span className="font-medium text-foreground">Housing Stipend:</span>{" "}
+            {review.housing_stipend_provided 
+              ? review.housing_stipend 
+                ? `${review.wage_currency || "CAD"} ${review.housing_stipend.toFixed(2)}/month`
+                : "Provided (amount not specified)"
+              : "Not provided"
+            }
+          </p>
+          {review.perks && (
+            <p>
+              <span className="font-medium text-foreground">Perks:</span>{" "}
+              {review.perks}
+            </p>
+          )}
         </div>
-      )}
+      </div>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-6">

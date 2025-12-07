@@ -78,7 +78,7 @@ export default function WriteReviewPage() {
             interview_tips: review.interview_tips || "",
             wage_hourly: review.wage_hourly?.toString() || "",
             wage_currency: review.wage_currency || "CAD",
-            housing_provided: review.housing_provided || false,
+            housing_stipend_provided: review.housing_stipend_provided || false,
             housing_stipend: review.housing_stipend?.toString() || "",
             perks: review.perks || "",
           });
@@ -125,7 +125,7 @@ export default function WriteReviewPage() {
     // Compensation (Step 4)
     wage_hourly: "",
     wage_currency: "CAD",
-    housing_provided: false,
+    housing_stipend_provided: false,
     housing_stipend: "",
     perks: "",
   });
@@ -182,10 +182,10 @@ export default function WriteReviewPage() {
           technologies: formData.technologies || undefined,
           best: formData.best,
           hardest: formData.hardest,
-          wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
+          wage_hourly: parseFloat(formData.wage_hourly),
           wage_currency: formData.wage_currency || "CAD",
-          housing_provided: formData.housing_provided,
-          housing_stipend: formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
+          housing_stipend_provided: formData.housing_stipend_provided,
+          housing_stipend: formData.housing_stipend_provided && formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
           perks: formData.perks || undefined,
           interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
           interview_rounds_description: formData.interview_rounds_description,
@@ -238,10 +238,10 @@ export default function WriteReviewPage() {
           best: formData.best,
           hardest: formData.hardest,
           advice: undefined,
-          wage_hourly: formData.wage_hourly ? parseFloat(formData.wage_hourly) : undefined,
+          wage_hourly: parseFloat(formData.wage_hourly),
           wage_currency: formData.wage_currency || "CAD",
-          housing_provided: formData.housing_provided,
-          housing_stipend: formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
+          housing_stipend_provided: formData.housing_stipend_provided,
+          housing_stipend: formData.housing_stipend_provided && formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
           perks: formData.perks || undefined,
           interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
           interview_rounds_description: formData.interview_rounds_description,
@@ -270,7 +270,7 @@ export default function WriteReviewPage() {
   const canProceedFromStep1 = isEditMode || (formData.company_id && formData.roleName && formData.roleName.trim());
   const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_rounds_description && formData.interview_tips;
-  const canProceedFromStep4 = true; // Compensation is optional
+  const canProceedFromStep4 = formData.wage_hourly && parseFloat(formData.wage_hourly) > 0;
 
   // Total steps: 4 for create, 3 for edit (skip step 1)
   const totalSteps = isEditMode ? 3 : 4;
@@ -700,46 +700,63 @@ export default function WriteReviewPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="wage_hourly">Hourly Wage</Label>
+                    <Label htmlFor="wage_hourly">
+                      Hourly Wage <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="wage_hourly"
                       type="number"
-                      placeholder="20, 30, 40..."
+                      step="0.01"
+                      min="0"
+                      placeholder="e.g., 25.00"
                       value={formData.wage_hourly}
                       onChange={(e) =>
                         setFormData({ ...formData, wage_hourly: e.target.value })
                       }
+                      required
                     />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="housing_provided"
-                      checked={formData.housing_provided}
-                      onCheckedChange={(checked) =>
-                        setFormData({
-                          ...formData,
-                          housing_provided: checked === true,
-                        })
-                      }
-                    />
-                    <Label htmlFor="housing_provided" className="cursor-pointer">
-                      Housing Provided
-                    </Label>
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="housing_stipend">Monthly Housing Stipend</Label>
-                    <Input
-                      id="housing_stipend"
-                      type="number"
-                      placeholder="1500, 2500, 3500..."
-                      value={formData.housing_stipend}
-                      onChange={(e) =>
-                        setFormData({ ...formData, housing_stipend: e.target.value })
+                    <Label>Housing Stipend Provided?</Label>
+                    <RadioGroup
+                      value={formData.housing_stipend_provided ? "yes" : "no"}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          housing_stipend_provided: value === "yes",
+                          housing_stipend: value === "no" ? "" : formData.housing_stipend,
+                        })
                       }
-                    />
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="housing_yes" />
+                        <Label htmlFor="housing_yes" className="cursor-pointer">Yes</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="housing_no" />
+                        <Label htmlFor="housing_no" className="cursor-pointer">No</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
+
+                  {formData.housing_stipend_provided && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="housing_stipend">Monthly Housing Stipend Amount</Label>
+                      <Input
+                        id="housing_stipend"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="e.g., 2000.00"
+                        value={formData.housing_stipend}
+                        onChange={(e) =>
+                          setFormData({ ...formData, housing_stipend: e.target.value })
+                        }
+                      />
+                    </div>
+                  )}
 
                 <div className="grid gap-2">
                   <Label htmlFor="perks">Other Perks</Label>
