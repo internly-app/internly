@@ -109,11 +109,11 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
               size="sm"
               onClick={handleSaveToggle}
               disabled={isSaving}
-              className="h-8 w-8 p-0 hover:bg-muted transition-colors"
+              className="group h-8 w-8 p-0 hover:bg-muted transition-colors"
               aria-label={isSaved ? "Unsave company" : "Save company"}
             >
-              <Bookmark 
-                className={`size-5 transition-all ${isSaved ? "fill-current text-primary" : ""}`} 
+              <Bookmark
+                className={`size-5 transition-all duration-200 ${isSaved ? "fill-current text-primary" : "group-hover:scale-110"}`}
               />
             </Button>
           </div>
