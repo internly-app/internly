@@ -221,7 +221,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 <Link
                   href={`/write-review?edit=${review.id}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-zinc-700/50 transition-all cursor-pointer"
                   aria-label="Edit this review"
                 >
                   <Pencil className="size-4" aria-hidden="true" />
