@@ -57,9 +57,9 @@ export async function GET() {
 
     // Calculate stats for each company
     const companiesWithStats: CompanyWithStats[] = savedCompanies
-      .filter((s) => s.company) // Filter out any null companies
+      .filter((s) => s.company && !Array.isArray(s.company)) // Filter out any null or invalid companies
       .map((savedCompany) => {
-        const company = savedCompany.company as { id: string; name: string; slug: string; logo_url: string | null; website: string | null; industry: string | null; created_at: string; updated_at: string };
+        const company = savedCompany.company as unknown as { id: string; name: string; slug: string; logo_url: string | null; website: string | null; industry: string | null; created_at: string; updated_at: string };
         const companyReviews = (reviews || []).filter(
           (r) => r.company_id === company.id
         );

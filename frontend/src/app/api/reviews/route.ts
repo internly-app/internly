@@ -206,6 +206,11 @@ export async function GET(request: NextRequest) {
       }));
     }
 
+    // Smart caching based on authentication
+    const cacheControl = user
+      ? 'private, max-age=10, stale-while-revalidate=30' // Authenticated: 10s cache
+      : 'public, s-maxage=60, stale-while-revalidate=120'; // Anonymous: 60s cache
+
     return NextResponse.json({
       reviews: reviewsWithLikeStatus,
       total: count || 0,
@@ -213,9 +218,7 @@ export async function GET(request: NextRequest) {
       offset: query.offset,
     }, {
       headers: {
-        // No cache - always fetch fresh data for user_has_liked accuracy
-        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-        'Pragma': 'no-cache',
+        'Cache-Control': cacheControl,
       },
     });
   } catch (error) {
