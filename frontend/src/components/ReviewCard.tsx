@@ -199,7 +199,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             <button
               onClick={handleLike}
               disabled={isLiking}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
+              className="group relative flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
               aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
               aria-pressed={likeData.hasLiked}
             >
@@ -212,12 +212,17 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`transition-colors ${likeData.hasLiked ? "text-red-500" : ""}`}
+                className={`transition-all duration-200 ${likeData.hasLiked ? "text-red-500" : "group-hover:scale-110"}`}
                 aria-hidden="true"
               >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
               <span className="text-xs">{likeData.likeCount}</span>
+
+              {/* Tooltip on hover */}
+              <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-border shadow-md">
+                {likeData.hasLiked ? "Unlike" : "Like this review"}
+              </span>
             </button>
           </div>
           
