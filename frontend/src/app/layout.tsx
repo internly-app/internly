@@ -22,7 +22,6 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://internly.app",
     title: "Internly - Real Internship Reviews from Students",
     description: "Read honest internship reviews from students who actually did the work.",
     siteName: "Internly",
