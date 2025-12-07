@@ -17,11 +17,8 @@ import {
   Bookmark, 
   MapPin, 
   Briefcase, 
-  Clock, 
-  Users,
   DollarSign,
   MessageSquare,
-  Code
 } from "lucide-react";
 
 interface CompanyCardProps {
@@ -127,75 +124,53 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0 pb-3 space-y-3">
-          {/* Pay Information */}
-          {(company.avg_pay_cad || company.avg_pay_usd) && (
-            <div className="flex items-center gap-2 text-sm">
-              <DollarSign className="size-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-muted-foreground">Avg Pay:</span>
-              <span className="text-foreground font-medium">
-                {company.avg_pay_cad && `${formatPay(company.avg_pay_cad, "CAD")} CAD`}
-                {company.avg_pay_cad && company.avg_pay_usd && " / "}
-                {company.avg_pay_usd && `${formatPay(company.avg_pay_usd, "USD")} USD`}
-                <span className="text-muted-foreground font-normal">/hr</span>
-              </span>
-            </div>
-          )}
+        <CardContent className="pt-0 pb-3 space-y-2.5">
+          {/* Pay Information - Most important */}
+          <div className="flex items-center gap-2 text-sm">
+            <DollarSign className="size-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-foreground font-medium">
+              {company.avg_pay_cad || company.avg_pay_usd ? (
+                <>
+                  {company.avg_pay_usd && `${formatPay(company.avg_pay_usd)} USD`}
+                  {company.avg_pay_cad && company.avg_pay_usd && " / "}
+                  {company.avg_pay_cad && `${formatPay(company.avg_pay_cad)} CAD`}
+                  <span className="text-muted-foreground font-normal">/hr</span>
+                </>
+              ) : (
+                <span className="text-muted-foreground font-normal">Pay not reported</span>
+              )}
+            </span>
+          </div>
 
-          {/* Interview Rounds */}
-          {company.avg_interview_rounds && (
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="size-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-muted-foreground">Avg Interviews:</span>
-              <span className="text-foreground">
-                ~{Math.round(company.avg_interview_rounds)} rounds
-              </span>
-            </div>
-          )}
+          {/* Location - Where can I work? */}
+          <div className="flex items-start gap-2 text-sm">
+            <MapPin className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+            <span className="text-foreground">
+              {company.common_locations.length > 0 ? (
+                <>
+                  {company.common_locations.slice(0, 2).join(", ")}
+                  {company.common_locations.length > 2 && ` +${company.common_locations.length - 2}`}
+                </>
+              ) : (
+                <span className="text-muted-foreground">Location not specified</span>
+              )}
+            </span>
+          </div>
 
-          {/* Duration */}
-          {company.avg_duration_months && (
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="size-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-muted-foreground">Typical term:</span>
-              <span className="text-foreground">
-                ~{Math.round(company.avg_duration_months)} months
-              </span>
-            </div>
-          )}
-
-          {/* Common Roles - show as text for cleaner look */}
-          {company.common_roles.length > 0 && (
-            <div className="flex items-start gap-2 text-sm">
-              <Briefcase className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <span className="text-foreground line-clamp-1">
-                {company.common_roles.slice(0, 2).join(", ")}
-                {company.common_roles.length > 2 && ` +${company.common_roles.length - 2}`}
-              </span>
-            </div>
-          )}
-
-          {/* Common Locations */}
-          {company.common_locations.length > 0 && (
-            <div className="flex items-start gap-2 text-sm">
-              <MapPin className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <span className="text-foreground">
-                {company.common_locations.slice(0, 3).join(", ")}
-                {company.common_locations.length > 3 && ` +${company.common_locations.length - 3}`}
-              </span>
-            </div>
-          )}
-
-          {/* Technologies - show as text, not badges for cleaner look */}
-          {company.common_technologies.length > 0 && (
-            <div className="flex items-start gap-2 text-sm">
-              <Code className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <span className="text-foreground line-clamp-1">
-                {company.common_technologies.slice(0, 4).join(", ")}
-                {company.common_technologies.length > 4 && ` +${company.common_technologies.length - 4}`}
-              </span>
-            </div>
-          )}
+          {/* Top Role - Do they hire for my field? */}
+          <div className="flex items-start gap-2 text-sm">
+            <Briefcase className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+            <span className="text-foreground line-clamp-1">
+              {company.common_roles.length > 0 ? (
+                <>
+                  {company.common_roles.slice(0, 2).join(", ")}
+                  {company.common_roles.length > 2 && ` +${company.common_roles.length - 2}`}
+                </>
+              ) : (
+                <span className="text-muted-foreground">Roles not specified</span>
+              )}
+            </span>
+          </div>
         </CardContent>
       </Card>
     </Link>
