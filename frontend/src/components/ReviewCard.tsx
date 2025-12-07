@@ -190,10 +190,46 @@ export default function ReviewCard({ review, compact = false, onDelete }: Review
               </div>
             </div>
 
-            {/* Term Badge */}
-            <Badge variant="outline" className="h-fit flex-shrink-0 text-xs">
-              {review.term}
-            </Badge>
+            {/* Top Right: Like & Delete buttons */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={handleLike}
+                disabled={isLiking}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50 cursor-pointer"
+                aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
+                aria-pressed={likeData.hasLiked}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill={likeData.hasLiked ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`transition-colors ${likeData.hasLiked ? "text-red-500" : ""}`}
+                  aria-hidden="true"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                <span className="text-sm font-medium">{likeData.likeCount}</span>
+              </button>
+              {onDelete && (
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className={`p-1.5 rounded-md transition-all disabled:opacity-50 cursor-pointer ${
+                    isDeleting 
+                      ? "text-red-500 bg-red-500/10" 
+                      : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                  }`}
+                  aria-label="Delete this review"
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Key Info Badges */}
@@ -210,6 +246,9 @@ export default function ReviewCard({ review, compact = false, onDelete }: Review
                 {review.duration_months} {review.duration_months === 1 ? "mo" : "mos"}
               </Badge>
             )}
+            <Badge variant="outline" className="text-xs">
+              {review.term}
+            </Badge>
           </div>
         </CardHeader>
 
@@ -221,44 +260,8 @@ export default function ReviewCard({ review, compact = false, onDelete }: Review
         </CardContent>
 
         <CardFooter className="flex items-center justify-between pt-0 pb-3 px-4">
-          {/* Left side: Date, Like, and Delete */}
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
-            <button
-              onClick={handleLike}
-              disabled={isLiking}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
-              aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
-              aria-pressed={likeData.hasLiked}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill={likeData.hasLiked ? "currentColor" : "none"}
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-colors ${likeData.hasLiked ? "text-red-500" : ""}`}
-                aria-hidden="true"
-              >
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-              <span className="text-xs">{likeData.likeCount}</span>
-            </button>
-            {onDelete && (
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="flex items-center gap-1.5 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50 cursor-pointer"
-                aria-label="Delete this review"
-              >
-                <Trash2 className="size-3.5" aria-hidden="true" />
-                <span className="text-xs">{isDeleting ? "Deleting..." : "Delete"}</span>
-              </button>
-            )}
-          </div>
+          {/* Left side: Date */}
+          <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
           
           {/* Right side: Expand/Collapse indicator */}
           <div className="text-muted-foreground" aria-hidden="true">
