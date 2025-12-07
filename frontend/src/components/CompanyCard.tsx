@@ -146,7 +146,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
           {company.avg_interview_rounds && (
             <div className="flex items-center gap-2 text-sm">
               <Users className="size-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-muted-foreground">Interviews:</span>
+              <span className="text-muted-foreground">Avg Interviews:</span>
               <span className="text-foreground">
                 ~{Math.round(company.avg_interview_rounds)} rounds
               </span>

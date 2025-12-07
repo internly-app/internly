@@ -328,7 +328,7 @@ export default function CompanyDetailPage() {
               <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
                 <div className="flex items-center gap-2 text-muted-foreground mb-2">
                   <Users className="size-4" />
-                  <span className="text-sm">Interviews</span>
+                  <span className="text-sm">Avg Interview Rounds</span>
                 </div>
                 <div className="text-lg font-semibold">
                   {company.avg_interview_rounds ? (
