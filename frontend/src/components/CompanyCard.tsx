@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import type { CompanyWithStats } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
 import { CompanyLogo } from "@/components/CompanyLogo";
-import { 
-  Bookmark, 
-  MapPin, 
-  Briefcase, 
-  Clock, 
+import {
+  Bookmark,
+  MapPin,
+  Briefcase,
+  Clock,
   Users,
   DollarSign,
   MessageSquare,
@@ -30,9 +30,20 @@ interface CompanyCardProps {
 }
 
 export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isSaved, setIsSaved] = useState(company.user_has_saved || false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sync saved state with auth changes - reset when user logs out
+  useEffect(() => {
+    // Don't update while auth is loading to prevent flash
+    if (authLoading) return;
+
+    // If user is logged out, reset to false
+    // If user is logged in, use the company's saved state
+    const newSavedState = user ? (company.user_has_saved || false) : false;
+    setIsSaved(newSavedState);
+  }, [user, company.user_has_saved, authLoading]);
 
   const handleSaveToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
