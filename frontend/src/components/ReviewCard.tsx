@@ -218,11 +218,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
               <span className="text-xs">{likeData.likeCount}</span>
-
-              {/* Tooltip on hover */}
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-border shadow-md">
-                {likeData.hasLiked ? "Unlike" : "Like this review"}
-              </span>
             </button>
           </div>
           
