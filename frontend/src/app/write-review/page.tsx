@@ -50,7 +50,6 @@ export default function WriteReviewPage() {
     term: "",
     work_style: "onsite" as "onsite" | "hybrid" | "remote",
     duration_months: "" as string | number,
-    work_hours: "" as string,
     team_name: "",
     best: "",
     hardest: "",
@@ -135,7 +134,6 @@ export default function WriteReviewPage() {
         term: formData.term,
         work_style: formData.work_style,
         duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
-        work_hours: formData.work_hours && formData.work_hours !== "" ? (formData.work_hours as "full-time" | "part-time") : undefined,
         team_name: formData.team_name || undefined,
         technologies: formData.technologies || undefined,
         best: formData.best,
@@ -415,27 +413,6 @@ export default function WriteReviewPage() {
                         })
                       }
                     />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="work_hours">Work Hours</Label>
-                    <select
-                      id="work_hours"
-                      value={formData.work_hours}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          work_hours: e.target.value as "" | "full-time" | "part-time",
-                            })
-                          }
-                      className={cn(
-                        "flex h-9 w-full rounded-md border border-zinc-700 bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                      )}
-                    >
-                      <option value="">Select...</option>
-                      <option value="full-time">Full-time (40+ hrs/week)</option>
-                      <option value="part-time">Part-time (&lt;40 hrs/week)</option>
-                    </select>
                   </div>
 
                   <div className="grid gap-2">

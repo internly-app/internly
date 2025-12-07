@@ -14,18 +14,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ReviewWithDetails } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
 
 interface ReviewCardProps {
   review: ReviewWithDetails;
   compact?: boolean; // If true, shows compact view that can expand
+  onDelete?: (reviewId: string) => void; // If provided, shows delete button (for My Reviews page)
 }
 
-export default function ReviewCard({ review, compact = false }: ReviewCardProps) {
+export default function ReviewCard({ review, compact = false, onDelete }: ReviewCardProps) {
   const { user, loading: authLoading } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Local state for like data - synced with review prop
   const [likeData, setLikeData] = useState({
@@ -106,6 +108,38 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
     }
   };
 
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card expansion when clicking delete
+
+    if (isDeleting) return;
+
+    // Confirm deletion
+    if (!window.confirm("Are you sure you want to delete this review? This action cannot be undone.")) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(`/api/reviews/${review.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete review");
+      }
+
+      // Call the onDelete callback to update parent state
+      onDelete?.(review.id);
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      alert(error instanceof Error ? error.message : "Failed to delete review. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength).trim() + "...";
@@ -170,11 +204,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
             >
               {review.work_style}
             </Badge>
-            {review.work_hours && (
-              <Badge variant="outline" className="text-xs">
-                {review.work_hours === "full-time" ? "Full-time" : "Part-time"}
-              </Badge>
-            )}
             <Badge variant="outline" className="text-xs">{review.location}</Badge>
             {review.duration_months && (
               <Badge variant="outline" className="text-xs">
@@ -192,7 +221,7 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
         </CardContent>
 
         <CardFooter className="flex items-center justify-between pt-0 pb-3 px-4">
-          {/* Left side: Date and Like */}
+          {/* Left side: Date, Like, and Delete */}
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
             <button
@@ -218,6 +247,17 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
               </svg>
               <span className="text-xs">{likeData.likeCount}</span>
             </button>
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex items-center gap-1.5 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50 cursor-pointer"
+                aria-label="Delete this review"
+              >
+                <Trash2 className="size-3.5" aria-hidden="true" />
+                <span className="text-xs">{isDeleting ? "Deleting..." : "Delete"}</span>
+              </button>
+            )}
           </div>
           
           {/* Right side: Expand/Collapse indicator */}
@@ -366,11 +406,6 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           >
             {review.work_style}
           </Badge>
-          {review.work_hours && (
-            <Badge variant="outline">
-              {review.work_hours === "full-time" ? "Full-time" : "Part-time"}
-            </Badge>
-          )}
           <Badge variant="outline">{review.location}</Badge>
           {review.duration_months && (
             <Badge variant="outline">
@@ -463,32 +498,49 @@ export default function ReviewCard({ review, compact = false }: ReviewCardProps)
           {formatDate(review.created_at)}
         </span>
 
-        {/* Like Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLike}
-          disabled={isLiking}
-          className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer"
-          aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
-          aria-pressed={likeData.hasLiked}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill={likeData.hasLiked ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
-            aria-hidden="true"
+        <div className="flex items-center gap-2">
+          {/* Delete Button (only on My Reviews page) */}
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="gap-2 px-3 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all duration-200 disabled:opacity-50 cursor-pointer"
+              aria-label="Delete this review"
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
+              <span className="text-sm">{isDeleting ? "Deleting..." : "Delete"}</span>
+            </Button>
+          )}
+
+          {/* Like Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLike}
+            disabled={isLiking}
+            className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer"
+            aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
+            aria-pressed={likeData.hasLiked}
           >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          <span className="text-sm font-medium ml-4" aria-hidden="true">{likeData.likeCount}</span>
-        </Button>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill={likeData.hasLiked ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
+              aria-hidden="true"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            <span className="text-sm font-medium ml-4" aria-hidden="true">{likeData.likeCount}</span>
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

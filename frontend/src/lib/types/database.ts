@@ -77,7 +77,6 @@ export interface Database {
           term: string;
           duration_months: number | null;
           work_style: WorkStyle;
-          work_hours: string | null;
           team_name: string | null;
           technologies: string | null;
           hardest: string;
@@ -104,7 +103,6 @@ export interface Database {
           term: string;
           duration_months?: number | null;
           work_style: WorkStyle;
-          work_hours?: string | null;
           team_name?: string | null;
           technologies?: string | null;
           hardest: string;
@@ -131,7 +129,6 @@ export interface Database {
           term?: string;
           duration_months?: number | null;
           work_style?: WorkStyle;
-          work_hours?: string | null;
           team_name?: string | null;
           technologies?: string | null;
           hardest?: string;

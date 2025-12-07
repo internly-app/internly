@@ -105,6 +105,10 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDeleteReview = (reviewId: string) => {
+    setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
+
   // Get user display info
   const getUserInfo = () => {
     if (!user) return { name: "User", email: "", initials: "U" };
@@ -263,7 +267,7 @@ export default function ProfilePage() {
               >
                 {myReviews.map((review) => (
                   <motion.div key={review.id} variants={itemVariants}>
-                    <ReviewCard review={review} compact={true} />
+                    <ReviewCard review={review} compact={true} onDelete={handleDeleteReview} />
                   </motion.div>
                 ))}
               </motion.div>
