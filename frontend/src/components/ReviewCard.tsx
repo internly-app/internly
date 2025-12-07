@@ -202,7 +202,7 @@ export default function ReviewCard({ review, compact = false, onDelete }: Review
               variant="outline"
               className={`text-xs ${workStyleBadge[review.work_style]}`}
             >
-              {review.work_style}
+              {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
             </Badge>
             <Badge variant="outline" className="text-xs">{review.location}</Badge>
             {review.duration_months && (
@@ -404,7 +404,7 @@ export default function ReviewCard({ review, compact = false, onDelete }: Review
             variant="outline"
             className={`${workStyleBadge[review.work_style]}`}
           >
-            {review.work_style}
+            {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
           </Badge>
           <Badge variant="outline">{review.location}</Badge>
           {review.duration_months && (
