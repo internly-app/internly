@@ -269,7 +269,7 @@ export default function WriteReviewPage() {
 
   const canProceedFromStep1 = isEditMode || (formData.company_id && formData.roleName && formData.roleName.trim());
   const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
-  const canProceedFromStep3 = formData.interview_rounds_description && formData.interview_tips;
+  const canProceedFromStep3 = formData.interview_round_count && formData.interview_rounds_description;
   const canProceedFromStep4 = formData.wage_hourly && parseFloat(formData.wage_hourly) > 0;
 
   // Total steps: 4 for create, 3 for edit (skip step 1)
@@ -386,7 +386,7 @@ export default function WriteReviewPage() {
               {step === 1 && "Company & Role"}
               {step === 2 && "Your Experience"}
               {step === 3 && "Interview Process"}
-              {step === 4 && "Compensation (Optional)"}
+              {step === 4 && "Compensation"}
             </CardTitle>
             <CardDescription>
               {step === 1 && "Select the company and role you interned at"}
@@ -401,7 +401,7 @@ export default function WriteReviewPage() {
               <form>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="company">Company *</Label>
+                    <Label htmlFor="company">Company <span className="text-red-500">*</span></Label>
                     <CompanyAutocomplete
                     value={formData.company_id}
                       onChange={(companyId, companyName) => {
@@ -423,7 +423,7 @@ export default function WriteReviewPage() {
                 </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="role">Role *</Label>
+                    <Label htmlFor="role">Role <span className="text-red-500">*</span></Label>
                     <Input
                     id="role"
                       type="text"
@@ -467,7 +467,7 @@ export default function WriteReviewPage() {
                 <div className="flex flex-col gap-6">
                   {/* Basic Details */}
                   <div className="grid gap-2">
-                    <Label htmlFor="location">Location *</Label>
+                    <Label htmlFor="location">Location <span className="text-red-500">*</span></Label>
                     <LocationAutocomplete
                       value={formData.location}
                       onChange={(value) =>
@@ -479,7 +479,7 @@ export default function WriteReviewPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="term">Term *</Label>
+                    <Label htmlFor="term">Term <span className="text-red-500">*</span></Label>
                     <TermSelect
                       value={formData.term}
                       onChange={(value) =>
@@ -490,7 +490,7 @@ export default function WriteReviewPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label>Work Style *</Label>
+                    <Label>Work Style <span className="text-red-500">*</span></Label>
                     <RadioGroup
                       value={formData.work_style}
                       onValueChange={(value) =>
@@ -545,7 +545,7 @@ export default function WriteReviewPage() {
 
                   {/* Experience Section */}
                   <div className="grid gap-2">
-                    <Label htmlFor="best">Best Part *</Label>
+                    <Label htmlFor="best">Best Part <span className="text-red-500">*</span></Label>
                   <textarea
                     id="best"
                       placeholder="What were the highlights of your internship? What did you enjoy most? (e.g., great mentorship, interesting projects, collaborative team culture, learning opportunities...)"
@@ -566,7 +566,7 @@ export default function WriteReviewPage() {
                 </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="hardest">Hardest Part *</Label>
+                    <Label htmlFor="hardest">Hardest Part <span className="text-red-500">*</span></Label>
                   <textarea
                     id="hardest"
                       placeholder="What were the biggest challenges you faced? (e.g., steep learning curve, tight deadlines, complex technical problems, communication barriers...)"
@@ -605,7 +605,7 @@ export default function WriteReviewPage() {
               <form>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="interview_round_count">Number of Interview Rounds *</Label>
+                    <Label htmlFor="interview_round_count">Number of Interview Rounds <span className="text-red-500">*</span></Label>
                   <Input
                     id="interview_round_count"
                     type="number"
@@ -625,7 +625,7 @@ export default function WriteReviewPage() {
 
                 <div className="grid gap-2">
                   <Label htmlFor="interview_rounds_description">
-                    Interview Rounds Description *
+                    Interview Rounds Description <span className="text-red-500">*</span>
                   </Label>
                   <textarea
                     id="interview_rounds_description"
@@ -650,7 +650,7 @@ export default function WriteReviewPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="interview_tips">Interview Tips *</Label>
+                  <Label htmlFor="interview_tips">Interview Tips</Label>
                   <textarea
                     id="interview_tips"
                     placeholder="Share your tips and advice for candidates preparing for this interview. What should they study? What topics are commonly asked? How should they prepare? Any specific resources or strategies that helped you?"
@@ -663,7 +663,6 @@ export default function WriteReviewPage() {
                     className={cn(
                       "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                     )}
-                    required
                   />
                   <p className="text-xs text-muted-foreground text-right">
                     {formData.interview_tips.length}/1000
@@ -678,7 +677,7 @@ export default function WriteReviewPage() {
               <form>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="wage_currency">Currency</Label>
+                    <Label htmlFor="wage_currency">Currency <span className="text-red-500">*</span></Label>
                     <Select
                       id="wage_currency"
                       value={formData.wage_currency}

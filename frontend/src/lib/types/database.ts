@@ -89,7 +89,7 @@ export interface Database {
           perks: string | null;
           interview_round_count: number;
           interview_rounds_description: string;
-          interview_tips: string;
+          interview_tips: string | null;
           like_count: number;
           created_at: string;
           updated_at: string;
@@ -115,7 +115,7 @@ export interface Database {
           perks?: string | null;
           interview_round_count: number;
           interview_rounds_description: string;
-          interview_tips: string;
+          interview_tips?: string | null;
           like_count?: number;
           created_at?: string;
           updated_at?: string;
@@ -141,7 +141,7 @@ export interface Database {
           perks?: string | null;
           interview_round_count?: number;
           interview_rounds_description?: string;
-          interview_tips?: string;
+          interview_tips?: string | null;
           like_count?: number;
           created_at?: string;
           updated_at?: string;

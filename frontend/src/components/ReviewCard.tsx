@@ -343,10 +343,12 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   <span className="font-medium text-foreground">Description:</span>{" "}
                   {review.interview_rounds_description}
                 </p>
-                <p>
-                  <span className="font-medium text-foreground">Tips:</span>{" "}
-                  {review.interview_tips}
-                </p>
+                {review.interview_tips && (
+                  <p>
+                    <span className="font-medium text-foreground">Tips:</span>{" "}
+                    {review.interview_tips}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -356,18 +358,16 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               <h4 className="font-semibold mb-2 text-sm">Compensation</h4>
               <div className="space-y-1 text-sm text-muted-foreground">
                 <p>
-                  <span className="font-medium text-foreground">Hourly:</span>{" "}
-                  {review.wage_currency || "CAD"} {review.wage_hourly?.toFixed(2) || "N/A"}
+                  ${review.wage_hourly?.toFixed(2) || "0.00"}/hr {review.wage_currency || "CAD"}
                 </p>
-                <p>
-                  <span className="font-medium text-foreground">Housing Stipend:</span>{" "}
-                  {review.housing_stipend_provided 
-                    ? review.housing_stipend 
-                      ? `${review.wage_currency || "CAD"} ${review.housing_stipend.toFixed(2)}/month`
-                      : "Provided (amount not specified)"
-                    : "Not provided"
-                  }
-                </p>
+                {review.housing_stipend_provided && (
+                  <p>
+                    {review.housing_stipend 
+                      ? `$${review.housing_stipend.toFixed(2)}/mo housing`
+                      : "Housing provided"
+                    }
+                  </p>
+                )}
                 {review.perks && (
                   <p>
                     <span className="font-medium text-foreground">Perks:</span>{" "}
@@ -432,7 +432,19 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
       </CardHeader>
 
       <CardContent className="space-y-6">
-
+        {/* Technologies */}
+        {review.technologies && (
+          <div className="space-y-2">
+            <h4 className="font-semibold">Technologies Used</h4>
+            <div className="flex flex-wrap gap-2">
+              {review.technologies.split(",").map((tech, idx) => (
+                <Badge key={idx} variant="outline">
+                  {tech.trim()}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Best & Hardest */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -459,20 +471,22 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           <div className="border-t border-zinc-700 my-4" />
           <h4 className="font-semibold mb-2">Interview Process</h4>
           <div className="space-y-2 text-sm text-muted-foreground">
-          <p>
+            <p>
               <span className="font-medium text-foreground">Rounds:</span>{" "}
-            {review.interview_round_count}
-          </p>
-          <p>
+              {review.interview_round_count}
+            </p>
+            <p>
               <span className="font-medium text-foreground">Description:</span>{" "}
-            {review.interview_rounds_description}
-          </p>
-          <p>
-              <span className="font-medium text-foreground">Tips:</span>{" "}
-            {review.interview_tips}
-          </p>
+              {review.interview_rounds_description}
+            </p>
+            {review.interview_tips && (
+              <p>
+                <span className="font-medium text-foreground">Tips:</span>{" "}
+                {review.interview_tips}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
 
       {/* Compensation */}
       <div>
@@ -480,18 +494,16 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         <h4 className="font-semibold mb-2">Compensation</h4>
         <div className="space-y-1 text-sm text-muted-foreground">
           <p>
-            <span className="font-medium text-foreground">Hourly:</span>{" "}
-            {review.wage_currency || "CAD"} {review.wage_hourly?.toFixed(2) || "N/A"}
+            ${review.wage_hourly?.toFixed(2) || "0.00"}/hr {review.wage_currency || "CAD"}
           </p>
-          <p>
-            <span className="font-medium text-foreground">Housing Stipend:</span>{" "}
-            {review.housing_stipend_provided 
-              ? review.housing_stipend 
-                ? `${review.wage_currency || "CAD"} ${review.housing_stipend.toFixed(2)}/month`
-                : "Provided (amount not specified)"
-              : "Not provided"
-            }
-          </p>
+          {review.housing_stipend_provided && (
+            <p>
+              {review.housing_stipend 
+                ? `$${review.housing_stipend.toFixed(2)}/mo housing`
+                : "Housing provided"
+              }
+            </p>
+          )}
           {review.perks && (
             <p>
               <span className="font-medium text-foreground">Perks:</span>{" "}
