@@ -14,16 +14,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ReviewWithDetails } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
-import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2, Pencil } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
 
 interface ReviewCardProps {
   review: ReviewWithDetails;
   compact?: boolean; // If true, shows compact view that can expand
   onDelete?: (reviewId: string) => void; // If provided, shows delete button (for My Reviews page)
+  onEdit?: (review: ReviewWithDetails) => void; // If provided, shows edit button (for My Reviews page)
 }
 
-export default function ReviewCard({ review, compact = false, onDelete }: ReviewCardProps) {
+export default function ReviewCard({ review, compact = false, onDelete, onEdit }: ReviewCardProps) {
   const { user, loading: authLoading } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
@@ -215,6 +216,18 @@ export default function ReviewCard({ review, compact = false, onDelete }: Review
                 </svg>
                 <span className="text-sm font-medium">{likeData.likeCount}</span>
               </button>
+              {onEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(review);
+                  }}
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
+                  aria-label="Edit this review"
+                >
+                  <Pencil className="size-4" aria-hidden="true" />
+                </button>
+              )}
               {onDelete && (
                 <button
                   onClick={handleDelete}

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import ReviewCard from "@/components/ReviewCard";
 import CompanyCard from "@/components/CompanyCard";
+import EditReviewModal from "@/components/EditReviewModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +48,7 @@ export default function ProfilePage() {
   const [savedCompanies, setSavedCompanies] = useState<CompanyWithStats[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [loadingSaved, setLoadingSaved] = useState(true);
+  const [editingReview, setEditingReview] = useState<ReviewWithDetails | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -107,6 +109,16 @@ export default function ProfilePage() {
 
   const handleDeleteReview = (reviewId: string) => {
     setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
+
+  const handleEditReview = (review: ReviewWithDetails) => {
+    setEditingReview(review);
+  };
+
+  const handleSaveEdit = (updatedReview: ReviewWithDetails) => {
+    setMyReviews((prev) =>
+      prev.map((r) => (r.id === updatedReview.id ? updatedReview : r))
+    );
   };
 
   // Get user display info
@@ -267,7 +279,12 @@ export default function ProfilePage() {
               >
                 {myReviews.map((review) => (
                   <motion.div key={review.id} variants={itemVariants}>
-                    <ReviewCard review={review} compact={true} onDelete={handleDeleteReview} />
+                    <ReviewCard 
+                      review={review} 
+                      compact={true} 
+                      onDelete={handleDeleteReview}
+                      onEdit={handleEditReview}
+                    />
                   </motion.div>
                 ))}
               </motion.div>
@@ -326,6 +343,16 @@ export default function ProfilePage() {
           </>
         )}
       </div>
+
+      {/* Edit Review Modal */}
+      {editingReview && (
+        <EditReviewModal
+          review={editingReview}
+          isOpen={!!editingReview}
+          onClose={() => setEditingReview(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
     </main>
   );
 }
