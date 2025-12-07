@@ -178,13 +178,13 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
         {/* Profile Header */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8"
+          className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 max-w-5xl mx-auto"
         >
           <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-semibold">
             {userInfo.initials}
@@ -200,7 +200,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex gap-2 mb-8"
+          className="flex gap-2 mb-8 max-w-5xl mx-auto"
         >
           <Button
             variant={activeTab === "reviews" ? "default" : "outline"}
@@ -224,7 +224,7 @@ export default function ProfilePage() {
         {activeTab === "reviews" && (
           <>
             {loadingReviews ? (
-              <div className="grid gap-4">
+              <div className="grid gap-4 max-w-5xl mx-auto">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-64 w-full rounded-xl" />
                 ))}
@@ -234,6 +234,7 @@ export default function ProfilePage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
+                className="max-w-5xl mx-auto"
               >
                 <Card>
                   <CardContent className="pt-6">
@@ -255,7 +256,7 @@ export default function ProfilePage() {
               </motion.div>
             ) : (
               <motion.div
-                className="grid gap-4"
+                className="grid gap-4 max-w-5xl mx-auto"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -274,7 +275,7 @@ export default function ProfilePage() {
         {activeTab === "saved" && (
           <>
             {loadingSaved ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-80 w-full rounded-xl" />
                 ))}
@@ -284,6 +285,7 @@ export default function ProfilePage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
+                className="max-w-5xl mx-auto"
               >
                 <Card>
                   <CardContent className="pt-6">
@@ -305,7 +307,7 @@ export default function ProfilePage() {
               </motion.div>
             ) : (
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"

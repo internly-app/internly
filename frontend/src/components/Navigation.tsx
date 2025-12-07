@@ -148,7 +148,7 @@ export default function Navigation({ animate = false }: NavigationProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button 
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer !outline-none border border-transparent hover:border-zinc-500 data-[state=open]:border-zinc-500"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer !outline-none border border-transparent hover:border-zinc-700 data-[state=open]:border-zinc-700"
                       aria-label={`User menu for ${userName.full}`}
                     >
                       <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold" aria-hidden="true">
