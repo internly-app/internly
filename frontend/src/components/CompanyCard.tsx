@@ -128,16 +128,22 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
           {/* Pay Information - Most important */}
           <div className="flex items-center gap-2 text-sm">
             <DollarSign className="size-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-muted-foreground">Avg:</span>
             <span className="text-foreground font-medium">
               {company.avg_pay_cad || company.avg_pay_usd ? (
                 <>
-                  {company.avg_pay_usd && `${formatPay(company.avg_pay_usd)} USD`}
-                  {company.avg_pay_cad && company.avg_pay_usd && " / "}
-                  {company.avg_pay_cad && `${formatPay(company.avg_pay_cad)} CAD`}
-                  <span className="text-muted-foreground font-normal">/hr</span>
+                  {company.avg_pay_usd && (
+                    <span>~{formatPay(company.avg_pay_usd)} USD/hr</span>
+                  )}
+                  {company.avg_pay_cad && company.avg_pay_usd && (
+                    <span className="text-muted-foreground font-normal"> · </span>
+                  )}
+                  {company.avg_pay_cad && (
+                    <span>~{formatPay(company.avg_pay_cad)} CAD/hr</span>
+                  )}
                 </>
               ) : (
-                <span className="text-muted-foreground font-normal">Pay not reported</span>
+                <span className="text-muted-foreground font-normal">Not reported</span>
               )}
             </span>
           </div>
