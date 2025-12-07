@@ -32,7 +32,10 @@ const mockReviews: ReviewWithDetails[] = [
     role: {
       id: "pm-intern",
       title: "Product Manager Intern",
-      category: "Software Engineering"
+      slug: "product-manager-intern",
+      company_id: "microsoft",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     user: {
       id: "user1",
@@ -77,7 +80,10 @@ const mockReviews: ReviewWithDetails[] = [
     role: {
       id: "swe-intern",
       title: "Software Engineering Intern",
-      category: "Software Engineering"
+      slug: "software-engineering-intern",
+      company_id: "openai",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     user: {
       id: "user2",
@@ -122,7 +128,10 @@ const mockReviews: ReviewWithDetails[] = [
     role: {
       id: "pe-intern",
       title: "Product Engineering Intern",
-      category: "Product Engineering"
+      slug: "product-engineering-intern",
+      company_id: "rootly",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     user: {
       id: "user3",
