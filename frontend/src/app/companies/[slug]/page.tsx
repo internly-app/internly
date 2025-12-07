@@ -138,9 +138,11 @@ export default function CompanyDetailPage() {
     remote: "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/20",
   } as const;
 
-  const formatPay = (amount: number | null) => {
-    if (!amount) return null;
-    return `$${amount.toFixed(0)}`;
+  const formatPayRange = (min: number | null, max: number | null, currency: string) => {
+    if (!min && !max) return null;
+    if (min === max || !max) return `$${min?.toFixed(0)} ${currency}`;
+    if (!min) return `$${max.toFixed(0)} ${currency}`;
+    return `$${min.toFixed(0)}-${max.toFixed(0)} ${currency}`;
   };
 
   // Loading state
@@ -300,20 +302,18 @@ export default function CompanyDetailPage() {
               <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
                 <div className="flex items-center gap-2 text-muted-foreground mb-2">
                   <DollarSign className="size-4" />
-                  <span className="text-sm">Average Pay</span>
+                  <span className="text-sm">Pay Range</span>
                 </div>
                 <div className="text-lg font-semibold">
-                  {company.avg_pay_cad || company.avg_pay_usd ? (
-                    <>
-                      {company.avg_pay_cad && (
-                        <span>{formatPay(company.avg_pay_cad)} CAD</span>
+                  {(company.min_pay_cad || company.min_pay_usd) ? (
+                    <div className="space-y-1">
+                      {(company.min_pay_usd || company.max_pay_usd) && (
+                        <div>{formatPayRange(company.min_pay_usd, company.max_pay_usd, "USD")}/hr</div>
                       )}
-                      {company.avg_pay_cad && company.avg_pay_usd && " / "}
-                      {company.avg_pay_usd && (
-                        <span>{formatPay(company.avg_pay_usd)} USD</span>
+                      {(company.min_pay_cad || company.max_pay_cad) && (
+                        <div>{formatPayRange(company.min_pay_cad, company.max_pay_cad, "CAD")}/hr</div>
                       )}
-                      <span className="text-sm text-muted-foreground font-normal">/hr</span>
-                    </>
+                    </div>
                   ) : (
                     <span className="text-muted-foreground font-normal">—</span>
                   )}

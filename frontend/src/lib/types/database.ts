@@ -231,8 +231,11 @@ export interface ReviewWithDetails extends Review {
 // Company with aggregated stats from reviews
 export interface CompanyWithStats extends Company {
   review_count: number;
-  avg_pay_cad: number | null;
-  avg_pay_usd: number | null;
+  // Pay ranges (min/max for better user insight)
+  min_pay_cad: number | null;
+  max_pay_cad: number | null;
+  min_pay_usd: number | null;
+  max_pay_usd: number | null;
   avg_interview_rounds: number | null;
   common_interview_format: string | null;
   work_style_breakdown: {

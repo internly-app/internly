@@ -158,19 +158,17 @@ export async function GET(request: NextRequest) {
       const commonInterviewFormat =
         Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
+      // Calculate pay ranges (min/max)
+      const cadWages = cadReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
+      const usdWages = usdReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
+
       return {
         ...company,
         review_count: companyReviews.length,
-        avg_pay_cad:
-          cadReviews.length > 0
-            ? cadReviews.reduce((sum, r) => sum + (r.wage_hourly || 0), 0) /
-              cadReviews.length
-            : null,
-        avg_pay_usd:
-          usdReviews.length > 0
-            ? usdReviews.reduce((sum, r) => sum + (r.wage_hourly || 0), 0) /
-              usdReviews.length
-            : null,
+        min_pay_cad: cadWages.length > 0 ? Math.min(...cadWages) : null,
+        max_pay_cad: cadWages.length > 0 ? Math.max(...cadWages) : null,
+        min_pay_usd: usdWages.length > 0 ? Math.min(...usdWages) : null,
+        max_pay_usd: usdWages.length > 0 ? Math.max(...usdWages) : null,
         avg_interview_rounds:
           reviewsWithRounds.length > 0
             ? reviewsWithRounds.reduce(

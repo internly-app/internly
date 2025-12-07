@@ -68,10 +68,12 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
     }
   };
 
-  // Format currency
-  const formatPay = (amount: number | null) => {
-    if (!amount) return null;
-    return `$${amount.toFixed(0)}`;
+  // Format pay range
+  const formatPayRange = (min: number | null, max: number | null, currency: string) => {
+    if (!min && !max) return null;
+    if (min === max || !max) return `$${min?.toFixed(0)} ${currency}/hr`;
+    if (!min) return `$${max.toFixed(0)} ${currency}/hr`;
+    return `$${min.toFixed(0)}-${max.toFixed(0)} ${currency}/hr`;
   };
 
   return (
@@ -128,22 +130,21 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
           {/* Pay Information - Most important */}
           <div className="flex items-center gap-2 text-sm">
             <DollarSign className="size-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-muted-foreground">Avg:</span>
             <span className="text-foreground font-medium">
-              {company.avg_pay_cad || company.avg_pay_usd ? (
+              {(company.min_pay_cad || company.min_pay_usd) ? (
                 <>
-                  {company.avg_pay_usd && (
-                    <span>~{formatPay(company.avg_pay_usd)} USD/hr</span>
+                  {(company.min_pay_usd || company.max_pay_usd) && (
+                    <span>{formatPayRange(company.min_pay_usd, company.max_pay_usd, "USD")}</span>
                   )}
-                  {company.avg_pay_cad && company.avg_pay_usd && (
+                  {(company.min_pay_usd || company.max_pay_usd) && (company.min_pay_cad || company.max_pay_cad) && (
                     <span className="text-muted-foreground font-normal"> · </span>
                   )}
-                  {company.avg_pay_cad && (
-                    <span>~{formatPay(company.avg_pay_cad)} CAD/hr</span>
+                  {(company.min_pay_cad || company.max_pay_cad) && (
+                    <span>{formatPayRange(company.min_pay_cad, company.max_pay_cad, "CAD")}</span>
                   )}
                 </>
               ) : (
-                <span className="text-muted-foreground font-normal">Not reported</span>
+                <span className="text-muted-foreground font-normal">Pay not reported</span>
               )}
             </span>
           </div>
