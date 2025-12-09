@@ -21,7 +21,7 @@ interface NavigationProps {
 
 export default function Navigation({ animate = false }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -131,7 +131,13 @@ export default function Navigation({ animate = false }: NavigationProps) {
 
           {/* Right Side - Write Review, Profile */}
           <div className="flex items-center gap-3 ml-auto">
-            {user ? (
+            {/* Show skeleton while auth is loading to prevent flash */}
+            {authLoading ? (
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-32 rounded-md bg-muted animate-pulse" />
+                <div className="h-9 w-24 rounded-full bg-muted animate-pulse" />
+              </div>
+            ) : user ? (
               <>
                 {/* Write Review Button */}
                 <Button
@@ -148,7 +154,7 @@ export default function Navigation({ animate = false }: NavigationProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button 
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer !outline-none border border-transparent hover:border-zinc-700 data-[state=open]:border-zinc-700"
                       aria-label={`User menu for ${userName.full}`}
                     >
                       <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold" aria-hidden="true">
@@ -174,7 +180,7 @@ export default function Navigation({ animate = false }: NavigationProps) {
                       </svg>
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" sideOffset={8} className="w-56 border border-white/20">
+                  <DropdownMenuContent align="end" sideOffset={8} className="w-56 border border-zinc-700">
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium">{userName.full}</p>

@@ -77,20 +77,19 @@ export interface Database {
           term: string;
           duration_months: number | null;
           work_style: WorkStyle;
-          work_hours: string | null;
           team_name: string | null;
           technologies: string | null;
           hardest: string;
           best: string;
           advice: string | null;
-          wage_hourly: number | null;
-          wage_currency: string | null;
-          housing_provided: boolean | null;
+          wage_hourly: number;
+          wage_currency: string;
+          housing_stipend_provided: boolean;
           housing_stipend: number | null;
           perks: string | null;
           interview_round_count: number;
           interview_rounds_description: string;
-          interview_tips: string;
+          interview_tips: string | null;
           like_count: number;
           created_at: string;
           updated_at: string;
@@ -104,20 +103,19 @@ export interface Database {
           term: string;
           duration_months?: number | null;
           work_style: WorkStyle;
-          work_hours?: string | null;
           team_name?: string | null;
           technologies?: string | null;
           hardest: string;
           best: string;
           advice?: string | null;
-          wage_hourly?: number | null;
-          wage_currency?: string | null;
-          housing_provided?: boolean | null;
+          wage_hourly: number;
+          wage_currency?: string;
+          housing_stipend_provided?: boolean;
           housing_stipend?: number | null;
           perks?: string | null;
           interview_round_count: number;
           interview_rounds_description: string;
-          interview_tips: string;
+          interview_tips?: string | null;
           like_count?: number;
           created_at?: string;
           updated_at?: string;
@@ -131,20 +129,19 @@ export interface Database {
           term?: string;
           duration_months?: number | null;
           work_style?: WorkStyle;
-          work_hours?: string | null;
           team_name?: string | null;
           technologies?: string | null;
           hardest?: string;
           best?: string;
           advice?: string;
-          wage_hourly?: number | null;
-          wage_currency?: string | null;
-          housing_provided?: boolean | null;
+          wage_hourly?: number;
+          wage_currency?: string;
+          housing_stipend_provided?: boolean;
           housing_stipend?: number | null;
           perks?: string | null;
           interview_round_count?: number;
           interview_rounds_description?: string;
-          interview_tips?: string;
+          interview_tips?: string | null;
           like_count?: number;
           created_at?: string;
           updated_at?: string;
@@ -234,8 +231,11 @@ export interface ReviewWithDetails extends Review {
 // Company with aggregated stats from reviews
 export interface CompanyWithStats extends Company {
   review_count: number;
-  avg_pay_cad: number | null;
-  avg_pay_usd: number | null;
+  // Pay ranges (min/max for better user insight)
+  min_pay_cad: number | null;
+  max_pay_cad: number | null;
+  min_pay_usd: number | null;
+  max_pay_usd: number | null;
   avg_interview_rounds: number | null;
   common_interview_format: string | null;
   work_style_breakdown: {

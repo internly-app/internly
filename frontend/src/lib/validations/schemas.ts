@@ -67,7 +67,6 @@ export const reviewCreateSchema = z.object({
   term: z.string().min(1, "Term is required").max(100),
   duration_months: z.number().int().min(1).max(24).optional(),
   work_style: z.enum(["onsite", "hybrid", "remote"]),
-  work_hours: z.enum(["full-time", "part-time"]).optional(),
   team_name: z
     .string()
     .max(200)
@@ -138,17 +137,12 @@ export const reviewCreateSchema = z.object({
       }
     ),
 
-  // Compensation (optional)
-  wage_hourly: z.number().positive().optional().nullable(),
+  // Compensation (required)
+  wage_hourly: z.number().positive("Hourly wage must be positive"),
   wage_currency: z.string().length(3).default("CAD"),
-  housing_provided: z.boolean().optional().nullable(),
-  housing_stipend: z.number().nonnegative().optional().nullable(), // Allow 0 for no stipend
-  perks: z
-    .string()
-    .max(500)
-    .optional()
-    .nullable()
-    .transform((val) => (val ? sanitizeText(val) : val)),
+  housing_stipend_provided: z.boolean().default(false),
+  housing_stipend: z.number().positive().optional(),
+  perks: z.string().max(500).optional(),
 
   // Interview (required, no minimum length)
   interview_round_count: z.number().int().min(0).max(20),

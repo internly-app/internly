@@ -139,9 +139,11 @@ export default function CompanyDetailPage() {
     remote: "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/20",
   } as const;
 
-  const formatPay = (amount: number | null) => {
-    if (!amount) return null;
-    return `$${amount.toFixed(0)}`;
+  const formatPayRange = (min: number | null, max: number | null, currency: string) => {
+    if (!min && !max) return null;
+    if (min === max || !max) return `$${min?.toFixed(0)} ${currency}`;
+    if (!min) return `$${max.toFixed(0)} ${currency}`;
+    return `$${min.toFixed(0)}-${max.toFixed(0)} ${currency}`;
   };
 
   // Loading state
@@ -295,103 +297,108 @@ export default function CompanyDetailPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
           {/* Pay */}
-          {(company.avg_pay_cad || company.avg_pay_usd) && (
-            <motion.div variants={itemVariants}>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <DollarSign className="size-4" />
-                    <span className="text-sm">Average Pay</span>
-                  </div>
-                  <div className="text-lg font-semibold">
-                    {company.avg_pay_cad && (
-                      <span>{formatPay(company.avg_pay_cad)} CAD</span>
-                    )}
-                    {company.avg_pay_cad && company.avg_pay_usd && " / "}
-                    {company.avg_pay_usd && (
-                      <span>{formatPay(company.avg_pay_usd)} USD</span>
-                    )}
-                    <span className="text-sm text-muted-foreground font-normal">/hr</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+          <motion.div variants={itemVariants}>
+            <Card className="h-full">
+              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <DollarSign className="size-4" />
+                  <span className="text-sm">Pay Range</span>
+                </div>
+                <div className="text-lg font-semibold">
+                  {(company.min_pay_cad || company.min_pay_usd) ? (
+                    <div className="space-y-1">
+                      {(company.min_pay_usd || company.max_pay_usd) && (
+                        <div>{formatPayRange(company.min_pay_usd, company.max_pay_usd, "USD")}/hr</div>
+                      )}
+                      {(company.min_pay_cad || company.max_pay_cad) && (
+                        <div>{formatPayRange(company.min_pay_cad, company.max_pay_cad, "CAD")}/hr</div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground font-normal">—</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Interview Rounds */}
-          {company.avg_interview_rounds && (
-            <motion.div variants={itemVariants}>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <Users className="size-4" />
-                    <span className="text-sm">Interview Rounds</span>
-                  </div>
-                  <div className="text-lg font-semibold">
-                    ~{Math.round(company.avg_interview_rounds)} rounds
-                  </div>
-                  {company.common_interview_format && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {company.common_interview_format}
-                    </p>
+          <motion.div variants={itemVariants}>
+            <Card className="h-full">
+              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Users className="size-4" />
+                  <span className="text-sm">Avg Interview Rounds</span>
+                </div>
+                <div className="text-lg font-semibold">
+                  {company.avg_interview_rounds ? (
+                    <>~{Math.round(company.avg_interview_rounds)} rounds</>
+                  ) : (
+                    <span className="text-muted-foreground font-normal">—</span>
                   )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Duration */}
-          {company.avg_duration_months && (
-            <motion.div variants={itemVariants}>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <Clock className="size-4" />
-                    <span className="text-sm">Typical Term</span>
-                  </div>
-                  <div className="text-lg font-semibold">
-                    ~{Math.round(company.avg_duration_months)} months
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+          <motion.div variants={itemVariants}>
+            <Card className="h-full">
+              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Clock className="size-4" />
+                  <span className="text-sm">Typical Term</span>
+                </div>
+                <div className="text-lg font-semibold">
+                  {company.avg_duration_months ? (
+                    <>~{Math.round(company.avg_duration_months)} months</>
+                  ) : (
+                    <span className="text-muted-foreground font-normal">—</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Work Style */}
-          {(company.work_style_breakdown.onsite > 0 ||
-            company.work_style_breakdown.hybrid > 0 ||
-            company.work_style_breakdown.remote > 0) && (
-            <motion.div variants={itemVariants}>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <Briefcase className="size-4" />
-                    <span className="text-sm">Work Style</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {company.work_style_breakdown.onsite > 0 && (
-                      <Badge className={workStyleBadge.onsite}>
-                        Onsite ({company.work_style_breakdown.onsite})
-                      </Badge>
-                    )}
-                    {company.work_style_breakdown.hybrid > 0 && (
-                      <Badge className={workStyleBadge.hybrid}>
-                        Hybrid ({company.work_style_breakdown.hybrid})
-                      </Badge>
-                    )}
-                    {company.work_style_breakdown.remote > 0 && (
-                      <Badge className={workStyleBadge.remote}>
-                        Remote ({company.work_style_breakdown.remote})
-                      </Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+          <motion.div variants={itemVariants}>
+            <Card className="h-full">
+              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Briefcase className="size-4" />
+                  <span className="text-sm">Work Style</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {company.work_style_breakdown.onsite > 0 ||
+                  company.work_style_breakdown.hybrid > 0 ||
+                  company.work_style_breakdown.remote > 0 ? (
+                    <>
+                      {company.work_style_breakdown.onsite > 0 && (
+                        <Badge className={workStyleBadge.onsite}>
+                          Onsite ({company.work_style_breakdown.onsite})
+                        </Badge>
+                      )}
+                      {company.work_style_breakdown.hybrid > 0 && (
+                        <Badge className={workStyleBadge.hybrid}>
+                          Hybrid ({company.work_style_breakdown.hybrid})
+                        </Badge>
+                      )}
+                      {company.work_style_breakdown.remote > 0 && (
+                        <Badge className={workStyleBadge.remote}>
+                          Remote ({company.work_style_breakdown.remote})
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-lg font-semibold text-muted-foreground font-normal">—</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </motion.div>
 
         {/* Common Info */}
