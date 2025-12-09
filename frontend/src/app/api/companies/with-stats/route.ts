@@ -5,6 +5,7 @@ import type { CompanyWithStats } from "@/lib/types/database";
 /**
  * GET /api/companies/with-stats
  * Get companies with aggregated review statistics
+ * Optimized with parallel queries and caching
  */
 export async function GET(request: NextRequest) {
   try {
@@ -13,21 +14,20 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     const limit = parseInt(searchParams.get("limit") || "50");
 
-    // Check if user is authenticated (for saved status)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Parallel: Check auth and fetch companies simultaneously
+    const [authResult, companiesResult] = await Promise.all([
+      supabase.auth.getUser(),
+      (async () => {
+        let companiesQuery = supabase.from("companies").select("*");
+        if (search) {
+          companiesQuery = companiesQuery.ilike("name", `%${search}%`);
+        }
+        return companiesQuery.order("name").limit(limit);
+      })(),
+    ]);
 
-    // Fetch companies
-    let companiesQuery = supabase.from("companies").select("*");
-
-    if (search) {
-      companiesQuery = companiesQuery.ilike("name", `%${search}%`);
-    }
-
-    companiesQuery = companiesQuery.order("name").limit(limit);
-
-    const { data: companies, error: companiesError } = await companiesQuery;
+    const { data: { user } } = authResult;
+    const { data: companies, error: companiesError } = companiesResult;
 
     if (companiesError) {
       console.error("Companies fetch error:", companiesError);
@@ -38,34 +38,48 @@ export async function GET(request: NextRequest) {
     }
 
     if (!companies || companies.length === 0) {
-      return NextResponse.json([]);
+      return NextResponse.json([], {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      });
     }
 
-    // Fetch all reviews for these companies
+    // Parallel: Fetch reviews and saved companies simultaneously
     const companyIds = companies.map((c) => c.id);
-    const { data: reviews, error: reviewsError } = await supabase
-      .from("reviews")
-      .select(`
-        *,
-        role:roles(title)
-      `)
-      .in("company_id", companyIds);
+    const [reviewsResult, savedCompaniesResult] = await Promise.all([
+      supabase
+        .from("reviews")
+        .select(`
+          company_id,
+          wage_hourly,
+          wage_currency,
+          interview_round_count,
+          work_style,
+          duration_months,
+          location,
+          technologies,
+          interview_rounds_description,
+          role:roles(title)
+        `)
+        .in("company_id", companyIds),
+      user
+        ? supabase
+            .from("saved_companies")
+            .select("company_id")
+            .eq("user_id", user.id)
+        : Promise.resolve({ data: null }),
+    ]);
 
+    const { data: reviews, error: reviewsError } = reviewsResult;
     if (reviewsError) {
       console.error("Reviews fetch error:", reviewsError);
     }
 
-    // Fetch saved companies for user
+    // Build saved companies set
     let savedCompanyIds: Set<string> = new Set();
-    if (user) {
-      const { data: savedCompanies } = await supabase
-        .from("saved_companies")
-        .select("company_id")
-        .eq("user_id", user.id);
-
-      if (savedCompanies) {
-        savedCompanyIds = new Set(savedCompanies.map((s) => s.company_id));
-      }
+    if (savedCompaniesResult.data) {
+      savedCompanyIds = new Set(savedCompaniesResult.data.map((s) => s.company_id));
     }
 
     // Aggregate stats for each company
@@ -195,7 +209,16 @@ export async function GET(request: NextRequest) {
     // Sort by review count (most reviewed first)
     companiesWithStats.sort((a, b) => b.review_count - a.review_count);
 
-    return NextResponse.json(companiesWithStats);
+    // Add cache headers for public anonymous requests
+    const cacheControl = user
+      ? 'private, max-age=10, stale-while-revalidate=30' // Authenticated: short cache
+      : 'public, s-maxage=300, stale-while-revalidate=600'; // Anonymous: 5min cache
+
+    return NextResponse.json(companiesWithStats, {
+      headers: {
+        'Cache-Control': cacheControl,
+      },
+    });
   } catch (error) {
     console.error("GET /api/companies/with-stats error:", error);
     return NextResponse.json(

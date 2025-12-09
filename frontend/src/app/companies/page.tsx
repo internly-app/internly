@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import CompanyCard from "@/components/CompanyCard";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,10 +100,10 @@ export default function CompaniesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -240,6 +241,7 @@ export default function CompaniesPage() {
           </motion.div>
         )}
       </div>
+      <Footer />
     </main>
   );
 }

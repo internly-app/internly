@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,11 +123,11 @@ export default function ReviewsPage() {
   const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "likes";
   
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
       
       <motion.div 
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12"
+        className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -310,6 +311,7 @@ export default function ReviewsPage() {
           </div>
         )}
       </motion.div>
+      <Footer />
     </main>
   );
 }
