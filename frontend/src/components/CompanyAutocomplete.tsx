@@ -191,48 +191,23 @@ export function CompanyAutocomplete({
   };
 
   // Handle selecting a company
-  const handleSelect = async (companyName: string) => {
+  // NOTE: We no longer create companies here - that happens during review submission
+  // This prevents orphan companies when users don't complete the review
+  const handleSelect = (companyName: string) => {
     setSelectedCompanyName(companyName);
     setInputValue(companyName);
 
-    // Check if company exists in database, if not create it
-    let companyId = "";
+    // Check if company exists in database
     const existingCompany = dbCompanies.find(
       (c) => c.name.toLowerCase() === companyName.toLowerCase()
     );
 
     if (existingCompany) {
-      companyId = existingCompany.id;
-      onChange(companyId, companyName);
+      // Existing company - pass the ID
+      onChange(existingCompany.id, companyName);
     } else {
-      // Company doesn't exist in DB, create it
-      try {
-        const response = await fetch("/api/companies", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: companyName,
-            slug: companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-          }),
-        });
-
-        if (response.ok) {
-          const newCompany = await response.json();
-          companyId = newCompany.id;
-          // Add to database companies list
-          setDbCompanies([...dbCompanies, newCompany]);
-          onChange(companyId, companyName);
-        } else {
-          console.error("Failed to create company");
-          // Still allow selection even if creation fails
-          onChange("", companyName);
-        }
-      } catch (err) {
-        console.error("Failed to create company:", err);
-        onChange("", companyName);
-      }
+      // New company - pass empty ID, will be created on review submission
+      onChange("", companyName);
     }
 
     setIsOpen(false);
@@ -240,10 +215,10 @@ export function CompanyAutocomplete({
   };
 
   // Handle creating a new company (custom entry)
-  const handleCreateCompany = async () => {
+  const handleCreateCompany = () => {
     const companyName = inputValue.trim();
     if (!companyName) return;
-    await handleSelect(companyName);
+    handleSelect(companyName);
   };
 
   // Handle key down

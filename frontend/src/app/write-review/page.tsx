@@ -157,7 +157,8 @@ export default function WriteReviewPage() {
     // Validate required fields (skip company/role validation in edit mode)
     if (!isEditMode) {
       const errors: { company_id?: string; roleName?: string } = {};
-      if (!formData.company_id) {
+      // Check for company name (not ID, since new companies won't have an ID yet)
+      if (!formData.companyName || !formData.companyName.trim()) {
         errors.company_id = "Please select a company";
       }
       if (!formData.roleName || !formData.roleName.trim()) {
@@ -206,6 +207,28 @@ export default function WriteReviewPage() {
         router.push("/profile");
       } else {
         // Create new review
+        let companyId = formData.company_id;
+
+        // If company_id is empty, we need to create the company first
+        if (!companyId && formData.companyName) {
+          const companyResponse = await fetch("/api/companies", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: formData.companyName.trim(),
+              slug: formData.companyName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+            }),
+          });
+
+          if (!companyResponse.ok) {
+            const error = await companyResponse.json();
+            throw new Error(error.error || "Failed to create company");
+          }
+
+          const newCompany = await companyResponse.json();
+          companyId = newCompany.id;
+        }
+
         // Create or get role
         const roleResponse = await fetch("/api/roles", {
           method: "POST",
@@ -214,7 +237,7 @@ export default function WriteReviewPage() {
           },
           body: JSON.stringify({
             title: formData.roleName.trim(),
-            company_id: formData.company_id,
+            company_id: companyId,
             slug: formData.roleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
           }),
         });
@@ -227,7 +250,7 @@ export default function WriteReviewPage() {
         const role = await roleResponse.json();
 
         const reviewData = {
-          company_id: formData.company_id,
+          company_id: companyId,
           role_id: role.id,
           location: formData.location,
           term: formData.term,
@@ -267,7 +290,7 @@ export default function WriteReviewPage() {
     }
   };
 
-  const canProceedFromStep1 = isEditMode || (formData.company_id && formData.roleName && formData.roleName.trim());
+  const canProceedFromStep1 = isEditMode || (formData.companyName && formData.companyName.trim() && formData.roleName && formData.roleName.trim());
   const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_round_count && formData.interview_rounds_description;
   const canProceedFromStep4 = formData.wage_hourly && parseFloat(formData.wage_hourly) > 0;
@@ -440,7 +463,7 @@ export default function WriteReviewPage() {
                           setFieldErrors((prev) => ({ ...prev, role_id: undefined, roleName: undefined }));
                         }
                     }}
-                      disabled={!formData.company_id}
+                      disabled={!formData.companyName}
                       className={
                         fieldErrors.roleName || fieldErrors.role_id
                           ? "border-destructive"
@@ -451,7 +474,7 @@ export default function WriteReviewPage() {
                     {(fieldErrors.roleName || fieldErrors.role_id) && (
                       <p className="mt-1 text-sm text-destructive">{fieldErrors.roleName || fieldErrors.role_id}</p>
                     )}
-                    {!formData.company_id && !fieldErrors.roleName && !fieldErrors.role_id && (
+                    {!formData.companyName && !fieldErrors.roleName && !fieldErrors.role_id && (
                     <p className="text-xs text-muted-foreground">
                       Please select a company first
                     </p>
