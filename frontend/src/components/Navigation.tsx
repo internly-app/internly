@@ -21,7 +21,7 @@ interface NavigationProps {
 
 export default function Navigation({ animate = false }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -131,7 +131,13 @@ export default function Navigation({ animate = false }: NavigationProps) {
 
           {/* Right Side - Write Review, Profile */}
           <div className="flex items-center gap-3 ml-auto">
-            {user ? (
+            {/* Show skeleton while auth is loading to prevent flash */}
+            {authLoading ? (
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-32 rounded-md bg-muted animate-pulse" />
+                <div className="h-9 w-24 rounded-full bg-muted animate-pulse" />
+              </div>
+            ) : user ? (
               <>
                 {/* Write Review Button */}
                 <Button
