@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -294,10 +293,6 @@ export default function WriteReviewPage() {
   const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
   const canProceedFromStep3 = formData.interview_round_count && formData.interview_rounds_description;
   const canProceedFromStep4 = formData.wage_hourly && parseFloat(formData.wage_hourly) > 0;
-
-  // Total steps: 4 for create, 3 for edit (skip step 1)
-  const totalSteps = isEditMode ? 3 : 4;
-  const displayStep = isEditMode ? step - 1 : step; // For progress display in edit mode
 
   if (authLoading || loadingReview) {
     return (
