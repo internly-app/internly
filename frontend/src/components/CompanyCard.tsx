@@ -76,6 +76,16 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
     return `$${min.toFixed(0)}-${max.toFixed(0)} ${currency}/hr`;
   };
 
+  // Extract just the city name from "City, State/Country" format
+  // "San Francisco, CA" -> "San Francisco"
+  // "Remote" -> "Remote"
+  // "London, UK" -> "London"
+  const getCityName = (location: string) => {
+    if (location === "Remote") return "Remote";
+    const parts = location.split(",");
+    return parts[0].trim();
+  };
+
   return (
     <Link href={`/companies/${company.slug}`}>
       <Card className="transition-all duration-200 hover:shadow-md hover:border-zinc-500 cursor-pointer h-full">
@@ -149,13 +159,13 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
             </span>
           </div>
 
-          {/* Location - Where can I work? */}
+          {/* Location - Where can I work? (city names only for cleaner display) */}
           <div className="flex items-start gap-2 text-sm">
             <MapPin className="size-4 text-muted-foreground flex-shrink-0 mt-0.5" />
             <span className="text-foreground">
               {company.common_locations.length > 0 ? (
                 <>
-                  {company.common_locations.slice(0, 2).join(", ")}
+                  {company.common_locations.slice(0, 2).map(getCityName).join(", ")}
                   {company.common_locations.length > 2 && ` +${company.common_locations.length - 2}`}
                 </>
               ) : (
