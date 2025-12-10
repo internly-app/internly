@@ -37,12 +37,7 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
         if (query.limit) params.set("limit", query.limit.toString());
         if (query.offset) params.set("offset", query.offset.toString());
 
-        const response = await fetch(`/api/reviews?${params.toString()}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-          },
-        });
+        const response = await fetch(`/api/reviews?${params.toString()}`);
 
         if (!response.ok) {
           // Try to extract error message from response
