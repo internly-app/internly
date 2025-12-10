@@ -30,7 +30,7 @@ export default function AboutPage() {
         {/* What is Internly */}
         <div className="mb-12 text-center">
           <p className="text-xl text-muted-foreground">
-            Students share detailed internship reviews: what they actually worked on, how they prepared, interview processes, compensation, and honest advice.
+            Students share detailed internship reviews: what they actually worked on, interview processes, compensation, and honest advice.
           </p>
         </div>
 

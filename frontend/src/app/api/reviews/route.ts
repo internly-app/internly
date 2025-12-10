@@ -208,8 +208,8 @@ export async function GET(request: NextRequest) {
 
     // Smart caching based on authentication
     const cacheControl = user
-      ? 'private, max-age=10, stale-while-revalidate=30' // Authenticated: 10s cache
-      : 'public, s-maxage=60, stale-while-revalidate=120'; // Anonymous: 60s cache
+      ? 'private, max-age=60, stale-while-revalidate=120' // Authenticated: slightly longer to reduce refetch flicker
+      : 'public, s-maxage=300, stale-while-revalidate=600'; // Anonymous: 5 min cache
 
     return NextResponse.json({
       reviews: reviewsWithLikeStatus,

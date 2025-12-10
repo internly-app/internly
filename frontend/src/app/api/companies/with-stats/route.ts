@@ -211,8 +211,8 @@ export async function GET(request: NextRequest) {
 
     // Add cache headers for public anonymous requests
     const cacheControl = user
-      ? 'private, max-age=10, stale-while-revalidate=30' // Authenticated: short cache
-      : 'public, s-maxage=300, stale-while-revalidate=600'; // Anonymous: 5min cache
+      ? 'private, max-age=60, stale-while-revalidate=120' // Authenticated: reduce refetch on tab return
+      : 'public, s-maxage=300, stale-while-revalidate=600'; // Anonymous: keep 5min cache
 
     return NextResponse.json(companiesWithStats, {
       headers: {
