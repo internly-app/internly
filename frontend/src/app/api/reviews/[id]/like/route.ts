@@ -23,109 +23,42 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if review exists
-    const { data: review, error: reviewError } = await supabase
-      .from("reviews")
-      .select("id")
-      .eq("id", reviewId)
-      .single();
+    // Try to insert like (let constraints handle duplicates and FK)
+    const { error: insertError } = await supabase
+      .from("review_likes")
+      .insert({
+        user_id: user.id,
+        review_id: reviewId,
+      });
 
-    if (reviewError || !review) {
-      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    // Success: newly liked
+    if (!insertError) {
+      return NextResponse.json({ liked: true });
     }
 
-    // Check if user has already liked this review
-    const { data: existingLike } = await supabase
-      .from("review_likes")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("review_id", reviewId)
-      .single();
-
-    if (existingLike) {
-      // Unlike: Delete the like
+    // Duplicate like -> unlike instead
+    if (insertError.code === "23505") {
       const { error: deleteError } = await supabase
         .from("review_likes")
         .delete()
-        .eq("id", existingLike.id);
+        .eq("user_id", user.id)
+        .eq("review_id", reviewId);
 
       if (deleteError) {
         console.error("Like delete error:", deleteError);
-        return NextResponse.json(
-          { error: "Failed to unlike review" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Failed to unlike review" }, { status: 500 });
       }
 
-      // Get updated like count from database
-      const { data: updatedReview, error: fetchError } = await supabase
-        .from("reviews")
-        .select("like_count")
-        .eq("id", reviewId)
-        .single();
-
-      if (fetchError) {
-        console.error("Failed to fetch review after unlike:", fetchError);
-      }
-
-      console.log("Unlike - Review data:", updatedReview);
-
-      return NextResponse.json({
-        liked: false,
-        likeCount: updatedReview?.like_count ?? 0,
-        message: "Review unliked",
-      });
-    } else {
-      // Like: Insert new like
-      const { error: insertError } = await supabase
-        .from("review_likes")
-        .insert({
-          user_id: user.id,
-          review_id: reviewId,
-        });
-
-      if (insertError) {
-        // If duplicate key error (user already liked), just return current state
-        if (insertError.code === '23505') {
-          const { data: currentReview } = await supabase
-            .from("reviews")
-            .select("like_count")
-            .eq("id", reviewId)
-            .single();
-
-          return NextResponse.json({
-            liked: true,
-            likeCount: currentReview?.like_count || 0,
-            message: "Review already liked",
-          });
-        }
-
-        console.error("Like insert error:", insertError);
-        return NextResponse.json(
-          { error: "Failed to like review" },
-          { status: 500 }
-        );
-      }
-
-      // Get updated like count from database
-      const { data: updatedReview, error: fetchError } = await supabase
-        .from("reviews")
-        .select("like_count")
-        .eq("id", reviewId)
-        .single();
-
-      if (fetchError) {
-        console.error("Failed to fetch review after like:", fetchError);
-      }
-
-      console.log("Like - Review data:", updatedReview);
-
-      return NextResponse.json({
-        liked: true,
-        likeCount: updatedReview?.like_count ?? 0,
-        message: "Review liked",
-      });
+      return NextResponse.json({ liked: false });
     }
+
+    // Foreign key error -> review not found
+    if (insertError.code === "23503") {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    }
+
+    console.error("Like toggle error:", insertError);
+    return NextResponse.json({ error: "Failed to toggle like" }, { status: 500 });
   } catch (error) {
     console.error("POST /api/reviews/[id]/like error:", {
       error,

@@ -19,6 +19,9 @@ const ROTATING_WORDS = [
 const mockReviews: ReviewWithDetails[] = [
   {
     id: "1",
+    user_id: "user1",
+    company_id: "microsoft",
+    role_id: "pm-intern",
     company: {
       id: "microsoft",
       name: "Microsoft",
@@ -37,15 +40,9 @@ const mockReviews: ReviewWithDetails[] = [
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
-    user: {
-      id: "user1",
-      full_name: "Sarah Chen",
-      email: "sarah@example.com"
-    },
     term: "Summer 2024",
     location: "Mountain View, CA",
     work_style: "hybrid" as const,
-    work_hours: "full-time" as const,
     duration_months: 3,
     team_name: "Cloud Infrastructure",
     best: "The mentorship and learning opportunities were unparalleled. Access to cutting-edge technology and the ability to work on projects with global impact.",
@@ -56,7 +53,7 @@ const mockReviews: ReviewWithDetails[] = [
     interview_tips: "Practice data structures and algorithms. Be ready to think out loud and explain your approach clearly.",
     wage_hourly: 58,
     wage_currency: "USD",
-    housing_provided: true,
+    housing_stipend_provided: true,
     housing_stipend: 7000,
     perks: "Free meals, gym, transportation, wellness programs",
     technologies: "Go, Python, Kubernetes, GCP, React",
@@ -67,6 +64,9 @@ const mockReviews: ReviewWithDetails[] = [
   },
   {
     id: "2",
+    user_id: "user2",
+    company_id: "openai",
+    role_id: "swe-intern",
     company: {
       id: "openai",
       name: "OpenAI",
@@ -85,15 +85,9 @@ const mockReviews: ReviewWithDetails[] = [
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
-    user: {
-      id: "user2",
-      full_name: "Alex K.",
-      email: "alex@example.com"
-    },
     term: "Fall 2024",
     location: "New York, NY",
     work_style: "onsite" as const,
-    work_hours: "full-time" as const,
     duration_months: 4,
     team_name: "Growth",
     best: "The level of responsibility and autonomy given to interns. I led a major feature from conception to launch.",
@@ -104,7 +98,7 @@ const mockReviews: ReviewWithDetails[] = [
     interview_tips: "Prepare product case studies and be ready to think strategically about growth and user experience.",
     wage_hourly: 50,
     wage_currency: "USD",
-    housing_provided: false,
+    housing_stipend_provided: true,
     housing_stipend: 2500,
     perks: "Lunch stipend, learning budget, team events",
     technologies: "Figma, Amplitude, SQL, Python",
@@ -115,6 +109,9 @@ const mockReviews: ReviewWithDetails[] = [
   },
   {
     id: "3",
+    user_id: "user3",
+    company_id: "rootly",
+    role_id: "pe-intern",
     company: {
       id: "rootly",
       name: "Rootly AI",
@@ -133,15 +130,9 @@ const mockReviews: ReviewWithDetails[] = [
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
-    user: {
-      id: "user3",
-      full_name: "Jordan L.",
-      email: "jordan@example.com"
-    },
     term: "Fall 2025",
     location: "San Francisco, CA",
     work_style: "remote" as const,
-    work_hours: "full-time" as const,
     duration_months: 3,
     team_name: "AI Research",
     best: "Direct access to founders and ability to shape the product. Working with state-of-the-art AI models and research.",
@@ -152,7 +143,8 @@ const mockReviews: ReviewWithDetails[] = [
     interview_tips: "Show passion for AI and incident management. Be ready to discuss ML system design and practical applications.",
     wage_hourly: 45,
     wage_currency: "USD",
-    housing_provided: false,
+    housing_stipend_provided: false,
+    housing_stipend: null,
     perks: "Flexible hours, conference budget, equity",
     technologies: "Python, TensorFlow, AWS, Docker, PostgreSQL",
     like_count: 31,
