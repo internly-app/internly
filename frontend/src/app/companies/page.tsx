@@ -14,6 +14,8 @@ import { Search, X, Building2 } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
 import type { CompanyWithStats } from "@/lib/types/database";
 
+export const dynamic = 'force-dynamic';
+
 export default function CompaniesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
