@@ -23,30 +23,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if company exists
-    const { data: company } = await supabase
-      .from("companies")
-      .select("id")
-      .eq("id", companyId)
-      .single();
-
-    if (!company) {
-      return NextResponse.json({ error: "Company not found" }, { status: 404 });
-    }
-
-    // Check if already saved
-    const { data: existingSave } = await supabase
-      .from("saved_companies")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("company_id", companyId)
-      .single();
-
-    if (existingSave) {
-      return NextResponse.json({ saved: true, message: "Already saved" });
-    }
-
-    // Save company
+    // Try insert; let constraints/foreign keys handle validation
     const { error: insertError } = await supabase
       .from("saved_companies")
       .insert({
@@ -54,15 +31,26 @@ export async function POST(
         company_id: companyId,
       });
 
-    if (insertError) {
-      console.error("Save company error:", insertError);
-      return NextResponse.json(
-        { error: "Failed to save company" },
-        { status: 500 }
-      );
+    // Success
+    if (!insertError) {
+      return NextResponse.json({ saved: true });
     }
 
-    return NextResponse.json({ saved: true });
+    // Duplicate save
+    if (insertError.code === "23505") {
+      return NextResponse.json({ saved: true, message: "Already saved" });
+    }
+
+    // FK violation -> company not found
+    if (insertError.code === "23503") {
+      return NextResponse.json({ error: "Company not found" }, { status: 404 });
+    }
+
+    console.error("Save company error:", insertError);
+    return NextResponse.json(
+      { error: "Failed to save company" },
+      { status: 500 }
+    );
   } catch (error) {
     console.error("POST /api/companies/save/[companyId] error:", error);
     return NextResponse.json(
