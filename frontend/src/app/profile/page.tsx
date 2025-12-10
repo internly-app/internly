@@ -56,48 +56,44 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, router]);
 
-  // Fetch user's reviews
+  // Fetch user's reviews and saved companies in parallel
   useEffect(() => {
     if (!user) return;
 
-    const fetchReviews = async () => {
-      setLoadingReviews(true);
-      try {
-        const response = await fetch("/api/user/reviews");
-        if (response.ok) {
-          const data = await response.json();
-          setMyReviews(data || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch reviews:", error);
-      } finally {
-        setLoadingReviews(false);
+    let isCancelled = false;
+    setLoadingReviews(true);
+    setLoadingSaved(true);
+
+    const fetchReviews = fetch("/api/user/reviews").then((response) =>
+      response.ok ? response.json() : Promise.reject(new Error("Failed to fetch reviews"))
+    );
+    const fetchSaved = fetch("/api/user/saved-companies").then((response) =>
+      response.ok ? response.json() : Promise.reject(new Error("Failed to fetch saved companies"))
+    );
+
+    Promise.allSettled([fetchReviews, fetchSaved]).then((results) => {
+      if (isCancelled) return;
+
+      const [reviewsResult, savedResult] = results;
+
+      if (reviewsResult.status === "fulfilled") {
+        setMyReviews(reviewsResult.value || []);
+      } else {
+        console.error(reviewsResult.reason);
       }
-    };
-
-    fetchReviews();
-  }, [user]);
-
-  // Fetch saved companies
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchSaved = async () => {
-      setLoadingSaved(true);
-      try {
-        const response = await fetch("/api/user/saved-companies");
-        if (response.ok) {
-          const data = await response.json();
-          setSavedCompanies(data || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch saved companies:", error);
-      } finally {
-        setLoadingSaved(false);
+      if (savedResult.status === "fulfilled") {
+        setSavedCompanies(savedResult.value || []);
+      } else {
+        console.error(savedResult.reason);
       }
-    };
 
-    fetchSaved();
+      setLoadingReviews(false);
+      setLoadingSaved(false);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [user]);
 
   const handleUnsave = (companyId: string, saved: boolean) => {
