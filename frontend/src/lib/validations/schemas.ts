@@ -23,7 +23,7 @@ export const companyCreateSchema = z.object({
     .transform((val) => sanitizeText(val))
     .refine(
       (val) => validateCompanyName(val).isValid,
-      (val) => ({ message: validateCompanyName(val).reason || "Invalid company name" })
+      { message: "Invalid company name" }
     ),
   slug: z
     .string()
@@ -43,7 +43,7 @@ export const roleCreateSchema = z.object({
     .transform((val) => sanitizeText(val))
     .refine(
       (val) => validateRoleName(val).isValid,
-      (val) => ({ message: validateRoleName(val).reason || "Invalid role name" })
+      { message: "Invalid role name" }
     ),
   slug: z
     .string()
