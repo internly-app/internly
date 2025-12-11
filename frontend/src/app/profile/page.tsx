@@ -51,6 +51,7 @@ export default function ProfilePage() {
   const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
   const hasFetchedReviews = useRef(false);
   const hasFetchedSaved = useRef(false);
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -70,13 +71,34 @@ export default function ProfilePage() {
     if (!user) return;
     if (hasFetchedReviews.current) return;
 
+    // Try cached reviews from sessionStorage
+    let hasCache = false;
+    const cached = sessionStorage.getItem("profile_myReviews");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as { data: ReviewWithDetails[]; ts: number };
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          setMyReviews(parsed.data || []);
+          setLoadingReviews(false);
+          hasFetchedReviews.current = true;
+          hasCache = true;
+        }
+      } catch {
+        // ignore cache parse errors
+      }
+    }
+
     const fetchReviews = async () => {
-      setLoadingReviews(true);
+      if (!hasCache) setLoadingReviews(true);
       try {
         const response = await fetch("/api/user/reviews");
         if (response.ok) {
           const data = await response.json();
           setMyReviews(data || []);
+          sessionStorage.setItem(
+            "profile_myReviews",
+            JSON.stringify({ data: data || [], ts: Date.now() })
+          );
           hasFetchedReviews.current = true;
         }
       } catch (error) {
@@ -94,13 +116,34 @@ export default function ProfilePage() {
     if (!user) return;
     if (hasFetchedSaved.current) return;
 
+    // Try cached saved companies from sessionStorage
+    let hasCache = false;
+    const cached = sessionStorage.getItem("profile_savedCompanies");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as { data: CompanyWithStats[]; ts: number };
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          setSavedCompanies(parsed.data || []);
+          setLoadingSaved(false);
+          hasFetchedSaved.current = true;
+          hasCache = true;
+        }
+      } catch {
+        // ignore cache parse errors
+      }
+    }
+
     const fetchSaved = async () => {
-      setLoadingSaved(true);
+      if (!hasCache) setLoadingSaved(true);
       try {
         const response = await fetch("/api/user/saved-companies");
         if (response.ok) {
           const data = await response.json();
           setSavedCompanies(data || []);
+          sessionStorage.setItem(
+            "profile_savedCompanies",
+            JSON.stringify({ data: data || [], ts: Date.now() })
+          );
           hasFetchedSaved.current = true;
         }
       } catch (error) {
@@ -254,71 +297,73 @@ export default function ProfilePage() {
         {/* My Reviews Tab */}
         {activeTab === "reviews" && (
           <>
-            {loadingReviews ? (
-              <div className="grid gap-4 max-w-5xl mx-auto w-full">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-64 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : myReviews.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-5xl mx-auto"
-              >
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center py-12">
-                      <FileText className="size-12 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Share your internship experience and help other students.
-                      </p>
-                      <Button asChild className="gap-2">
-                        <Link href="/write-review">
-                          Write a Review
-                          <ArrowRight className="size-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="grid gap-4 max-w-5xl mx-auto w-full"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {myReviews.map((review) => (
-                  <motion.div key={review.id} variants={itemVariants}>
-                    <ReviewCard 
-                      review={review} 
-                      compact={true} 
-                      onDelete={handleDeleteReview}
-                      showEditButton
-                      expanded={expandedReviewIds.has(review.id)}
-                      onExpandedChange={handleExpandedChange}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+            <div className="max-w-5xl mx-auto w-full">
+              {loadingReviews ? (
+                <div className="grid gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-64 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : myReviews.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-center py-12">
+                        <FileText className="size-12 mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Share your internship experience and help other students.
+                        </p>
+                        <Button asChild className="gap-2">
+                          <Link href="/write-review">
+                            Write a Review
+                            <ArrowRight className="size-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="grid gap-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {myReviews.map((review) => (
+                    <motion.div key={review.id} variants={itemVariants}>
+                      <ReviewCard 
+                        review={review} 
+                        compact={true} 
+                        onDelete={handleDeleteReview}
+                        showEditButton
+                        expanded={expandedReviewIds.has(review.id)}
+                        onExpandedChange={handleExpandedChange}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </div>
           </>
         )}
 
         {/* Saved Companies Tab */}
         {activeTab === "saved" && (
           <>
-            {loadingSaved ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full">
-                {[1, 2, 3, 4].map((i) => (
+            <div className="max-w-5xl mx-auto w-full">
+              {loadingSaved ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
                   <Skeleton key={i} className="h-80 w-full rounded-xl" />
                 ))}
               </div>
-            ) : savedCompanies.length === 0 ? (
+              ) : savedCompanies.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -343,20 +388,21 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
               </motion.div>
-            ) : (
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {savedCompanies.map((company) => (
-                  <motion.div key={company.id} variants={itemVariants}>
-                    <CompanyCard company={company} onSaveToggle={handleUnsave} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {savedCompanies.map((company) => (
+                    <motion.div key={company.id} variants={itemVariants}>
+                      <CompanyCard company={company} onSaveToggle={handleUnsave} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </div>
           </>
         )}
       </div>
