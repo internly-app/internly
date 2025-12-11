@@ -104,20 +104,13 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
     });
 
     try {
-      const response = await fetch(`/api/reviews/${review.id}/like`, {
+      // Fire-and-forget; only revert on error
+      fetch(`/api/reviews/${review.id}/like`, {
         method: "POST",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to toggle like");
-      }
-
-      const data = await response.json();
-
-      // Update with actual database values to ensure consistency
-      setLikeData({
-        hasLiked: data.liked,
-        likeCount: data.likeCount,
+      }).catch((err) => {
+        console.error("Failed to like review:", err);
+        setLikeData(previousState);
+        alert("Failed to update like. Please try again.");
       });
     } catch (error) {
       console.error("Failed to like review:", error);

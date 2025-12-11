@@ -16,6 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, X, Filter } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
 
+export const dynamic = 'force-dynamic';
+
 export default function ReviewsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

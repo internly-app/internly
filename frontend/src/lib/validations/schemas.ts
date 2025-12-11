@@ -78,10 +78,7 @@ export const reviewCreateSchema = z.object({
         const validation = validateRoleName(val); // Reuse role validation for team names
         return validation.isValid;
       },
-      (val) => {
-        const validation = validateRoleName(val || "");
-        return { message: validation.reason || "Team name contains inappropriate content" };
-      }
+      { message: "Team name contains inappropriate content" }
     ),
   technologies: z
     .string()
@@ -100,10 +97,7 @@ export const reviewCreateSchema = z.object({
         const validation = validateReviewContent(val, "Hardest part");
         return validation.isValid;
       },
-      (val) => {
-        const validation = validateReviewContent(val, "Hardest part");
-        return { message: validation.reason || "Hardest part contains inappropriate content" };
-      }
+      { message: "Hardest part contains inappropriate content" }
     ),
   best: z
     .string()
@@ -115,10 +109,7 @@ export const reviewCreateSchema = z.object({
         const validation = validateReviewContent(val, "Best part");
         return validation.isValid;
       },
-      (val) => {
-        const validation = validateReviewContent(val, "Best part");
-        return { message: validation.reason || "Best part contains inappropriate content" };
-      }
+      { message: "Best part contains inappropriate content" }
     ),
   advice: z
     .string()
@@ -131,10 +122,7 @@ export const reviewCreateSchema = z.object({
         const validation = validateReviewContent(val, "Advice");
         return validation.isValid;
       },
-      (val) => {
-        const validation = validateReviewContent(val, "Advice");
-        return { message: validation.reason || "Advice contains inappropriate content" };
-      }
+      { message: "Advice contains inappropriate content" }
     ),
 
   // Compensation (required)
@@ -156,10 +144,7 @@ export const reviewCreateSchema = z.object({
         const validation = validateReviewContent(val, "Interview description");
         return validation.isValid;
       },
-      (val) => {
-        const validation = validateReviewContent(val, "Interview description");
-        return { message: validation.reason || "Interview description contains inappropriate content" };
-      }
+      { message: "Interview description contains inappropriate content" }
     ),
   interview_tips: z
     .string()
@@ -171,10 +156,7 @@ export const reviewCreateSchema = z.object({
         const validation = validateReviewContent(val, "Interview tips");
         return validation.isValid;
       },
-      (val) => {
-        const validation = validateReviewContent(val, "Interview tips");
-        return { message: validation.reason || "Interview tips contains inappropriate content" };
-      }
+      { message: "Interview tips contains inappropriate content" }
     ),
 });
 

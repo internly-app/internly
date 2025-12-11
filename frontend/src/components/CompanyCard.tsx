@@ -56,21 +56,29 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
     setIsSaving(true);
     const previousState = isSaved;
 
-    // Optimistic update
-    setIsSaved(!isSaved);
+    // Optimistic update - instant UI feedback
+    const newState = !isSaved;
+    setIsSaved(newState);
 
     try {
-      const response = await fetch(`/api/companies/save/${company.id}`, {
-        method: isSaved ? "DELETE" : "POST",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to toggle save");
-      }
-
-      const data = await response.json();
-      setIsSaved(data.saved);
-      onSaveToggle?.(company.id, data.saved);
+      // Fire-and-forget; only revert on error
+      fetch(`/api/companies/save/${company.id}`, {
+        method: newState ? "POST" : "DELETE",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to toggle save");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setIsSaved(data.saved);
+          onSaveToggle?.(company.id, data.saved);
+        })
+        .catch((error) => {
+          console.error("Failed to save company:", error);
+          setIsSaved(previousState);
+        });
     } catch (error) {
       console.error("Failed to save company:", error);
       setIsSaved(previousState);
