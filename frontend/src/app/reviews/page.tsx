@@ -93,13 +93,20 @@ export default function ReviewsPage() {
     }
   }, []);
   
+  // Clear optimistic review when it appears in fetched reviews
+  useEffect(() => {
+    if (optimisticReview && fetchedReviews.some(r => r.id === optimisticReview.id)) {
+      setOptimisticReview(null);
+    }
+  }, [optimisticReview, fetchedReviews]);
+  
   // Combine fetched reviews with optimistic review (if not already in list)
   const reviews = useMemo(() => {
     if (!optimisticReview) return fetchedReviews;
     const exists = fetchedReviews.some(r => r.id === optimisticReview.id);
     if (exists) {
-      // If it's already in the fetched list, clear optimistic state
-      setOptimisticReview(null);
+      // If it's already in the fetched list, return fetched reviews only
+      // (the useEffect above will clear the optimistic state)
       return fetchedReviews;
     }
     // Add optimistic review to the beginning
