@@ -78,10 +78,10 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
     }).format(date);
   };
 
-  const handleLike = async (e: React.MouseEvent) => {
+  const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card expansion when clicking like
 
-    // Prevent multiple simultaneous clicks
+    // Prevent multiple simultaneous clicks (200ms debounce)
     if (isLiking) return;
 
     if (!user) {
@@ -103,24 +103,31 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         : Math.max(0, likeData.likeCount - 1),
     });
 
-    try {
-      // Fire-and-forget; only revert on error
-      fetch(`/api/reviews/${review.id}/like`, {
-        method: "POST",
-      }).catch((err) => {
-        console.error("Failed to like review:", err);
+    // Re-enable button after short delay (feels instant, prevents spam)
+    setTimeout(() => setIsLiking(false), 200);
+
+    // Fire-and-forget: API call in background
+    fetch(`/api/reviews/${review.id}/like`, {
+      method: "POST",
+    })
+      .then(async (response) => {
+        // Check if response is ok (status 200-299)
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to like review');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Like toggled:', data);
+      })
+      .catch((error) => {
+        console.error("Failed to like review:", error);
+        // Rollback to previous state on error
         setLikeData(previousState);
-        alert("Failed to update like. Please try again.");
+        // Show subtle error (avoid disruptive alert)
+        console.error("Like failed - rolled back. Error:", error.message);
       });
-    } catch (error) {
-      console.error("Failed to like review:", error);
-      // Rollback to previous state on error
-      setLikeData(previousState);
-      // Show error to user
-      alert("Failed to update like. Please try again.");
-    } finally {
-      setIsLiking(false);
-    }
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
