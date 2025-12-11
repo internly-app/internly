@@ -211,7 +211,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer group"
                 aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
                 aria-pressed={likeData.hasLiked}
               >
@@ -224,7 +224,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={`transition-colors ${likeData.hasLiked ? "text-red-500" : ""}`}
+                  className={`transition-all duration-200 group-hover:scale-110 ${likeData.hasLiked ? "text-red-500" : "group-hover:text-red-400"}`}
                   aria-hidden="true"
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -555,7 +555,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             size="sm"
             onClick={handleLike}
             disabled={isLiking}
-            className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer group"
             aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
             aria-pressed={likeData.hasLiked}
           >
@@ -568,7 +568,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
+              className={`transition-all duration-200 flex-shrink-0 group-hover:scale-125 ${likeData.hasLiked ? "text-red-500" : "group-hover:text-red-400 group-hover:fill-red-400/20"}`}
               aria-hidden="true"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
