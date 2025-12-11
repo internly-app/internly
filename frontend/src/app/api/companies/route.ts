@@ -8,6 +8,9 @@ import {
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
 
+// Logo fetching is handled client-side via CompanyLogo component
+// This is more efficient: no blocking, no DB storage, deterministic Clearbit URLs
+
 /**
  * POST /api/companies
  * Create or get existing company by name
@@ -82,7 +85,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(existingCompany, { status: 200 });
     }
 
-    // If not found, create new company
+    // Create new company - logo_url will be handled client-side via Clearbit fallback
+    // This is more efficient than server-side fetching (no blocking, no DB storage needed)
     const { data: newCompany, error: insertError } = await supabase
       .from("companies")
       .insert(validatedData)

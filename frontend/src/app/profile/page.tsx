@@ -207,7 +207,18 @@ export default function ProfilePage() {
   };
 
   const handleDeleteReview = (reviewId: string) => {
+    // Update local state
     setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    
+    // Clear sessionStorage cache to force refetch on next load
+    sessionStorage.removeItem("profile_myReviews");
+    
+    // Update cache with new data
+    const updatedReviews = myReviews.filter((r) => r.id !== reviewId);
+    sessionStorage.setItem(
+      "profile_myReviews",
+      JSON.stringify({ data: updatedReviews, ts: Date.now() })
+    );
   };
 
   const handleExpandedChange = (reviewId: string, expanded: boolean) => {

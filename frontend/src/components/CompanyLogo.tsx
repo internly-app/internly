@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 interface CompanyLogoProps {
@@ -61,12 +61,7 @@ export function CompanyLogo({
 }: CompanyLogoProps) {
   const [imageError, setImageError] = useState(false);
   const [clearbitError, setClearbitError] = useState(false);
-
-  // Reset error states when company name or logoUrl changes
-  useEffect(() => {
-    setImageError(false);
-    setClearbitError(false);
-  }, [companyName, logoUrl]);
+  const [clearbitLoading, setClearbitLoading] = useState(true);
 
   // Generate domain from company name for Clearbit API
   const getDomain = (name: string): string => {
@@ -97,6 +92,36 @@ export function CompanyLogo({
     typeof logoUrl === 'string' &&
     logoUrl.trim().length > 0 &&
     (logoUrl.startsWith('http') || logoUrl.startsWith('/'));
+
+  // Reset error states ONLY when company name or logoUrl actually changes (not on every render)
+  // Use ref to track previous values to prevent unnecessary resets
+  const prevPropsRef = useRef({ companyName, logoUrl });
+  
+  useEffect(() => {
+    const prev = prevPropsRef.current;
+    // Only reset if props actually changed (not just re-render)
+    if (prev.companyName !== companyName || prev.logoUrl !== logoUrl) {
+      setImageError(false);
+      setClearbitError(false);
+      setClearbitLoading(true);
+      prevPropsRef.current = { companyName, logoUrl };
+    }
+  }, [companyName, logoUrl]);
+
+  // Add timeout for Clearbit loading - if it takes too long, show initial
+  useEffect(() => {
+    if (!isValidLogoUrl && !imageError && !clearbitError) {
+      const timeout = setTimeout(() => {
+        if (clearbitLoading) {
+          console.warn(`Clearbit logo timeout for ${companyName}`);
+          setClearbitError(true);
+          setClearbitLoading(false);
+        }
+      }, 3000); // 3 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [companyName, isValidLogoUrl, imageError, clearbitError, clearbitLoading]);
 
   // Priority: logo_url > Clearbit API > Initial fallback
   const shouldUseClearbit = !isValidLogoUrl || imageError;
@@ -134,8 +159,20 @@ export function CompanyLogo({
           width={size}
           height={size}
           className="w-full h-full object-contain p-[10%]"
-          onError={() => {
+          onError={(e) => {
+            // Only log in development to avoid console spam
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`Clearbit logo failed for ${companyName} (${domain}):`, clearbitUrl);
+            }
             setClearbitError(true);
+            setClearbitLoading(false);
+          }}
+          onLoad={() => {
+            // Successfully loaded
+            setClearbitLoading(false);
+            if (clearbitError) {
+              setClearbitError(false);
+            }
           }}
           loading="lazy"
         />

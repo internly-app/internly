@@ -289,7 +289,8 @@ export default function WriteReviewPage() {
         };
 
         await createReview(reviewData);
-        router.push("/reviews");
+        // Add cache-busting query param to force fresh fetch
+        router.push("/reviews?refresh=" + Date.now());
       }
     } catch (err) {
       // Extract user-friendly error message
