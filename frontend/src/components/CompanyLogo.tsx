@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 interface CompanyLogoProps {
@@ -93,16 +93,24 @@ export function CompanyLogo({
     logoUrl.trim().length > 0 &&
     (logoUrl.startsWith('http') || logoUrl.startsWith('/'));
 
-  // Reset error states when company name or logoUrl changes
+  // Reset error states ONLY when company name or logoUrl actually changes (not on every render)
+  // Use ref to track previous values to prevent unnecessary resets
+  const prevPropsRef = useRef({ companyName, logoUrl });
+  
   useEffect(() => {
-    setImageError(false);
-    setClearbitError(false);
-    setClearbitLoading(true);
+    const prev = prevPropsRef.current;
+    // Only reset if props actually changed (not just re-render)
+    if (prev.companyName !== companyName || prev.logoUrl !== logoUrl) {
+      setImageError(false);
+      setClearbitError(false);
+      setClearbitLoading(true);
+      prevPropsRef.current = { companyName, logoUrl };
+    }
   }, [companyName, logoUrl]);
 
   // Add timeout for Clearbit loading - if it takes too long, show initial
   useEffect(() => {
-    if (!isValidLogoUrl && !imageError) {
+    if (!isValidLogoUrl && !imageError && !clearbitError) {
       const timeout = setTimeout(() => {
         if (clearbitLoading) {
           console.warn(`Clearbit logo timeout for ${companyName}`);
@@ -113,7 +121,7 @@ export function CompanyLogo({
 
       return () => clearTimeout(timeout);
     }
-  }, [companyName, isValidLogoUrl, imageError, clearbitLoading]);
+  }, [companyName, isValidLogoUrl, imageError, clearbitError, clearbitLoading]);
 
   // Priority: logo_url > Clearbit API > Initial fallback
   const shouldUseClearbit = !isValidLogoUrl || imageError;

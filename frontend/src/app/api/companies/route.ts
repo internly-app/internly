@@ -8,89 +8,8 @@ import {
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
 
-// Domain mappings for major companies (same as frontend)
-const DOMAIN_MAP: Record<string, string> = {
-  "Google": "google.com",
-  "Microsoft": "microsoft.com",
-  "Apple": "apple.com",
-  "Amazon": "amazon.com",
-  "Meta": "meta.com",
-  "Netflix": "netflix.com",
-  "Tesla": "tesla.com",
-  "Nvidia": "nvidia.com",
-  "Oracle": "oracle.com",
-  "IBM": "ibm.com",
-  "Salesforce": "salesforce.com",
-  "Adobe": "adobe.com",
-  "Intel": "intel.com",
-  "Cisco": "cisco.com",
-  "PayPal": "paypal.com",
-  "Uber": "uber.com",
-  "Airbnb": "airbnb.com",
-  "Spotify": "spotify.com",
-  "LinkedIn": "linkedin.com",
-  "Shopify": "shopify.com",
-  "Stripe": "stripe.com",
-  "GitHub": "github.com",
-  "Slack": "slack.com",
-  "Zoom": "zoom.us",
-  "Dropbox": "dropbox.com",
-  "Atlassian": "atlassian.com",
-  "Twilio": "twilio.com",
-  "Vercel": "vercel.com",
-  "Netlify": "netlify.com",
-  "OpenAI": "openai.com",
-  "Anthropic": "anthropic.com",
-};
-
-/**
- * Generate domain from company name for Clearbit API
- */
-function getDomainFromName(name: string): string {
-  if (DOMAIN_MAP[name]) {
-    return DOMAIN_MAP[name];
-  }
-
-  const cleanName = name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
-    .replace(/\s+/g, "");
-
-  if (cleanName.endsWith("inc") || cleanName.endsWith("llc") || cleanName.endsWith("corp")) {
-    return cleanName.replace(/(inc|llc|corp)$/, "") + ".com";
-  }
-
-  return cleanName + ".com";
-}
-
-/**
- * Try to fetch logo URL from Clearbit API (server-side)
- * Returns null if fetch fails (client-side will handle fallback)
- */
-async function fetchLogoUrl(companyName: string): Promise<string | null> {
-  try {
-    const domain = getDomainFromName(companyName);
-    const clearbitUrl = `https://logo.clearbit.com/${domain}`;
-    
-    // Check if Clearbit has the logo by making a HEAD request
-    const response = await fetch(clearbitUrl, {
-      method: 'HEAD',
-      headers: {
-        'User-Agent': 'Internly/1.0',
-      },
-    });
-
-    // If successful (200-299), return the URL
-    if (response.ok) {
-      return clearbitUrl;
-    }
-  } catch (error) {
-    // Silently fail - client-side will handle fallback
-    console.debug(`Failed to fetch logo for ${companyName}:`, error);
-  }
-
-  return null;
-}
+// Logo fetching is handled client-side via CompanyLogo component
+// This is more efficient: no blocking, no DB storage, deterministic Clearbit URLs
 
 /**
  * POST /api/companies
@@ -166,19 +85,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(existingCompany, { status: 200 });
     }
 
-    // If no logo_url provided, try to fetch from Clearbit
-    let logoUrl = validatedData.logo_url;
-    if (!logoUrl) {
-      logoUrl = await fetchLogoUrl(validatedData.name);
-    }
-
-    // If not found, create new company
+    // Create new company - logo_url will be handled client-side via Clearbit fallback
+    // This is more efficient than server-side fetching (no blocking, no DB storage needed)
     const { data: newCompany, error: insertError } = await supabase
       .from("companies")
-      .insert({
-        ...validatedData,
-        logo_url: logoUrl || null,
-      })
+      .insert(validatedData)
       .select()
       .single();
 

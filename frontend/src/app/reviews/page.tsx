@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -72,7 +72,35 @@ export default function ReviewsPage() {
     return params;
   }, [companyFilter, workStyleFilter, sortBy]);
   
-  const { reviews, total, loading, error } = useReviews(queryParams);
+  const { reviews, total, loading, error, triggerRefresh } = useReviews(queryParams);
+  
+  // Track if we've already processed refresh to prevent double processing
+  const refreshProcessedRef = useRef<string | null>(null);
+  
+  // Handle refresh param - trigger refresh and clean URL
+  useEffect(() => {
+    const refresh = searchParams.get("refresh");
+    if (refresh && refresh !== refreshProcessedRef.current) {
+      // Mark as processed immediately to prevent double-triggering
+      refreshProcessedRef.current = refresh;
+      
+      // Trigger refresh first (before URL cleanup)
+      triggerRefresh();
+      
+      // Then clean URL after a short delay to ensure fetch happens first
+      setTimeout(() => {
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.delete("refresh");
+        const newUrl = newParams.toString() 
+          ? `${window.location.pathname}?${newParams.toString()}`
+          : window.location.pathname;
+        router.replace(newUrl, { scroll: false });
+        // Reset processed ref after URL cleanup
+        refreshProcessedRef.current = null;
+      }, 100);
+    }
+  }, [searchParams, router, triggerRefresh]);
+  
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const handleExpandedChange = (reviewId: string, expanded: boolean) => {
