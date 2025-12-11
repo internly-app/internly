@@ -92,8 +92,14 @@ export function CompanyLogo({
   const clearbitUrl = `https://logo.clearbit.com/${domain}`;
   const initial = companyName[0]?.toUpperCase() || "?";
 
+  // Validate logoUrl - must be a non-empty string that looks like a URL
+  const isValidLogoUrl = logoUrl && 
+    typeof logoUrl === 'string' && 
+    logoUrl.trim().length > 0 &&
+    (logoUrl.startsWith('http') || logoUrl.startsWith('/'));
+
   // Priority: logo_url > Clearbit API > Initial fallback
-  const shouldUseClearbit = !logoUrl || imageError;
+  const shouldUseClearbit = !isValidLogoUrl || imageError;
   const shouldShowInitial = shouldUseClearbit && clearbitError;
 
   // Fallback: show initial letter
@@ -110,9 +116,10 @@ export function CompanyLogo({
     );
   }
 
-  // Use regular img tag for Clearbit URLs (more reliable for external APIs)
-  // Use Next.js Image for database logo_url (may be local or optimized)
-  const isUsingClearbit = !logoUrl || imageError;
+  // Use regular img tag for Clearbit URLs and external HTTP URLs (more reliable)
+  // Use Next.js Image only for local paths (optimized)
+  const isUsingClearbit = !isValidLogoUrl || imageError;
+  const isExternalUrl = isValidLogoUrl && logoUrl.startsWith('http');
 
   return (
     <div
@@ -132,15 +139,27 @@ export function CompanyLogo({
           }}
           loading="lazy"
         />
+      ) : isExternalUrl ? (
+        // Use regular img tag for external HTTP URLs (more reliable than Next.js Image)
+        <img
+          src={logoUrl}
+          alt={`${companyName} logo`}
+          width={size}
+          height={size}
+          className="w-full h-full object-contain p-[10%]"
+          onError={() => {
+            setImageError(true);
+          }}
+          loading="lazy"
+        />
       ) : (
-        // Use Next.js Image for database logo_url (may be local or optimized)
+        // Use Next.js Image only for local paths (optimized)
         <Image
           src={logoUrl}
           alt={`${companyName} logo`}
           width={size}
           height={size}
           className="w-full h-full object-contain p-[10%]"
-          unoptimized={logoUrl.startsWith("http")}
           onError={() => {
             setImageError(true);
           }}
