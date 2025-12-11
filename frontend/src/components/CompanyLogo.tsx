@@ -48,7 +48,7 @@ const DOMAIN_MAP: Record<string, string> = {
 /**
  * CompanyLogo component that displays company logos with smart fallbacks:
  * 1. Uses logo_url from database if available
- * 2. Falls back to Clearbit Logo API (free, no API key needed)
+ * 2. Falls back to Logo.dev API (free tier available)
  * 3. Falls back to company initial in a circle
  *
  * Uses Next.js Image for optimization (lazy loading, WebP conversion, etc.)
@@ -60,10 +60,10 @@ export function CompanyLogo({
   className = "",
 }: CompanyLogoProps) {
   const [imageError, setImageError] = useState(false);
-  const [clearbitError, setClearbitError] = useState(false);
-  const [clearbitLoading, setClearbitLoading] = useState(true);
+  const [logoDevError, setLogoDevError] = useState(false);
+  const [logoDevLoading, setLogoDevLoading] = useState(true);
 
-  // Generate domain from company name for Clearbit API
+  // Generate domain from company name for Logo.dev API
   const getDomain = (name: string): string => {
     if (DOMAIN_MAP[name]) {
       return DOMAIN_MAP[name];
@@ -84,7 +84,8 @@ export function CompanyLogo({
   };
 
   const domain = getDomain(companyName);
-  const clearbitUrl = `https://logo.clearbit.com/${domain}`;
+  const logoDevApiKey = process.env.NEXT_PUBLIC_LOGO_DEV_API_KEY;
+  const logoDevUrl = `https://img.logo.dev/${domain}?token=${logoDevApiKey}`;
   const initial = companyName[0]?.toUpperCase() || "?";
 
   // Validate logoUrl - must be a non-empty string that looks like a URL
@@ -102,30 +103,30 @@ export function CompanyLogo({
     // Only reset if props actually changed (not just re-render)
     if (prev.companyName !== companyName || prev.logoUrl !== logoUrl) {
       setImageError(false);
-      setClearbitError(false);
-      setClearbitLoading(true);
+      setLogoDevError(false);
+      setLogoDevLoading(true);
       prevPropsRef.current = { companyName, logoUrl };
     }
   }, [companyName, logoUrl]);
 
-  // Add timeout for Clearbit loading - if it takes too long, show initial
+  // Add timeout for Logo.dev loading - if it takes too long, show initial
   useEffect(() => {
-    if (!isValidLogoUrl && !imageError && !clearbitError) {
+    if (!isValidLogoUrl && !imageError && !logoDevError) {
       const timeout = setTimeout(() => {
-        if (clearbitLoading) {
-          console.warn(`Clearbit logo timeout for ${companyName}`);
-          setClearbitError(true);
-          setClearbitLoading(false);
+        if (logoDevLoading) {
+          console.warn(`Logo.dev logo timeout for ${companyName}`);
+          setLogoDevError(true);
+          setLogoDevLoading(false);
         }
       }, 3000); // 3 second timeout
 
       return () => clearTimeout(timeout);
     }
-  }, [companyName, isValidLogoUrl, imageError, clearbitError, clearbitLoading]);
+  }, [companyName, isValidLogoUrl, imageError, logoDevError, logoDevLoading]);
 
-  // Priority: logo_url > Clearbit API > Initial fallback
-  const shouldUseClearbit = !isValidLogoUrl || imageError;
-  const shouldShowInitial = shouldUseClearbit && clearbitError;
+  // Priority: logo_url > Logo.dev API > Initial fallback
+  const shouldUseLogoDev = !isValidLogoUrl || imageError;
+  const shouldShowInitial = shouldUseLogoDev && logoDevError;
 
   // Fallback: show initial letter
   if (shouldShowInitial) {
@@ -141,9 +142,9 @@ export function CompanyLogo({
     );
   }
 
-  // Use regular img tag for Clearbit URLs and external HTTP URLs (more reliable)
+  // Use regular img tag for Logo.dev URLs and external HTTP URLs (more reliable)
   // Use Next.js Image only for local paths (optimized)
-  const isUsingClearbit = !isValidLogoUrl || imageError;
+  const isUsingLogoDev = !isValidLogoUrl || imageError;
   const isExternalUrl = isValidLogoUrl && logoUrl.startsWith('http');
 
   return (
@@ -151,10 +152,10 @@ export function CompanyLogo({
       className={`relative rounded-lg overflow-hidden bg-muted flex-shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
-      {isUsingClearbit ? (
-        // Use regular img tag for Clearbit API (more reliable, no optimization needed)
+      {isUsingLogoDev ? (
+        // Use regular img tag for Logo.dev API (more reliable, no optimization needed)
         <img
-          src={clearbitUrl}
+          src={logoDevUrl}
           alt={`${companyName} logo`}
           width={size}
           height={size}
@@ -162,16 +163,16 @@ export function CompanyLogo({
           onError={(e) => {
             // Only log in development to avoid console spam
             if (process.env.NODE_ENV === 'development') {
-              console.warn(`Clearbit logo failed for ${companyName} (${domain}):`, clearbitUrl);
+              console.warn(`Logo.dev logo failed for ${companyName} (${domain}):`, logoDevUrl);
             }
-            setClearbitError(true);
-            setClearbitLoading(false);
+            setLogoDevError(true);
+            setLogoDevLoading(false);
           }}
           onLoad={() => {
             // Successfully loaded
-            setClearbitLoading(false);
-            if (clearbitError) {
-              setClearbitError(false);
+            setLogoDevLoading(false);
+            if (logoDevError) {
+              setLogoDevError(false);
             }
           }}
           loading="lazy"
