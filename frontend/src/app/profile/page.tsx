@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -48,6 +48,9 @@ export default function ProfilePage() {
   const [savedCompanies, setSavedCompanies] = useState<CompanyWithStats[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [loadingSaved, setLoadingSaved] = useState(true);
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
+  const hasFetchedReviews = useRef(false);
+  const hasFetchedSaved = useRef(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -56,9 +59,16 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, router]);
 
+  // Reset fetch flags when user changes
+  useEffect(() => {
+    hasFetchedReviews.current = false;
+    hasFetchedSaved.current = false;
+  }, [user]);
+
   // Fetch user's reviews
   useEffect(() => {
     if (!user) return;
+    if (hasFetchedReviews.current) return;
 
     const fetchReviews = async () => {
       setLoadingReviews(true);
@@ -67,6 +77,7 @@ export default function ProfilePage() {
         if (response.ok) {
           const data = await response.json();
           setMyReviews(data || []);
+          hasFetchedReviews.current = true;
         }
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
@@ -81,6 +92,7 @@ export default function ProfilePage() {
   // Fetch saved companies
   useEffect(() => {
     if (!user) return;
+    if (hasFetchedSaved.current) return;
 
     const fetchSaved = async () => {
       setLoadingSaved(true);
@@ -89,6 +101,7 @@ export default function ProfilePage() {
         if (response.ok) {
           const data = await response.json();
           setSavedCompanies(data || []);
+          hasFetchedSaved.current = true;
         }
       } catch (error) {
         console.error("Failed to fetch saved companies:", error);
@@ -108,6 +121,18 @@ export default function ProfilePage() {
 
   const handleDeleteReview = (reviewId: string) => {
     setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
+
+  const handleExpandedChange = (reviewId: string, expanded: boolean) => {
+    setExpandedReviewIds((prev) => {
+      const next = new Set(prev);
+      if (expanded) {
+        next.add(reviewId);
+      } else {
+        next.delete(reviewId);
+      }
+      return next;
+    });
   };
 
   // Get user display info
@@ -230,7 +255,7 @@ export default function ProfilePage() {
         {activeTab === "reviews" && (
           <>
             {loadingReviews ? (
-              <div className="grid gap-4 max-w-5xl mx-auto">
+              <div className="grid gap-4 max-w-5xl mx-auto w-full">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-64 w-full rounded-xl" />
                 ))}
@@ -262,7 +287,7 @@ export default function ProfilePage() {
               </motion.div>
             ) : (
               <motion.div
-                className="grid gap-4 max-w-5xl mx-auto"
+                className="grid gap-4 max-w-5xl mx-auto w-full"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -274,6 +299,8 @@ export default function ProfilePage() {
                       compact={true} 
                       onDelete={handleDeleteReview}
                       showEditButton
+                      expanded={expandedReviewIds.has(review.id)}
+                      onExpandedChange={handleExpandedChange}
                     />
                   </motion.div>
                 ))}
@@ -286,7 +313,7 @@ export default function ProfilePage() {
         {activeTab === "saved" && (
           <>
             {loadingSaved ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-80 w-full rounded-xl" />
                 ))}
@@ -318,7 +345,7 @@ export default function ProfilePage() {
               </motion.div>
             ) : (
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
+                className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"

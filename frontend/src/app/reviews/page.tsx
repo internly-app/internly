@@ -71,6 +71,19 @@ export default function ReviewsPage() {
   }, [companyFilter, workStyleFilter, sortBy]);
   
   const { reviews, total, loading, error } = useReviews(queryParams);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const handleExpandedChange = (reviewId: string, expanded: boolean) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (expanded) {
+        next.add(reviewId);
+      } else {
+        next.delete(reviewId);
+      }
+      return next;
+    });
+  };
   
   // Filter reviews by search query (client-side for text search)
   // Sanitize search query to prevent XSS
@@ -306,7 +319,13 @@ export default function ReviewsPage() {
         {!loading && !error && filteredReviews.length > 0 && (
           <div className="grid gap-4 max-w-5xl mx-auto">
             {filteredReviews.map((review) => (
-              <ReviewCard key={review.id} review={review} compact={true} />
+              <ReviewCard
+                key={review.id}
+                review={review}
+                compact={true}
+                expanded={expandedIds.has(review.id)}
+                onExpandedChange={handleExpandedChange}
+              />
             ))}
           </div>
         )}
