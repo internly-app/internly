@@ -78,10 +78,10 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
     }).format(date);
   };
 
-  const handleLike = async (e: React.MouseEvent) => {
+  const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card expansion when clicking like
 
-    // Prevent multiple simultaneous clicks
+    // Prevent multiple simultaneous clicks (200ms debounce)
     if (isLiking) return;
 
     if (!user) {
@@ -103,24 +103,31 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         : Math.max(0, likeData.likeCount - 1),
     });
 
-    try {
-      // Fire-and-forget; only revert on error
-      fetch(`/api/reviews/${review.id}/like`, {
-        method: "POST",
-      }).catch((err) => {
-        console.error("Failed to like review:", err);
+    // Re-enable button after short delay (feels instant, prevents spam)
+    setTimeout(() => setIsLiking(false), 200);
+
+    // Fire-and-forget: API call in background
+    fetch(`/api/reviews/${review.id}/like`, {
+      method: "POST",
+    })
+      .then(async (response) => {
+        // Check if response is ok (status 200-299)
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to like review');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Like toggled:', data);
+      })
+      .catch((error) => {
+        console.error("Failed to like review:", error);
+        // Rollback to previous state on error
         setLikeData(previousState);
-        alert("Failed to update like. Please try again.");
+        // Show subtle error (avoid disruptive alert)
+        console.error("Like failed - rolled back. Error:", error.message);
       });
-    } catch (error) {
-      console.error("Failed to like review:", error);
-      // Rollback to previous state on error
-      setLikeData(previousState);
-      // Show error to user
-      alert("Failed to update like. Please try again.");
-    } finally {
-      setIsLiking(false);
-    }
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -211,7 +218,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer group"
                 aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
                 aria-pressed={likeData.hasLiked}
               >
@@ -224,7 +231,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={`transition-colors ${likeData.hasLiked ? "text-red-500" : ""}`}
+                  className={`transition-all duration-200 group-hover:scale-110 ${likeData.hasLiked ? "text-red-500" : "group-hover:text-red-400"}`}
                   aria-hidden="true"
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -555,7 +562,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             size="sm"
             onClick={handleLike}
             disabled={isLiking}
-            className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer group"
             aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
             aria-pressed={likeData.hasLiked}
           >
@@ -568,7 +575,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={`transition-all duration-200 flex-shrink-0 ${likeData.hasLiked ? "text-red-500" : ""}`}
+              className={`transition-all duration-200 flex-shrink-0 group-hover:scale-125 ${likeData.hasLiked ? "text-red-500" : "group-hover:text-red-400 group-hover:fill-red-400/20"}`}
               aria-hidden="true"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />

@@ -37,9 +37,10 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
         if (query.limit) params.set("limit", query.limit.toString());
         if (query.offset) params.set("offset", query.offset.toString());
 
-        // Server-side revalidation handles cache invalidation
+        // For authenticated users, always fetch fresh data to ensure user_has_liked is accurate
+        // For anonymous users, use cache for performance
         const response = await fetch(`/api/reviews?${params.toString()}`, {
-          cache: 'default',
+          cache: user ? 'no-store' : 'default',
         });
 
         if (!response.ok) {
