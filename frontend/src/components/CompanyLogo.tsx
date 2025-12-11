@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 interface CompanyLogoProps {
@@ -62,6 +62,12 @@ export function CompanyLogo({
   const [imageError, setImageError] = useState(false);
   const [clearbitError, setClearbitError] = useState(false);
 
+  // Reset error states when company name or logoUrl changes
+  useEffect(() => {
+    setImageError(false);
+    setClearbitError(false);
+  }, [companyName, logoUrl]);
+
   // Generate domain from company name for Clearbit API
   const getDomain = (name: string): string => {
     if (DOMAIN_MAP[name]) {
@@ -104,48 +110,39 @@ export function CompanyLogo({
     );
   }
 
-  const imageUrl = logoUrl || clearbitUrl;
-  const isExternalUrl = imageUrl.startsWith("http");
+  // Use regular img tag for Clearbit URLs (more reliable for external APIs)
+  // Use Next.js Image for database logo_url (may be local or optimized)
+  const isUsingClearbit = !logoUrl || imageError;
 
   return (
     <div
       className={`relative rounded-lg overflow-hidden bg-muted flex-shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
-      {isExternalUrl ? (
-        // Use Next.js Image for external URLs with unoptimized flag
-        // (Clearbit doesn't support Next.js image optimization)
-        <Image
-          src={imageUrl}
+      {isUsingClearbit ? (
+        // Use regular img tag for Clearbit API (more reliable, no optimization needed)
+        <img
+          src={clearbitUrl}
           alt={`${companyName} logo`}
           width={size}
           height={size}
           className="w-full h-full object-contain p-[10%]"
-          unoptimized // Required for external domains not in next.config
           onError={() => {
-            if (logoUrl && !imageError) {
-              // If logo_url failed, try Clearbit
-              setImageError(true);
-            } else {
-              // If Clearbit failed, show initial
-              setClearbitError(true);
-            }
+            setClearbitError(true);
           }}
+          loading="lazy"
         />
       ) : (
-        // Use Next.js Image with optimization for local images
+        // Use Next.js Image for database logo_url (may be local or optimized)
         <Image
-          src={imageUrl}
+          src={logoUrl}
           alt={`${companyName} logo`}
           width={size}
           height={size}
           className="w-full h-full object-contain p-[10%]"
+          unoptimized={logoUrl.startsWith("http")}
           onError={() => {
-            if (logoUrl && !imageError) {
-              setImageError(true);
-            } else {
-              setClearbitError(true);
-            }
+            setImageError(true);
           }}
         />
       )}
