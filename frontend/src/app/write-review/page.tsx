@@ -288,9 +288,13 @@ export default function WriteReviewPage() {
           interview_tips: formData.interview_tips,
         };
 
-        await createReview(reviewData);
-        // Add cache-busting query param to force fresh fetch
-        router.push("/reviews?refresh=" + Date.now());
+        const newReview = await createReview(reviewData);
+        // Store new review in sessionStorage for optimistic UI update
+        if (newReview) {
+          sessionStorage.setItem("newlyCreatedReview", JSON.stringify(newReview));
+        }
+        // Server-side revalidation handles cache invalidation
+        router.push("/reviews");
       }
     } catch (err) {
       // Extract user-friendly error message

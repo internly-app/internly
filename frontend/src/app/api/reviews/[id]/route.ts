@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { reviewUpdateSchema } from "@/lib/validations/schemas";
 
@@ -105,6 +106,14 @@ export async function PATCH(
       );
     }
 
+    // Revalidate affected pages after successful review update
+    revalidatePath("/reviews");
+    revalidatePath("/companies");
+    if (updatedReview?.company?.slug) {
+      revalidatePath(`/companies/${updatedReview.company.slug}`);
+    }
+    revalidatePath("/profile");
+
     return NextResponse.json(updatedReview, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
@@ -145,9 +154,10 @@ export async function DELETE(
     }
 
     // First, verify the review exists and belongs to the user
+    // Also fetch company slug for revalidation
     const { data: review, error: fetchError } = await supabase
       .from("reviews")
-      .select("id, user_id")
+      .select("id, user_id, company:companies(slug)")
       .eq("id", reviewId)
       .single();
 
@@ -162,6 +172,11 @@ export async function DELETE(
         { status: 403 }
       );
     }
+
+    // Store company slug before deletion for revalidation
+    const companySlug = review.company && typeof review.company === 'object' && 'slug' in review.company 
+      ? review.company.slug as string 
+      : null;
 
     // Delete associated likes first (if not handled by CASCADE)
     await supabase
@@ -182,6 +197,14 @@ export async function DELETE(
         { status: 500 }
       );
     }
+
+    // Revalidate affected pages after successful review deletion
+    revalidatePath("/reviews");
+    revalidatePath("/companies");
+    if (companySlug) {
+      revalidatePath(`/companies/${companySlug}`);
+    }
+    revalidatePath("/profile");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

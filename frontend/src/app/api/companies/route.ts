@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { companyCreateSchema } from "@/lib/validations/schemas";
 import {
@@ -106,6 +107,12 @@ export async function POST(request: NextRequest) {
         { error: "Failed to create company", details: insertError.message },
         { status: 500 }
       );
+    }
+
+    // Revalidate affected pages after successful company creation
+    revalidatePath("/companies");
+    if (newCompany?.slug) {
+      revalidatePath(`/companies/${newCompany.slug}`);
     }
 
     return NextResponse.json(newCompany, { status: 201 });

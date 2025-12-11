@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -15,6 +15,7 @@ import { useReviews } from "@/hooks/useReviews";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, X, Filter } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
+import type { ReviewWithDetails } from "@/lib/types/database";
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export default function ReviewsPage() {
   const [companyFilter, setCompanyFilter] = useState(searchParams.get("company") || "");
   const [workStyleFilter, setWorkStyleFilter] = useState(searchParams.get("work_style") || "");
   const [sortBy, setSortBy] = useState<"likes" | "recent">(
-    (searchParams.get("sort") as "likes" | "recent") || "likes"
+    (searchParams.get("sort") as "likes" | "recent") || "recent"
   );
   
   // Companies list for filter
@@ -72,36 +73,38 @@ export default function ReviewsPage() {
     return params;
   }, [companyFilter, workStyleFilter, sortBy]);
   
-  const { reviews, total, loading, error, triggerRefresh } = useReviews(queryParams);
-  
-  // Track if we've already processed refresh to prevent double processing
-  const refreshProcessedRef = useRef<string | null>(null);
-  
-  // Handle refresh param - trigger refresh and clean URL
-  useEffect(() => {
-    const refresh = searchParams.get("refresh");
-    if (refresh && refresh !== refreshProcessedRef.current) {
-      // Mark as processed immediately to prevent double-triggering
-      refreshProcessedRef.current = refresh;
-      
-      // Trigger refresh first (before URL cleanup)
-      triggerRefresh();
-      
-      // Then clean URL after a short delay to ensure fetch happens first
-      setTimeout(() => {
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete("refresh");
-        const newUrl = newParams.toString() 
-          ? `${window.location.pathname}?${newParams.toString()}`
-          : window.location.pathname;
-        router.replace(newUrl, { scroll: false });
-        // Reset processed ref after URL cleanup
-        refreshProcessedRef.current = null;
-      }, 100);
-    }
-  }, [searchParams, router, triggerRefresh]);
-  
+  const { reviews: fetchedReviews, total, loading, error } = useReviews(queryParams);
+  const [optimisticReview, setOptimisticReview] = useState<ReviewWithDetails | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  
+  // Optimistically add newly created review to the list
+  useEffect(() => {
+    const newlyCreatedReviewStr = sessionStorage.getItem("newlyCreatedReview");
+    if (newlyCreatedReviewStr) {
+      try {
+        const newlyCreatedReview = JSON.parse(newlyCreatedReviewStr) as ReviewWithDetails;
+        setOptimisticReview(newlyCreatedReview);
+        // Clear sessionStorage after reading
+        sessionStorage.removeItem("newlyCreatedReview");
+      } catch (err) {
+        console.error("Failed to parse newly created review:", err);
+        sessionStorage.removeItem("newlyCreatedReview");
+      }
+    }
+  }, []);
+  
+  // Combine fetched reviews with optimistic review (if not already in list)
+  const reviews = useMemo(() => {
+    if (!optimisticReview) return fetchedReviews;
+    const exists = fetchedReviews.some(r => r.id === optimisticReview.id);
+    if (exists) {
+      // If it's already in the fetched list, clear optimistic state
+      setOptimisticReview(null);
+      return fetchedReviews;
+    }
+    // Add optimistic review to the beginning
+    return [optimisticReview, ...fetchedReviews];
+  }, [fetchedReviews, optimisticReview]);
 
   const handleExpandedChange = (reviewId: string, expanded: boolean) => {
     setExpandedIds((prev) => {
@@ -160,10 +163,10 @@ export default function ReviewsPage() {
     setSearchQuery("");
     setCompanyFilter("");
     setWorkStyleFilter("");
-    setSortBy("likes");
+    setSortBy("recent");
   };
   
-  const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "likes";
+  const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "recent";
   
   return (
     <main className="min-h-screen bg-background flex flex-col">
