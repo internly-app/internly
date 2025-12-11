@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   reviewCreateSchema,
@@ -88,6 +89,14 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Revalidate affected pages after successful review creation
+    revalidatePath("/reviews");
+    revalidatePath("/companies");
+    if (review?.company?.slug) {
+      revalidatePath(`/companies/${review.company.slug}`);
+    }
+    revalidatePath("/profile");
 
     return NextResponse.json(review, { status: 201 });
   } catch (error) {

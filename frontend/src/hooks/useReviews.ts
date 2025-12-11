@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { ReviewWithDetails } from "@/lib/types/database";
 import type { ReviewsQuery, ReviewCreate } from "@/lib/validations/schemas";
 import { useAuth } from "@/components/AuthProvider";
@@ -18,9 +18,6 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
-  // Use ref to track one-time force refresh (prevents double refetch)
-  const forceRefreshRef = useRef(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     // Wait for auth to finish loading before fetching reviews
@@ -40,25 +37,10 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
         if (query.limit) params.set("limit", query.limit.toString());
         if (query.offset) params.set("offset", query.offset.toString());
 
-        // Add cache-busting timestamp when force refresh is needed
-        const shouldForceRefresh = forceRefreshRef.current;
-        const fetchUrl = shouldForceRefresh
-          ? `/api/reviews?${params.toString()}&_t=${Date.now()}`
-          : `/api/reviews?${params.toString()}`;
-        
-        // Use no-store to bypass ALL caches (browser + CDN) when forcing refresh
-        const response = await fetch(fetchUrl, {
-          cache: shouldForceRefresh ? 'no-store' : 'default',
-          headers: shouldForceRefresh ? {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          } : undefined,
+        // Server-side revalidation handles cache invalidation
+        const response = await fetch(`/api/reviews?${params.toString()}`, {
+          cache: 'default',
         });
-        
-        // Reset force refresh flag AFTER fetch completes
-        if (shouldForceRefresh) {
-          forceRefreshRef.current = false;
-        }
 
         if (!response.ok) {
           // Try to extract error message from response
@@ -96,20 +78,11 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
     query.sort,
     query.limit,
     query.offset,
-    refreshKey, // Triggers refetch when refresh is requested
     user, // Refetch when user changes (sign in/out)
     authLoading, // Wait for auth to load
   ]);
 
-  // Expose function to trigger force refresh (for use after review creation)
-  const triggerRefresh = () => {
-    if (!forceRefreshRef.current) {
-      forceRefreshRef.current = true;
-      setRefreshKey(prev => prev + 1); // Trigger refetch
-    }
-  };
-
-  return { reviews, total, loading, error, triggerRefresh };
+  return { reviews, total, loading, error };
 }
 
 export function useCreateReview() {
