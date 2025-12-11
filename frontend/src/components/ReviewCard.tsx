@@ -23,13 +23,33 @@ interface ReviewCardProps {
   compact?: boolean; // If true, shows compact view that can expand
   onDelete?: (reviewId: string) => void; // If provided, shows delete button (for My Reviews page)
   showEditButton?: boolean; // If true, shows edit button (for My Reviews page)
+  expanded?: boolean; // Controlled expanded state (optional)
+  onExpandedChange?: (reviewId: string, expanded: boolean) => void; // Notify parent of expand/collapse
 }
 
-export default function ReviewCard({ review, compact = false, onDelete, showEditButton }: ReviewCardProps) {
+export default function ReviewCard({ review, compact = false, onDelete, showEditButton, expanded, onExpandedChange }: ReviewCardProps) {
   const { user, loading: authLoading } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const isControlled = typeof expanded === "boolean";
+  const [isExpanded, setIsExpanded] = useState(expanded ?? false);
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Sync expanded state if controlled
+  useEffect(() => {
+    if (isControlled) {
+      setIsExpanded(expanded ?? false);
+    }
+  }, [expanded, isControlled]);
+
+  const toggleExpanded = () => {
+    const next = !isExpanded;
+    if (onExpandedChange) {
+      onExpandedChange(review.id, next);
+    }
+    if (!isControlled) {
+      setIsExpanded(next);
+    }
+  };
+
 
   // Local state for like data - synced with review prop
   const [likeData, setLikeData] = useState({
@@ -153,7 +173,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
   return (
       <Card
         className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggleExpanded}
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
@@ -161,7 +181,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            setIsExpanded(!isExpanded);
+            toggleExpanded();
           }
         }}
       >

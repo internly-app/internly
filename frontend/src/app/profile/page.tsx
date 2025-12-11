@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -44,10 +44,45 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("reviews");
-  const [myReviews, setMyReviews] = useState<ReviewWithDetails[]>([]);
-  const [savedCompanies, setSavedCompanies] = useState<CompanyWithStats[]>([]);
-  const [loadingReviews, setLoadingReviews] = useState(true);
-  const [loadingSaved, setLoadingSaved] = useState(true);
+  // Initialize from cache if available to prevent loading flash
+  const getCachedReviews = (): ReviewWithDetails[] => {
+    try {
+      const cached = sessionStorage.getItem("profile_myReviews");
+      if (cached) {
+        const parsed = JSON.parse(cached) as { data: ReviewWithDetails[]; ts: number };
+        const CACHE_TTL_MS = 5 * 60 * 1000;
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          return parsed.data || [];
+        }
+      }
+    } catch {}
+    return [];
+  };
+
+  const getCachedSaved = (): CompanyWithStats[] => {
+    try {
+      const cached = sessionStorage.getItem("profile_savedCompanies");
+      if (cached) {
+        const parsed = JSON.parse(cached) as { data: CompanyWithStats[]; ts: number };
+        const CACHE_TTL_MS = 5 * 60 * 1000;
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          return parsed.data || [];
+        }
+      }
+    } catch {}
+    return [];
+  };
+
+  const cachedReviews = getCachedReviews();
+  const cachedSaved = getCachedSaved();
+  const [myReviews, setMyReviews] = useState<ReviewWithDetails[]>(cachedReviews);
+  const [savedCompanies, setSavedCompanies] = useState<CompanyWithStats[]>(cachedSaved);
+  const [loadingReviews, setLoadingReviews] = useState(cachedReviews.length === 0);
+  const [loadingSaved, setLoadingSaved] = useState(cachedSaved.length === 0);
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
+  const fetchedReviewsForUserId = useRef<string | null>(null);
+  const fetchedSavedForUserId = useRef<string | null>(null);
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -56,17 +91,75 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, router]);
 
-  // Fetch user's reviews and saved companies in parallel
+  // Reset when user ID changes (not user object reference)
   useEffect(() => {
-    if (!user) return;
+    const userId = user?.id || null;
+    if (userId !== fetchedReviewsForUserId.current) {
+      fetchedReviewsForUserId.current = null;
+      fetchedSavedForUserId.current = null;
+      // Clear cache when user changes
+      if (userId) {
+        sessionStorage.removeItem("profile_myReviews");
+        sessionStorage.removeItem("profile_savedCompanies");
+      }
+    }
+  }, [user?.id]);
 
+  // Fetch user's reviews and saved companies in parallel - only once per user ID
+  useEffect(() => {
+    if (!user?.id || authLoading) return;
+    if (fetchedReviewsForUserId.current === user.id) return;
+
+    // Try cached data from sessionStorage first
+    const cachedReviews = sessionStorage.getItem("profile_myReviews");
+    const cachedSaved = sessionStorage.getItem("profile_savedCompanies");
+    
+    let hasCachedReviews = false;
+    let hasCachedSaved = false;
+
+    if (cachedReviews) {
+      try {
+        const parsed = JSON.parse(cachedReviews) as { data: ReviewWithDetails[]; ts: number };
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          setMyReviews(parsed.data || []);
+          setLoadingReviews(false);
+          hasCachedReviews = true;
+        }
+      } catch {
+        // ignore cache parse errors
+      }
+    }
+
+    if (cachedSaved) {
+      try {
+        const parsed = JSON.parse(cachedSaved) as { data: CompanyWithStats[]; ts: number };
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          setSavedCompanies(parsed.data || []);
+          setLoadingSaved(false);
+          hasCachedSaved = true;
+        }
+      } catch {
+        // ignore cache parse errors
+      }
+    }
+
+    // If both are cached, mark as fetched and return
+    if (hasCachedReviews && hasCachedSaved) {
+      fetchedReviewsForUserId.current = user.id;
+      fetchedSavedForUserId.current = user.id;
+      return;
+    }
+
+    // Fetch missing data in parallel
     let isCancelled = false;
-    setLoadingReviews(true);
-    setLoadingSaved(true);
+    
+    if (!hasCachedReviews) setLoadingReviews(true);
+    if (!hasCachedSaved) setLoadingSaved(true);
 
     const fetchReviews = fetch("/api/user/reviews").then((response) =>
       response.ok ? response.json() : Promise.reject(new Error("Failed to fetch reviews"))
     );
+
     const fetchSaved = fetch("/api/user/saved-companies").then((response) =>
       response.ok ? response.json() : Promise.reject(new Error("Failed to fetch saved companies"))
     );
@@ -78,15 +171,26 @@ export default function ProfilePage() {
 
       if (reviewsResult.status === "fulfilled") {
         setMyReviews(reviewsResult.value || []);
+        sessionStorage.setItem(
+          "profile_myReviews",
+          JSON.stringify({ data: reviewsResult.value || [], ts: Date.now() })
+        );
       } else {
-        console.error(reviewsResult.reason);
-      }
-      if (savedResult.status === "fulfilled") {
-        setSavedCompanies(savedResult.value || []);
-      } else {
-        console.error(savedResult.reason);
+        console.error("Failed to fetch reviews:", reviewsResult.reason);
       }
 
+      if (savedResult.status === "fulfilled") {
+        setSavedCompanies(savedResult.value || []);
+        sessionStorage.setItem(
+          "profile_savedCompanies",
+          JSON.stringify({ data: savedResult.value || [], ts: Date.now() })
+        );
+      } else {
+        console.error("Failed to fetch saved companies:", savedResult.reason);
+      }
+
+      fetchedReviewsForUserId.current = user.id;
+      fetchedSavedForUserId.current = user.id;
       setLoadingReviews(false);
       setLoadingSaved(false);
     });
@@ -94,7 +198,7 @@ export default function ProfilePage() {
     return () => {
       isCancelled = true;
     };
-  }, [user]);
+  }, [user?.id, authLoading]);
 
   const handleUnsave = (companyId: string, saved: boolean) => {
     if (!saved) {
@@ -104,6 +208,18 @@ export default function ProfilePage() {
 
   const handleDeleteReview = (reviewId: string) => {
     setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
+
+  const handleExpandedChange = (reviewId: string, expanded: boolean) => {
+    setExpandedReviewIds((prev) => {
+      const next = new Set(prev);
+      if (expanded) {
+        next.add(reviewId);
+      } else {
+        next.delete(reviewId);
+      }
+      return next;
+    });
   };
 
   // Get user display info
@@ -180,14 +296,14 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+      <motion.div 
+        className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         {/* Profile Header */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 max-w-5xl mx-auto"
-        >
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 max-w-5xl mx-auto">
           <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-semibold">
             {userInfo.initials}
           </div>
@@ -195,15 +311,10 @@ export default function ProfilePage() {
             <h1 className="text-2xl font-bold text-foreground">{userInfo.name}</h1>
             <p className="text-muted-foreground">{userInfo.email}</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Tabs */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex gap-2 mb-8 max-w-5xl mx-auto"
-        >
+        <div className="flex gap-2 mb-8 max-w-5xl mx-auto">
           <Button
             variant={activeTab === "reviews" ? "default" : "outline"}
             onClick={() => setActiveTab("reviews")}
@@ -220,24 +331,20 @@ export default function ProfilePage() {
             <Bookmark className="size-4" />
             Saved Companies ({savedCompanies.length})
           </Button>
-        </motion.div>
+        </div>
 
-        {/* My Reviews Tab */}
-        {activeTab === "reviews" && (
-          <>
-            {loadingReviews ? (
-              <div className="grid gap-4 max-w-5xl mx-auto">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-64 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : myReviews.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-5xl mx-auto"
-              >
+        {/* Content Area - Same structure for both tabs */}
+        <div className="max-w-5xl mx-auto w-full">
+          {/* My Reviews Tab */}
+          {activeTab === "reviews" && (
+            <>
+              {loadingReviews ? (
+                <div className="grid gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-64 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : myReviews.length === 0 ? (
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center py-12">
@@ -255,45 +362,40 @@ export default function ProfilePage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="grid gap-4 max-w-5xl mx-auto"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {myReviews.map((review) => (
-                  <motion.div key={review.id} variants={itemVariants}>
-                    <ReviewCard 
-                      review={review} 
-                      compact={true} 
-                      onDelete={handleDeleteReview}
-                      showEditButton
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </>
-        )}
+              ) : (
+                <motion.div
+                  className="grid gap-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {myReviews.map((review) => (
+                    <motion.div key={review.id} variants={itemVariants}>
+                      <ReviewCard 
+                        review={review} 
+                        compact={true} 
+                        onDelete={handleDeleteReview}
+                        showEditButton
+                        expanded={expandedReviewIds.has(review.id)}
+                        onExpandedChange={handleExpandedChange}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </>
+          )}
 
-        {/* Saved Companies Tab */}
-        {activeTab === "saved" && (
-          <>
-            {loadingSaved ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-80 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : savedCompanies.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-5xl mx-auto"
-              >
+          {/* Saved Companies Tab */}
+          {activeTab === "saved" && (
+            <>
+              {loadingSaved ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} className="h-80 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : savedCompanies.length === 0 ? (
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center py-12">
@@ -311,24 +413,24 @@ export default function ProfilePage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {savedCompanies.map((company) => (
-                  <motion.div key={company.id} variants={itemVariants}>
-                    <CompanyCard company={company} onSaveToggle={handleUnsave} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </>
-        )}
-      </div>
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {savedCompanies.map((company) => (
+                    <motion.div key={company.id} variants={itemVariants}>
+                      <CompanyCard company={company} onSaveToggle={handleUnsave} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </>
+          )}
+        </div>
+      </motion.div>
       <Footer />
     </main>
   );

@@ -210,18 +210,28 @@ export default function WriteReviewPage() {
 
         // If company_id is empty, we need to create the company first
         if (!companyId && formData.companyName) {
+          // Generate slug: lowercase, replace non-alphanumeric with hyphens, trim hyphens, collapse multiple hyphens
+          const slug = formData.companyName
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
+            .replace(/-+/g, "-"); // Collapse multiple hyphens to single
+
           const companyResponse = await fetch("/api/companies", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               name: formData.companyName.trim(),
-              slug: formData.companyName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+              slug: slug,
             }),
           });
 
           if (!companyResponse.ok) {
             const error = await companyResponse.json();
-            throw new Error(error.error || "Failed to create company");
+            const errorMessage = error.error || "Failed to create company";
+            const errorDetails = error.details ? `: ${error.details}` : "";
+            throw new Error(`${errorMessage}${errorDetails}`);
           }
 
           const newCompany = await companyResponse.json();
@@ -229,6 +239,14 @@ export default function WriteReviewPage() {
         }
 
         // Create or get role
+        // Generate slug: lowercase, replace non-alphanumeric with hyphens, trim hyphens, collapse multiple hyphens
+        const roleSlug = formData.roleName
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
+          .replace(/-+/g, "-"); // Collapse multiple hyphens to single
+
         const roleResponse = await fetch("/api/roles", {
           method: "POST",
           headers: {
@@ -237,7 +255,7 @@ export default function WriteReviewPage() {
           body: JSON.stringify({
             title: formData.roleName.trim(),
             company_id: companyId,
-            slug: formData.roleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+            slug: roleSlug,
           }),
         });
 

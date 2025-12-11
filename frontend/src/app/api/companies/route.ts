@@ -50,14 +50,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validatedData = companyCreateSchema.parse(body);
+    
+    // Validate request data
+    let validatedData;
+    try {
+      validatedData = companyCreateSchema.parse(body);
+    } catch (validationError) {
+      console.error("Company validation error:", validationError);
+      return NextResponse.json(
+        { error: "Invalid company data", details: validationError instanceof Error ? validationError.message : "Validation failed" },
+        { status: 400 }
+      );
+    }
 
     // First, try to find existing company by name (case-insensitive)
-    const { data: existingCompany } = await supabase
+    const { data: existingCompany, error: findError } = await supabase
       .from("companies")
       .select("*")
       .ilike("name", validatedData.name)
-      .single();
+      .maybeSingle();
+
+    if (findError && findError.code !== 'PGRST116') { // PGRST116 = no rows returned (expected)
+      console.error("Company find error:", findError);
+      return NextResponse.json(
+        { error: "Failed to check existing company" },
+        { status: 500 }
+      );
+    }
 
     if (existingCompany) {
       return NextResponse.json(existingCompany, { status: 200 });
@@ -72,8 +91,15 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("Company insert error:", insertError);
+      // Check for unique constraint violation (slug or name already exists)
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { error: "Company already exists" },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
-        { error: "Failed to create company" },
+        { error: "Failed to create company", details: insertError.message },
         { status: 500 }
       );
     }
@@ -82,7 +108,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("POST /api/companies error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

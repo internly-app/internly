@@ -65,6 +65,7 @@ export default function CompanyDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
 
   // Fetch company data
   useEffect(() => {
@@ -101,6 +102,18 @@ export default function CompanyDetailPage() {
     if (!roleFilter) return reviews;
     return reviews.filter((r) => r.role?.title === roleFilter);
   }, [reviews, roleFilter]);
+
+  const handleExpandedChange = (reviewId: string, expanded: boolean) => {
+    setExpandedReviewIds((prev) => {
+      const next = new Set(prev);
+      if (expanded) {
+        next.add(reviewId);
+      } else {
+        next.delete(reviewId);
+      }
+      return next;
+    });
+  };
 
   const handleSaveToggle = async () => {
     if (!user) {
@@ -521,7 +534,13 @@ export default function CompanyDetailPage() {
           ) : (
             <div className="grid gap-4">
               {filteredReviews.map((review) => (
-                <ReviewCard key={review.id} review={review} compact={true} />
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  compact={true}
+                  expanded={expandedReviewIds.has(review.id)}
+                  onExpandedChange={handleExpandedChange}
+                />
               ))}
             </div>
           )}
