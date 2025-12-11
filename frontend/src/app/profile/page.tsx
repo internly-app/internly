@@ -105,92 +105,99 @@ export default function ProfilePage() {
     }
   }, [user?.id]);
 
-  // Fetch user's reviews - only once per user ID
+  // Fetch user's reviews and saved companies in parallel - only once per user ID
   useEffect(() => {
     if (!user?.id || authLoading) return;
     if (fetchedReviewsForUserId.current === user.id) return;
 
-    // Try cached reviews from sessionStorage
-    const cached = sessionStorage.getItem("profile_myReviews");
-    if (cached) {
+    // Try cached data from sessionStorage first
+    const cachedReviews = sessionStorage.getItem("profile_myReviews");
+    const cachedSaved = sessionStorage.getItem("profile_savedCompanies");
+    
+    let hasCachedReviews = false;
+    let hasCachedSaved = false;
+
+    if (cachedReviews) {
       try {
-        const parsed = JSON.parse(cached) as { data: ReviewWithDetails[]; ts: number };
+        const parsed = JSON.parse(cachedReviews) as { data: ReviewWithDetails[]; ts: number };
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           setMyReviews(parsed.data || []);
           setLoadingReviews(false);
-          fetchedReviewsForUserId.current = user.id;
-          return;
+          hasCachedReviews = true;
         }
       } catch {
         // ignore cache parse errors
       }
     }
 
-    const fetchReviews = async () => {
-      setLoadingReviews(true);
+    if (cachedSaved) {
       try {
-        const response = await fetch("/api/user/reviews");
-        if (response.ok) {
-          const data = await response.json();
-          setMyReviews(data || []);
-          sessionStorage.setItem(
-            "profile_myReviews",
-            JSON.stringify({ data: data || [], ts: Date.now() })
-          );
-          fetchedReviewsForUserId.current = user.id;
-        }
-      } catch (error) {
-        console.error("Failed to fetch reviews:", error);
-      } finally {
-        setLoadingReviews(false);
-      }
-    };
-
-    fetchReviews();
-  }, [user?.id, authLoading]);
-
-  // Fetch saved companies - only once per user ID
-  useEffect(() => {
-    if (!user?.id || authLoading) return;
-    if (fetchedSavedForUserId.current === user.id) return;
-
-    // Try cached saved companies from sessionStorage
-    const cached = sessionStorage.getItem("profile_savedCompanies");
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached) as { data: CompanyWithStats[]; ts: number };
+        const parsed = JSON.parse(cachedSaved) as { data: CompanyWithStats[]; ts: number };
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           setSavedCompanies(parsed.data || []);
           setLoadingSaved(false);
-          fetchedSavedForUserId.current = user.id;
-          return;
+          hasCachedSaved = true;
         }
       } catch {
         // ignore cache parse errors
       }
     }
 
-    const fetchSaved = async () => {
-      setLoadingSaved(true);
-      try {
-        const response = await fetch("/api/user/saved-companies");
-        if (response.ok) {
-          const data = await response.json();
-          setSavedCompanies(data || []);
-          sessionStorage.setItem(
-            "profile_savedCompanies",
-            JSON.stringify({ data: data || [], ts: Date.now() })
-          );
-          fetchedSavedForUserId.current = user.id;
-        }
-      } catch (error) {
-        console.error("Failed to fetch saved companies:", error);
-      } finally {
-        setLoadingSaved(false);
-      }
-    };
+    // If both are cached, mark as fetched and return
+    if (hasCachedReviews && hasCachedSaved) {
+      fetchedReviewsForUserId.current = user.id;
+      fetchedSavedForUserId.current = user.id;
+      return;
+    }
 
-    fetchSaved();
+    // Fetch missing data in parallel
+    let isCancelled = false;
+    
+    if (!hasCachedReviews) setLoadingReviews(true);
+    if (!hasCachedSaved) setLoadingSaved(true);
+
+    const fetchReviews = fetch("/api/user/reviews").then((response) =>
+      response.ok ? response.json() : Promise.reject(new Error("Failed to fetch reviews"))
+    );
+
+    const fetchSaved = fetch("/api/user/saved-companies").then((response) =>
+      response.ok ? response.json() : Promise.reject(new Error("Failed to fetch saved companies"))
+    );
+
+    Promise.allSettled([fetchReviews, fetchSaved]).then((results) => {
+      if (isCancelled) return;
+
+      const [reviewsResult, savedResult] = results;
+
+      if (reviewsResult.status === "fulfilled") {
+        setMyReviews(reviewsResult.value || []);
+        sessionStorage.setItem(
+          "profile_myReviews",
+          JSON.stringify({ data: reviewsResult.value || [], ts: Date.now() })
+        );
+      } else {
+        console.error("Failed to fetch reviews:", reviewsResult.reason);
+      }
+
+      if (savedResult.status === "fulfilled") {
+        setSavedCompanies(savedResult.value || []);
+        sessionStorage.setItem(
+          "profile_savedCompanies",
+          JSON.stringify({ data: savedResult.value || [], ts: Date.now() })
+        );
+      } else {
+        console.error("Failed to fetch saved companies:", savedResult.reason);
+      }
+
+      fetchedReviewsForUserId.current = user.id;
+      fetchedSavedForUserId.current = user.id;
+      setLoadingReviews(false);
+      setLoadingSaved(false);
+    });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [user?.id, authLoading]);
 
   const handleUnsave = (companyId: string, saved: boolean) => {
