@@ -50,7 +50,7 @@ const DOMAIN_MAP: Record<string, string> = {
  * 1. Uses logo_url from database if available
  * 2. Falls back to Clearbit Logo API (free, no API key needed)
  * 3. Falls back to company initial in a circle
- * 
+ *
  * Uses Next.js Image for optimization (lazy loading, WebP conversion, etc.)
  */
 export function CompanyLogo({
@@ -79,12 +79,12 @@ export function CompanyLogo({
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, "")
       .replace(/\s+/g, "");
-    
+
     // Common patterns
     if (cleanName.endsWith("inc") || cleanName.endsWith("llc") || cleanName.endsWith("corp")) {
       return cleanName.replace(/(inc|llc|corp)$/, "") + ".com";
     }
-    
+
     return cleanName + ".com";
   };
 
@@ -93,8 +93,8 @@ export function CompanyLogo({
   const initial = companyName[0]?.toUpperCase() || "?";
 
   // Validate logoUrl - must be a non-empty string that looks like a URL
-  const isValidLogoUrl = logoUrl && 
-    typeof logoUrl === 'string' && 
+  const isValidLogoUrl = logoUrl &&
+    typeof logoUrl === 'string' &&
     logoUrl.trim().length > 0 &&
     (logoUrl.startsWith('http') || logoUrl.startsWith('/'));
 
