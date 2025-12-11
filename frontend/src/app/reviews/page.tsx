@@ -270,8 +270,8 @@ export default function ReviewsPage() {
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as "likes" | "recent")}
                   >
-                    <option value="likes">Most Liked</option>
                     <option value="recent">Most Recent</option>
+                    <option value="likes">Most Liked</option>
                   </Select>
                 </Field>
                 
