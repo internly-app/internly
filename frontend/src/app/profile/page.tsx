@@ -44,13 +44,44 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("reviews");
-  const [myReviews, setMyReviews] = useState<ReviewWithDetails[]>([]);
-  const [savedCompanies, setSavedCompanies] = useState<CompanyWithStats[]>([]);
-  const [loadingReviews, setLoadingReviews] = useState(true);
-  const [loadingSaved, setLoadingSaved] = useState(true);
+  // Initialize from cache if available to prevent loading flash
+  const getCachedReviews = (): ReviewWithDetails[] => {
+    try {
+      const cached = sessionStorage.getItem("profile_myReviews");
+      if (cached) {
+        const parsed = JSON.parse(cached) as { data: ReviewWithDetails[]; ts: number };
+        const CACHE_TTL_MS = 5 * 60 * 1000;
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          return parsed.data || [];
+        }
+      }
+    } catch {}
+    return [];
+  };
+
+  const getCachedSaved = (): CompanyWithStats[] => {
+    try {
+      const cached = sessionStorage.getItem("profile_savedCompanies");
+      if (cached) {
+        const parsed = JSON.parse(cached) as { data: CompanyWithStats[]; ts: number };
+        const CACHE_TTL_MS = 5 * 60 * 1000;
+        if (Date.now() - parsed.ts < CACHE_TTL_MS) {
+          return parsed.data || [];
+        }
+      }
+    } catch {}
+    return [];
+  };
+
+  const cachedReviews = getCachedReviews();
+  const cachedSaved = getCachedSaved();
+  const [myReviews, setMyReviews] = useState<ReviewWithDetails[]>(cachedReviews);
+  const [savedCompanies, setSavedCompanies] = useState<CompanyWithStats[]>(cachedSaved);
+  const [loadingReviews, setLoadingReviews] = useState(cachedReviews.length === 0);
+  const [loadingSaved, setLoadingSaved] = useState(cachedSaved.length === 0);
   const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
-  const hasFetchedReviews = useRef(false);
-  const hasFetchedSaved = useRef(false);
+  const fetchedReviewsForUserId = useRef<string | null>(null);
+  const fetchedSavedForUserId = useRef<string | null>(null);
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   // Redirect if not authenticated
@@ -60,19 +91,26 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, router]);
 
-  // Reset fetch flags when user changes
+  // Reset when user ID changes (not user object reference)
   useEffect(() => {
-    hasFetchedReviews.current = false;
-    hasFetchedSaved.current = false;
-  }, [user]);
+    const userId = user?.id || null;
+    if (userId !== fetchedReviewsForUserId.current) {
+      fetchedReviewsForUserId.current = null;
+      fetchedSavedForUserId.current = null;
+      // Clear cache when user changes
+      if (userId) {
+        sessionStorage.removeItem("profile_myReviews");
+        sessionStorage.removeItem("profile_savedCompanies");
+      }
+    }
+  }, [user?.id]);
 
-  // Fetch user's reviews
+  // Fetch user's reviews - only once per user ID
   useEffect(() => {
-    if (!user) return;
-    if (hasFetchedReviews.current) return;
+    if (!user?.id || authLoading) return;
+    if (fetchedReviewsForUserId.current === user.id) return;
 
     // Try cached reviews from sessionStorage
-    let hasCache = false;
     const cached = sessionStorage.getItem("profile_myReviews");
     if (cached) {
       try {
@@ -80,8 +118,8 @@ export default function ProfilePage() {
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           setMyReviews(parsed.data || []);
           setLoadingReviews(false);
-          hasFetchedReviews.current = true;
-          hasCache = true;
+          fetchedReviewsForUserId.current = user.id;
+          return;
         }
       } catch {
         // ignore cache parse errors
@@ -89,7 +127,7 @@ export default function ProfilePage() {
     }
 
     const fetchReviews = async () => {
-      if (!hasCache) setLoadingReviews(true);
+      setLoadingReviews(true);
       try {
         const response = await fetch("/api/user/reviews");
         if (response.ok) {
@@ -99,7 +137,7 @@ export default function ProfilePage() {
             "profile_myReviews",
             JSON.stringify({ data: data || [], ts: Date.now() })
           );
-          hasFetchedReviews.current = true;
+          fetchedReviewsForUserId.current = user.id;
         }
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
@@ -109,15 +147,14 @@ export default function ProfilePage() {
     };
 
     fetchReviews();
-  }, [user]);
+  }, [user?.id, authLoading]);
 
-  // Fetch saved companies
+  // Fetch saved companies - only once per user ID
   useEffect(() => {
-    if (!user) return;
-    if (hasFetchedSaved.current) return;
+    if (!user?.id || authLoading) return;
+    if (fetchedSavedForUserId.current === user.id) return;
 
     // Try cached saved companies from sessionStorage
-    let hasCache = false;
     const cached = sessionStorage.getItem("profile_savedCompanies");
     if (cached) {
       try {
@@ -125,8 +162,8 @@ export default function ProfilePage() {
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           setSavedCompanies(parsed.data || []);
           setLoadingSaved(false);
-          hasFetchedSaved.current = true;
-          hasCache = true;
+          fetchedSavedForUserId.current = user.id;
+          return;
         }
       } catch {
         // ignore cache parse errors
@@ -134,7 +171,7 @@ export default function ProfilePage() {
     }
 
     const fetchSaved = async () => {
-      if (!hasCache) setLoadingSaved(true);
+      setLoadingSaved(true);
       try {
         const response = await fetch("/api/user/saved-companies");
         if (response.ok) {
@@ -144,7 +181,7 @@ export default function ProfilePage() {
             "profile_savedCompanies",
             JSON.stringify({ data: data || [], ts: Date.now() })
           );
-          hasFetchedSaved.current = true;
+          fetchedSavedForUserId.current = user.id;
         }
       } catch (error) {
         console.error("Failed to fetch saved companies:", error);
@@ -154,7 +191,7 @@ export default function ProfilePage() {
     };
 
     fetchSaved();
-  }, [user]);
+  }, [user?.id, authLoading]);
 
   const handleUnsave = (companyId: string, saved: boolean) => {
     if (!saved) {
@@ -252,14 +289,14 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12">
+      <motion.div 
+        className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         {/* Profile Header */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 max-w-5xl mx-auto"
-        >
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 max-w-5xl mx-auto">
           <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-semibold">
             {userInfo.initials}
           </div>
@@ -267,15 +304,10 @@ export default function ProfilePage() {
             <h1 className="text-2xl font-bold text-foreground">{userInfo.name}</h1>
             <p className="text-muted-foreground">{userInfo.email}</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Tabs */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex gap-2 mb-8 max-w-5xl mx-auto"
-        >
+        <div className="flex gap-2 mb-8 max-w-5xl mx-auto">
           <Button
             variant={activeTab === "reviews" ? "default" : "outline"}
             onClick={() => setActiveTab("reviews")}
@@ -292,12 +324,13 @@ export default function ProfilePage() {
             <Bookmark className="size-4" />
             Saved Companies ({savedCompanies.length})
           </Button>
-        </motion.div>
+        </div>
 
-        {/* My Reviews Tab */}
-        {activeTab === "reviews" && (
-          <>
-            <div className="max-w-5xl mx-auto w-full">
+        {/* Content Area - Same structure for both tabs */}
+        <div className="max-w-5xl mx-auto w-full">
+          {/* My Reviews Tab */}
+          {activeTab === "reviews" && (
+            <>
               {loadingReviews ? (
                 <div className="grid gap-4">
                   {[1, 2, 3].map((i) => (
@@ -305,29 +338,23 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : myReviews.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-center py-12">
-                        <FileText className="size-12 mx-auto mb-4 text-muted-foreground" />
-                        <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Share your internship experience and help other students.
-                        </p>
-                        <Button asChild className="gap-2">
-                          <Link href="/write-review">
-                            Write a Review
-                            <ArrowRight className="size-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <FileText className="size-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Share your internship experience and help other students.
+                      </p>
+                      <Button asChild className="gap-2">
+                        <Link href="/write-review">
+                          Write a Review
+                          <ArrowRight className="size-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ) : (
                 <motion.div
                   className="grid gap-4"
@@ -349,27 +376,19 @@ export default function ProfilePage() {
                   ))}
                 </motion.div>
               )}
-            </div>
-          </>
-        )}
+            </>
+          )}
 
-        {/* Saved Companies Tab */}
-        {activeTab === "saved" && (
-          <>
-            <div className="max-w-5xl mx-auto w-full">
+          {/* Saved Companies Tab */}
+          {activeTab === "saved" && (
+            <>
               {loadingSaved ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton key={i} className="h-80 w-full rounded-xl" />
-                ))}
-              </div>
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} className="h-80 w-full rounded-xl" />
+                  ))}
+                </div>
               ) : savedCompanies.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-5xl mx-auto"
-              >
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center py-12">
@@ -387,10 +406,9 @@ export default function ProfilePage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
               ) : (
                 <motion.div
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
@@ -402,10 +420,10 @@ export default function ProfilePage() {
                   ))}
                 </motion.div>
               )}
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      </motion.div>
       <Footer />
     </main>
   );
