@@ -92,6 +92,7 @@ const PROFANITY_REGEX = new RegExp(
 );
 
 // Reserved names as Set for O(1) lookup
+// Only system/admin/reserved names - NOT real company names (those are checked via database uniqueness)
 const RESERVED_COMPANY_NAMES_SET = new Set([
   "admin", "administrator", "root", "system", "sysadmin",
   "test", "testing", "demo", "sample", "example",
@@ -102,8 +103,6 @@ const RESERVED_COMPANY_NAMES_SET = new Set([
   "support", "help", "contact", "about", "privacy", "terms",
   "legal", "copyright", "trademark",
   "home", "index", "main", "default",
-  "facebook", "twitter", "instagram", "linkedin", "youtube",
-  "google", "microsoft", "apple", "amazon", "meta",
   "company", "companies", "corporation", "corp", "inc", "llc",
   "business", "enterprise", "organization", "org",
 ]);

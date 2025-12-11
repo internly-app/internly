@@ -229,7 +229,9 @@ export default function WriteReviewPage() {
 
           if (!companyResponse.ok) {
             const error = await companyResponse.json();
-            throw new Error(error.error || "Failed to create company");
+            const errorMessage = error.error || "Failed to create company";
+            const errorDetails = error.details ? `: ${error.details}` : "";
+            throw new Error(`${errorMessage}${errorDetails}`);
           }
 
           const newCompany = await companyResponse.json();
