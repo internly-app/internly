@@ -26,7 +26,7 @@ export default function ReviewsPage() {
   // Filter states
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [companyFilter, setCompanyFilter] = useState(searchParams.get("company") || "");
-  const [workStyleFilter, setWorkStyleFilter] = useState(searchParams.get("work_style") || "");
+  const [workLocationFilter, setWorkLocationFilter] = useState(searchParams.get("work_location") || "");
   const [sortBy, setSortBy] = useState<"likes" | "recent">(
     (searchParams.get("sort") as "likes" | "recent") || "recent"
   );
@@ -65,13 +65,13 @@ export default function ReviewsPage() {
       params.company_id = companyFilter;
     }
     
-    // Validate work_style is one of the allowed values
-    if (workStyleFilter && ["onsite", "hybrid", "remote"].includes(workStyleFilter)) {
-      params.work_style = workStyleFilter;
+    // Validate work_location is one of the allowed values
+    if (workLocationFilter && ["onsite", "hybrid", "remote"].includes(workLocationFilter)) {
+      params.work_location = workLocationFilter;
     }
     
     return params;
-  }, [companyFilter, workStyleFilter, sortBy]);
+  }, [companyFilter, workLocationFilter, sortBy]);
   
   const { reviews: fetchedReviews, total, loading, error } = useReviews(queryParams);
   const [optimisticReview, setOptimisticReview] = useState<ReviewWithDetails | null>(null);
@@ -158,22 +158,22 @@ export default function ReviewsPage() {
     const params = new URLSearchParams();
     if (searchQuery) params.set("search", sanitizeText(searchQuery));
     if (companyFilter) params.set("company", companyFilter);
-    if (workStyleFilter) params.set("work_style", workStyleFilter);
+    if (workLocationFilter) params.set("work_location", workLocationFilter);
     if (sortBy) params.set("sort", sortBy);
     
     const newUrl = `/reviews${params.toString() ? `?${params.toString()}` : ""}`;
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, companyFilter, workStyleFilter, sortBy, router]);
+  }, [searchQuery, companyFilter, workLocationFilter, sortBy, router]);
   
   // Clear all filters
   const clearFilters = () => {
     setSearchQuery("");
     setCompanyFilter("");
-    setWorkStyleFilter("");
+    setWorkLocationFilter("");
     setSortBy("recent");
   };
   
-  const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "recent";
+  const hasActiveFilters = searchQuery || companyFilter || workLocationFilter || sortBy !== "recent";
   
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -254,15 +254,15 @@ export default function ReviewsPage() {
                   </Select>
                 </Field>
                 
-                {/* Work Style Filter */}
+                {/* Work Location Filter */}
                 <Field>
-                  <FieldLabel htmlFor="work_style">Work Style</FieldLabel>
+                  <FieldLabel htmlFor="work_location">Work Location</FieldLabel>
                   <Select
-                    id="work_style"
-                    value={workStyleFilter}
-                    onChange={(e) => setWorkStyleFilter(e.target.value)}
+                    id="work_location"
+                    value={workLocationFilter}
+                    onChange={(e) => setWorkLocationFilter(e.target.value)}
                   >
-                    <option value="">All styles</option>
+                    <option value="">All locations</option>
                     <option value="onsite">Onsite</option>
                     <option value="hybrid">Hybrid</option>
                     <option value="remote">Remote</option>

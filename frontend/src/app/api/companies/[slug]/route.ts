@@ -101,10 +101,10 @@ export async function GET(
     );
 
     // Work style breakdown
-    const workStyleBreakdown = {
-      onsite: reviewsWithLikes.filter((r) => r.work_style === "onsite").length,
-      hybrid: reviewsWithLikes.filter((r) => r.work_style === "hybrid").length,
-      remote: reviewsWithLikes.filter((r) => r.work_style === "remote").length,
+    const workLocationBreakdown = {
+      onsite: reviewsWithLikes.filter((r) => r.work_location === "onsite").length,
+      hybrid: reviewsWithLikes.filter((r) => r.work_location === "hybrid").length,
+      remote: reviewsWithLikes.filter((r) => r.work_location === "remote").length,
     };
 
     // Common roles
@@ -188,7 +188,7 @@ export async function GET(
             ) / reviewsWithRounds.length
           : null,
       common_interview_format: commonInterviewFormat,
-      work_style_breakdown: workStyleBreakdown,
+      work_location_breakdown: workLocationBreakdown,
       common_roles: commonRoles,
       common_locations: commonLocations,
       avg_duration_months:

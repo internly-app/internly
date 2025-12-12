@@ -168,7 +168,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
     return text.slice(0, maxLength).trim() + "...";
   };
 
-  const workStyleBadge = {
+  const workLocationBadge = {
     onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40",
     hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40",
     remote: "bg-green-500/20 text-green-300 border border-green-500/40",
@@ -198,7 +198,6 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               {/* Company Logo */}
               <CompanyLogo
                 companyName={review.company.name}
-                logoUrl={review.company.logo_url}
                 size={40}
               />
 
@@ -269,9 +268,9 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <Badge
               variant="outline"
-              className={`text-xs ${workStyleBadge[review.work_style]}`}
+              className={`text-xs ${workLocationBadge[review.work_location]}`}
             >
-              {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
+              {review.work_location.charAt(0).toUpperCase() + review.work_location.slice(1)}
             </Badge>
             <Badge variant="outline" className="text-xs">{review.location}</Badge>
             {review.duration_months && (
@@ -412,7 +411,6 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             {/* Company Logo */}
             <CompanyLogo
               companyName={review.company.name}
-              logoUrl={review.company.logo_url}
               size={48}
             />
 
@@ -435,9 +433,9 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         <div className="flex flex-wrap items-center gap-2 mt-4">
           <Badge
             variant="outline"
-            className={`${workStyleBadge[review.work_style]}`}
+            className={`${workLocationBadge[review.work_location]}`}
           >
-            {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
+            {review.work_location.charAt(0).toUpperCase() + review.work_location.slice(1)}
           </Badge>
           <Badge variant="outline">{review.location}</Badge>
           {review.duration_months && (

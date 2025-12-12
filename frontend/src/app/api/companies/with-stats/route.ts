@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           wage_hourly,
           wage_currency,
           interview_round_count,
-          work_style,
+          work_location,
           duration_months,
           location,
           technologies,
@@ -103,10 +103,10 @@ export async function GET(request: NextRequest) {
       );
 
       // Work style breakdown
-      const workStyleBreakdown = {
-        onsite: companyReviews.filter((r) => r.work_style === "onsite").length,
-        hybrid: companyReviews.filter((r) => r.work_style === "hybrid").length,
-        remote: companyReviews.filter((r) => r.work_style === "remote").length,
+      const workLocationBreakdown = {
+        onsite: companyReviews.filter((r) => r.work_location === "onsite").length,
+        hybrid: companyReviews.filter((r) => r.work_location === "hybrid").length,
+        remote: companyReviews.filter((r) => r.work_location === "remote").length,
       };
 
       // Common roles (count occurrences)
@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
               ) / reviewsWithRounds.length
             : null,
         common_interview_format: commonInterviewFormat,
-        work_style_breakdown: workStyleBreakdown,
+        work_location_breakdown: workLocationBreakdown,
         common_roles: commonRoles,
         common_locations: commonLocations,
         avg_duration_months:

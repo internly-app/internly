@@ -15,13 +15,13 @@ CREATE INDEX IF NOT EXISTS idx_reviews_company_likes
 CREATE INDEX IF NOT EXISTS idx_reviews_company_created
   ON reviews(company_id, created_at DESC);
 
--- Reviews filtered by work_style + sorted by likes
+-- Reviews filtered by work_location + sorted by likes
 CREATE INDEX IF NOT EXISTS idx_reviews_workstyle_likes
-  ON reviews(work_style, like_count DESC);
+  ON reviews(work_location, like_count DESC);
 
--- Reviews filtered by work_style + sorted by date
+-- Reviews filtered by work_location + sorted by date
 CREATE INDEX IF NOT EXISTS idx_reviews_workstyle_created
-  ON reviews(work_style, created_at DESC);
+  ON reviews(work_location, created_at DESC);
 
 -- Reviews filtered by role + sorted by likes
 CREATE INDEX IF NOT EXISTS idx_reviews_role_likes
@@ -124,7 +124,7 @@ Reviews filtered by company         | 500ms     | 5-10ms    | 99% faster
 Reviews with likes check (logged in)| 300ms     | 10-15ms   | 95% faster
 Company search by name              | 200ms     | 5ms       | 97% faster
 User's saved companies              | 100ms     | 2-5ms     | 98% faster
-Reviews filtered by work_style      | 400ms     | 8-12ms    | 98% faster
+Reviews filtered by work_location      | 400ms     | 8-12ms    | 98% faster
 Complex multi-filter queries        | 1000ms+   | 20-50ms   | 98% faster
 */
 

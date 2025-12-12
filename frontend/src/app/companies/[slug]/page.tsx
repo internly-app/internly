@@ -146,7 +146,7 @@ export default function CompanyDetailPage() {
     }
   };
 
-  const workStyleBadge = {
+  const workLocationBadge = {
     onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/20",
     hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/20",
     remote: "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/20",
@@ -251,7 +251,6 @@ export default function CompanyDetailPage() {
                 <div className="flex items-start gap-4 flex-1">
                   <CompanyLogo
                     companyName={company.name}
-                    logoUrl={company.logo_url}
                     size={80}
                   />
                   <div className="flex-1">
@@ -376,32 +375,32 @@ export default function CompanyDetailPage() {
             </Card>
           </motion.div>
 
-          {/* Work Style */}
+          {/* Work Location */}
           <motion.div variants={itemVariants}>
             <Card className="h-full">
               <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
                 <div className="flex items-center gap-2 text-muted-foreground mb-2">
                   <Briefcase className="size-4" />
-                  <span className="text-sm">Work Style</span>
+                  <span className="text-sm">Work Location</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {company.work_style_breakdown.onsite > 0 ||
-                  company.work_style_breakdown.hybrid > 0 ||
-                  company.work_style_breakdown.remote > 0 ? (
+                  {company.work_location_breakdown.onsite > 0 ||
+                  company.work_location_breakdown.hybrid > 0 ||
+                  company.work_location_breakdown.remote > 0 ? (
                     <>
-                      {company.work_style_breakdown.onsite > 0 && (
-                        <Badge className={workStyleBadge.onsite}>
-                          Onsite ({company.work_style_breakdown.onsite})
+                      {company.work_location_breakdown.onsite > 0 && (
+                        <Badge className={workLocationBadge.onsite}>
+                          Onsite ({company.work_location_breakdown.onsite})
                         </Badge>
                       )}
-                      {company.work_style_breakdown.hybrid > 0 && (
-                        <Badge className={workStyleBadge.hybrid}>
-                          Hybrid ({company.work_style_breakdown.hybrid})
+                      {company.work_location_breakdown.hybrid > 0 && (
+                        <Badge className={workLocationBadge.hybrid}>
+                          Hybrid ({company.work_location_breakdown.hybrid})
                         </Badge>
                       )}
-                      {company.work_style_breakdown.remote > 0 && (
-                        <Badge className={workStyleBadge.remote}>
-                          Remote ({company.work_style_breakdown.remote})
+                      {company.work_location_breakdown.remote > 0 && (
+                        <Badge className={workLocationBadge.remote}>
+                          Remote ({company.work_location_breakdown.remote})
                         </Badge>
                       )}
                     </>
