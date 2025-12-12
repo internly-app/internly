@@ -10,10 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
-import { Select } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useReviews } from "@/hooks/useReviews";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, X, Filter } from "lucide-react";
+import { Search, X, Filter, ChevronDown } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
@@ -233,55 +238,88 @@ export default function ReviewsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Company Filter */}
                 <Field>
-                  <FieldLabel htmlFor="company">Company</FieldLabel>
-                  <Select
-                    id="company"
-                    value={companyFilter}
-                    onChange={(e) => setCompanyFilter(e.target.value)}
-                  >
-                    <option value="">All companies</option>
-                    {loadingCompanies ? (
-                      <option value="loading" disabled>Loading...</option>
-                    ) : (
-                      companies
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((company) => (
-                          <option key={company.id} value={company.id}>
-                            {company.name}
-                          </option>
-                        ))
-                    )}
-                  </Select>
+                  <FieldLabel>Company</FieldLabel>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        {companyFilter
+                          ? companies.find((c) => c.id === companyFilter)?.name || "Select company"
+                          : "All companies"}
+                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[200px] max-h-[300px] overflow-y-auto">
+                      <DropdownMenuItem onClick={() => setCompanyFilter("")}>
+                        All companies
+                      </DropdownMenuItem>
+                      {loadingCompanies ? (
+                        <DropdownMenuItem disabled>Loading...</DropdownMenuItem>
+                      ) : (
+                        companies
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((company) => (
+                            <DropdownMenuItem
+                              key={company.id}
+                              onClick={() => setCompanyFilter(company.id)}
+                            >
+                              {company.name}
+                            </DropdownMenuItem>
+                          ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </Field>
-                
+
                 {/* Work Location Filter */}
                 <Field>
-                  <FieldLabel htmlFor="work_location">Work Location</FieldLabel>
-                  <Select
-                    id="work_location"
-                    value={workLocationFilter}
-                    onChange={(e) => setWorkLocationFilter(e.target.value)}
-                  >
-                    <option value="">All locations</option>
-                    <option value="onsite">Onsite</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="remote">Remote</option>
-                  </Select>
+                  <FieldLabel>Work Location</FieldLabel>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        {workLocationFilter
+                          ? workLocationFilter.charAt(0).toUpperCase() + workLocationFilter.slice(1)
+                          : "All locations"}
+                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[200px]">
+                      <DropdownMenuItem onClick={() => setWorkLocationFilter("")}>
+                        All locations
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setWorkLocationFilter("onsite")}>
+                        Onsite
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setWorkLocationFilter("hybrid")}>
+                        Hybrid
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setWorkLocationFilter("remote")}>
+                        Remote
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </Field>
-                
+
                 {/* Sort */}
                 <Field>
-                  <FieldLabel htmlFor="sort">Sort By</FieldLabel>
-                  <Select
-                    id="sort"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as "likes" | "recent")}
-                  >
-                    <option value="recent">Most Recent</option>
-                    <option value="likes">Most Liked</option>
-                  </Select>
+                  <FieldLabel>Sort By</FieldLabel>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        {sortBy === "recent" ? "Most Recent" : "Most Liked"}
+                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[200px]">
+                      <DropdownMenuItem onClick={() => setSortBy("recent")}>
+                        Most Recent
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSortBy("likes")}>
+                        Most Liked
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </Field>
-                
+
                 {/* Clear Filters */}
                 <div className="flex items-end">
                   {hasActiveFilters && (
