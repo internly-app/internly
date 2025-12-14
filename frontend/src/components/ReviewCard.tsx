@@ -267,12 +267,14 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
 
           {/* Key Info Badges */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
-            <Badge
-              variant="outline"
-              className={`text-xs ${workStyleBadge[review.work_style]}`}
-            >
-              {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
-            </Badge>
+            {review.work_style && (
+              <Badge
+                variant="outline"
+                className={`text-xs ${workStyleBadge[review.work_style] || ""}`}
+              >
+                {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
+              </Badge>
+            )}
             <Badge variant="outline" className="text-xs">{review.location}</Badge>
             {review.duration_months && (
               <Badge variant="outline" className="text-xs">
@@ -433,12 +435,14 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
 
         {/* Meta info badges */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
-          <Badge
-            variant="outline"
-            className={`${workStyleBadge[review.work_style]}`}
-          >
-            {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
-          </Badge>
+          {review.work_style && (
+            <Badge
+              variant="outline"
+              className={`${workStyleBadge[review.work_style] || ""}`}
+            >
+              {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
+            </Badge>
+          )}
           <Badge variant="outline">{review.location}</Badge>
           {review.duration_months && (
             <Badge variant="outline">
