@@ -114,11 +114,14 @@ export function CompanyLogo({
     if (!isValidLogoUrl && !imageError && !logoDevError) {
       const timeout = setTimeout(() => {
         if (logoDevLoading) {
-          console.warn(`Logo.dev logo timeout for ${companyName}`);
+          // Only log timeout warnings in development
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`Logo.dev logo timeout for ${companyName}`);
+          }
           setLogoDevError(true);
           setLogoDevLoading(false);
         }
-      }, 3000); // 3 second timeout
+      }, 2000); // 2 second timeout (within 1500-2000ms range for optimal UX)
 
       return () => clearTimeout(timeout);
     }
@@ -128,12 +131,12 @@ export function CompanyLogo({
   const shouldUseLogoDev = !isValidLogoUrl || imageError;
   const shouldShowInitial = shouldUseLogoDev && logoDevError;
 
-  // Fallback: show initial letter
+  // Fallback: show initial letter (clean, consistent fallback state)
   if (shouldShowInitial) {
     return (
       <div
-        className={`rounded-full bg-muted flex items-center justify-center text-sm font-semibold flex-shrink-0 ${className}`}
-        style={{ width: size, height: size }}
+        className={`rounded-full bg-muted flex items-center justify-center text-sm font-semibold flex-shrink-0 text-muted-foreground ${className}`}
+        style={{ width: size, height: size, minWidth: size, minHeight: size }}
         role="img"
         aria-label={`${companyName} logo`}
       >
@@ -150,7 +153,7 @@ export function CompanyLogo({
   return (
     <div
       className={`relative rounded-lg overflow-hidden bg-muted flex-shrink-0 ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, minWidth: size, minHeight: size }}
     >
       {isUsingLogoDev ? (
         // Use regular img tag for Logo.dev API (more reliable, no optimization needed)
