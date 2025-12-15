@@ -66,7 +66,7 @@ export default function WriteReviewPage() {
             roleName: review.role?.title || "",
             location: review.location,
             term: review.term,
-            work_location: review.work_location,
+            work_style: review.work_style,
             duration_months: review.duration_months || "",
             team_name: review.team_name || "",
             best: review.best,
@@ -109,7 +109,7 @@ export default function WriteReviewPage() {
     // Your Experience (Step 2) - Combined Details + Experience
     location: "",
     term: "",
-    work_location: "onsite" as "onsite" | "hybrid" | "remote",
+    work_style: "onsite" as "onsite" | "hybrid" | "remote",
     duration_months: "" as string | number,
     team_name: "",
     best: "",
@@ -176,7 +176,7 @@ export default function WriteReviewPage() {
         const updateData = {
           location: formData.location,
           term: formData.term,
-          work_location: formData.work_location,
+          work_style: formData.work_style,
           duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
           team_name: formData.team_name || undefined,
           technologies: formData.technologies || undefined,
@@ -271,7 +271,7 @@ export default function WriteReviewPage() {
           role_id: role.id,
           location: formData.location,
           term: formData.term,
-          work_location: formData.work_location,
+          work_style: formData.work_style,
           duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
           team_name: formData.team_name || undefined,
           technologies: formData.technologies || undefined,
@@ -531,13 +531,13 @@ export default function WriteReviewPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label>Work Location <span className="text-red-500">*</span></Label>
+                    <Label>Work Style <span className="text-red-500">*</span></Label>
                     <RadioGroup
-                      value={formData.work_location}
+                      value={formData.work_style}
                       onValueChange={(value) =>
                         setFormData({
                           ...formData,
-                          work_location: value as "onsite" | "hybrid" | "remote",
+                          work_style: value as "onsite" | "hybrid" | "remote",
                         })
                       }
                       className="flex gap-6"

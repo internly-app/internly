@@ -168,7 +168,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
     return text.slice(0, maxLength).trim() + "...";
   };
 
-  const workLocationBadge = {
+  const workStyleBadge = {
     onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40",
     hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40",
     remote: "bg-green-500/20 text-green-300 border border-green-500/40",
@@ -198,6 +198,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               {/* Company Logo */}
               <CompanyLogo
                 companyName={review.company.name}
+                logoUrl={review.company.logo_url}
                 size={40}
               />
 
@@ -413,6 +414,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             {/* Company Logo */}
             <CompanyLogo
               companyName={review.company.name}
+              logoUrl={review.company.logo_url}
               size={48}
             />
 

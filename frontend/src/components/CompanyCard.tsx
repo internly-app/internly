@@ -114,6 +114,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
               {/* Company Logo */}
               <CompanyLogo
                 companyName={company.name}
+                logoUrl={company.logo_url}
                 size={48}
               />
 

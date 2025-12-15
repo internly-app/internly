@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
     const query = reviewsQuerySchema.parse({
       company_id: searchParams.get("company_id") || undefined,
       role_id: searchParams.get("role_id") || undefined,
-      work_location: searchParams.get("work_location") || undefined,
+      work_style: searchParams.get("work_style") || undefined,
       sort: searchParams.get("sort") || "likes",
       limit: searchParams.get("limit") || "20",
       offset: searchParams.get("offset") || "0",
@@ -162,8 +162,8 @@ export async function GET(request: NextRequest) {
       dbQuery = dbQuery.eq("role_id", query.role_id);
     }
 
-    if (query.work_location) {
-      dbQuery = dbQuery.eq("work_location", query.work_location);
+    if (query.work_style) {
+      dbQuery = dbQuery.eq("work_style", query.work_style);
     }
 
     // Apply sorting

@@ -66,7 +66,7 @@ export const reviewCreateSchema = z.object({
   location: z.string().min(1, "Location is required").max(200),
   term: z.string().min(1, "Term is required").max(100),
   duration_months: z.number().int().min(1).max(24).optional(),
-  work_location: z.enum(["onsite", "hybrid", "remote"]),
+  work_style: z.enum(["onsite", "hybrid", "remote"]),
   team_name: z
     .string()
     .max(200)
@@ -172,7 +172,7 @@ export type ReviewUpdate = z.infer<typeof reviewUpdateSchema>;
 export const reviewsQuerySchema = z.object({
   company_id: z.string().uuid().optional(),
   role_id: z.string().uuid().optional(),
-  work_location: z.enum(["onsite", "hybrid", "remote"]).optional(),
+  work_style: z.enum(["onsite", "hybrid", "remote"]).optional(),
   sort: z.enum(["likes", "recent"]).default("recent"),
   limit: z.coerce.number().int().min(1).max(50).default(20),
   offset: z.coerce.number().int().min(0).default(0),

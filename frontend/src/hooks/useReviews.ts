@@ -32,7 +32,7 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
 
         if (query.company_id) params.set("company_id", query.company_id);
         if (query.role_id) params.set("role_id", query.role_id);
-        if (query.work_location) params.set("work_location", query.work_location);
+        if (query.work_style) params.set("work_style", query.work_style);
         if (query.sort) params.set("sort", query.sort);
         if (query.limit) params.set("limit", query.limit.toString());
         if (query.offset) params.set("offset", query.offset.toString());
@@ -75,7 +75,7 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
   }, [
     query.company_id,
     query.role_id,
-    query.work_location,
+    query.work_style,
     query.sort,
     query.limit,
     query.offset,

@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 interface CompanyLogoProps {
   companyName: string;
+  logoUrl?: string | null;
   size?: number;
   className?: string;
 }
 
-// Common domain mappings for companies
+// Common domain mappings for companies - moved outside component for performance
 const DOMAIN_MAP: Record<string, string> = {
   "Google": "google.com",
   "Microsoft": "microsoft.com",
@@ -44,15 +46,22 @@ const DOMAIN_MAP: Record<string, string> = {
 };
 
 /**
- * CompanyLogo component - Always uses logo.dev API
- * Fallback: Company initial in circle if logo.dev fails
+ * CompanyLogo component that displays company logos with smart fallbacks:
+ * 1. Uses logo_url from database if available
+ * 2. Falls back to Logo.dev API (free tier available)
+ * 3. Falls back to company initial in a circle
+ *
+ * Uses Next.js Image for optimization (lazy loading, WebP conversion, etc.)
  */
 export function CompanyLogo({
   companyName,
+  logoUrl,
   size = 40,
   className = "",
 }: CompanyLogoProps) {
-  const [logoError, setLogoError] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [logoDevError, setLogoDevError] = useState(false);
+  const [logoDevLoading, setLogoDevLoading] = useState(true);
 
   // Generate domain from company name for Logo.dev API
   const getDomain = (name: string): string => {
@@ -60,13 +69,13 @@ export function CompanyLogo({
       return DOMAIN_MAP[name];
     }
 
-    // Generate domain from name
+    // Try to generate domain from name
     const cleanName = name
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, "")
       .replace(/\s+/g, "");
 
-    // Remove common suffixes
+    // Common patterns
     if (cleanName.endsWith("inc") || cleanName.endsWith("llc") || cleanName.endsWith("corp")) {
       return cleanName.replace(/(inc|llc|corp)$/, "") + ".com";
     }
@@ -79,8 +88,48 @@ export function CompanyLogo({
   const logoDevUrl = `https://img.logo.dev/${domain}?token=${logoDevApiKey}`;
   const initial = companyName[0]?.toUpperCase() || "?";
 
-  // Show initial fallback if logo.dev fails
-  if (logoError) {
+  // Validate logoUrl - must be a non-empty string that looks like a URL
+  const isValidLogoUrl = logoUrl &&
+    typeof logoUrl === 'string' &&
+    logoUrl.trim().length > 0 &&
+    (logoUrl.startsWith('http') || logoUrl.startsWith('/'));
+
+  // Reset error states ONLY when company name or logoUrl actually changes (not on every render)
+  // Use ref to track previous values to prevent unnecessary resets
+  const prevPropsRef = useRef({ companyName, logoUrl });
+  
+  useEffect(() => {
+    const prev = prevPropsRef.current;
+    // Only reset if props actually changed (not just re-render)
+    if (prev.companyName !== companyName || prev.logoUrl !== logoUrl) {
+      setImageError(false);
+      setLogoDevError(false);
+      setLogoDevLoading(true);
+      prevPropsRef.current = { companyName, logoUrl };
+    }
+  }, [companyName, logoUrl]);
+
+  // Add timeout for Logo.dev loading - if it takes too long, show initial
+  useEffect(() => {
+    if (!isValidLogoUrl && !imageError && !logoDevError) {
+      const timeout = setTimeout(() => {
+        if (logoDevLoading) {
+          console.warn(`Logo.dev logo timeout for ${companyName}`);
+          setLogoDevError(true);
+          setLogoDevLoading(false);
+        }
+      }, 3000); // 3 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [companyName, isValidLogoUrl, imageError, logoDevError, logoDevLoading]);
+
+  // Priority: logo_url > Logo.dev API > Initial fallback
+  const shouldUseLogoDev = !isValidLogoUrl || imageError;
+  const shouldShowInitial = shouldUseLogoDev && logoDevError;
+
+  // Fallback: show initial letter
+  if (shouldShowInitial) {
     return (
       <div
         className={`rounded-full bg-muted flex items-center justify-center text-sm font-semibold flex-shrink-0 ${className}`}
@@ -93,26 +142,68 @@ export function CompanyLogo({
     );
   }
 
-  // Always use logo.dev
+  // Use regular img tag for Logo.dev URLs and external HTTP URLs (more reliable)
+  // Use Next.js Image only for local paths (optimized)
+  const isUsingLogoDev = !isValidLogoUrl || imageError;
+  const isExternalUrl = isValidLogoUrl && logoUrl.startsWith('http');
+
   return (
     <div
       className={`relative rounded-lg overflow-hidden bg-muted flex-shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
-      <img
-        src={logoDevUrl}
-        alt={`${companyName} logo`}
-        width={size}
-        height={size}
-        className="w-full h-full object-contain p-[10%]"
-        onError={() => {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(`Logo.dev failed for ${companyName} (${domain})`);
-          }
-          setLogoError(true);
-        }}
-        loading="lazy"
-      />
+      {isUsingLogoDev ? (
+        // Use regular img tag for Logo.dev API (more reliable, no optimization needed)
+        <img
+          src={logoDevUrl}
+          alt={`${companyName} logo`}
+          width={size}
+          height={size}
+          className="w-full h-full object-contain p-[10%]"
+          onError={(e) => {
+            // Only log in development to avoid console spam
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`Logo.dev logo failed for ${companyName} (${domain}):`, logoDevUrl);
+            }
+            setLogoDevError(true);
+            setLogoDevLoading(false);
+          }}
+          onLoad={() => {
+            // Successfully loaded
+            setLogoDevLoading(false);
+            if (logoDevError) {
+              setLogoDevError(false);
+            }
+          }}
+          loading="lazy"
+        />
+      ) : isExternalUrl ? (
+        // Use regular img tag for external HTTP URLs (more reliable than Next.js Image)
+        <img
+          src={logoUrl}
+          alt={`${companyName} logo`}
+          width={size}
+          height={size}
+          className="w-full h-full object-contain p-[10%]"
+          onError={() => {
+            setImageError(true);
+          }}
+          loading="lazy"
+        />
+      ) : (
+        // Use Next.js Image only for local paths (optimized)
+        <Image
+          src={logoUrl}
+          alt={`${companyName} logo`}
+          width={size}
+          height={size}
+          className="w-full h-full object-contain p-[10%]"
+          onError={() => {
+            setImageError(true);
+          }}
+        />
+      )}
     </div>
   );
 }
+

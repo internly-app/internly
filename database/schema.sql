@@ -44,7 +44,7 @@ CREATE TABLE reviews (
   location TEXT NOT NULL,
   term TEXT NOT NULL, -- e.g., "Summer 2024", "Fall 2023"
   duration_months INTEGER, -- Optional: Duration in months (e.g., 3, 4, 6)
-  work_location TEXT NOT NULL CHECK (work_location IN ('onsite', 'hybrid', 'remote')),
+  work_style TEXT NOT NULL CHECK (work_style IN ('onsite', 'hybrid', 'remote')),
   work_hours TEXT CHECK (work_hours IN ('full-time', 'part-time')), -- Optional: Full-time or part-time
   team_name TEXT, -- Optional: Team name at the company
   technologies TEXT, -- Optional: Technologies, languages, tools used (comma-separated or free text)
