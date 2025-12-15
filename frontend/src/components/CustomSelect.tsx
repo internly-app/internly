@@ -186,8 +186,8 @@ export function CustomSelect({
                 type="button"
                 onClick={() => handleSelect(option.value)}
                 className={cn(
-                  "w-full px-3 py-2 text-left text-sm transition-colors duration-200 first:rounded-t-md last:rounded-b-md",
-                  "hover:bg-muted focus:bg-muted focus:outline-none",
+                  "w-full px-3 py-2 text-left text-sm transition-colors duration-200 first:rounded-t-md last:rounded-b-md cursor-pointer",
+                  "hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none",
                   option.value === value && "bg-muted/50"
                 )}
               >
