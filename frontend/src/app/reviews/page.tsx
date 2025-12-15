@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Search, X, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -24,23 +24,36 @@ const REVIEWS_PER_PAGE = 15;
 
 export default function ReviewsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  
+  // Read URL params directly on mount to avoid useSearchParams() re-render issues
+  const [initialParams] = useState(() => {
+    if (typeof window === "undefined") return { search: "", company: "", work_style: "", sort: "recent", page: "1" };
+    const params = new URLSearchParams(window.location.search);
+    return {
+      search: params.get("search") || "",
+      company: params.get("company") || "",
+      work_style: params.get("work_style") || "",
+      sort: params.get("sort") || "recent",
+      page: params.get("page") || "1",
+    };
+  });
 
   // ===== State Management =====
   
   // Filter states (initialized from URL params)
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [companyFilter, setCompanyFilter] = useState(searchParams.get("company") || "");
-  const [workStyleFilter, setWorkStyleFilter] = useState(searchParams.get("work_style") || "");
+  const [searchQuery, setSearchQuery] = useState(initialParams.search);
+  const [companyFilter, setCompanyFilter] = useState(initialParams.company);
+  const [workStyleFilter, setWorkStyleFilter] = useState(initialParams.work_style);
   const [sortBy, setSortBy] = useState<"likes" | "recent">(
-    (searchParams.get("sort") as "likes" | "recent") || "recent"
+    (initialParams.sort as "likes" | "recent") || "recent"
   );
   const [currentPage, setCurrentPage] = useState(() => {
-    const page = parseInt(searchParams.get("page") || "1", 10);
+    const page = parseInt(initialParams.page, 10);
     return page > 0 ? page : 1;
   });
 
   // Debounce search query to reduce unnecessary filtering (300ms delay)
+  // Initialize with the actual search query value to avoid empty initial state
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Companies list for filter dropdown
