@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Home, ArrowLeft, Search } from "lucide-react";
@@ -9,21 +10,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function NotFound() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
       
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={false}
+        animate={mounted ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 0.3 }}
         className="flex-1 flex items-center justify-center max-w-2xl mx-auto px-6 py-12"
       >
         <Card>
           <CardContent className="pt-12 pb-12">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={false}
+              animate={mounted ? { opacity: 1 } : { opacity: 0 }}
               transition={{ delay: 0.1, duration: 0.3 }}
             >
               <h1 className="text-6xl font-bold text-foreground mb-4">404</h1>
