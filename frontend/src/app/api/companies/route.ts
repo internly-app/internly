@@ -8,9 +8,10 @@ import {
   getIpAddress,
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
+import { fetchLogoFromLogoDev } from "@/lib/utils/logo-fetcher";
 
-// Logo fetching is handled client-side via CompanyLogo component
-// This is more efficient: no blocking, no DB storage, uses Logo.dev API
+// Logo fetching: Try server-side first (non-blocking), fallback to client-side
+// Server-side fetching improves logo success rate and reduces client-side API calls
 
 /**
  * POST /api/companies
@@ -86,11 +87,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(existingCompany, { status: 200 });
     }
 
-    // Create new company - logo_url will be handled client-side via Logo.dev fallback
-    // This is more efficient than server-side fetching (no blocking, no DB storage needed)
+    // Try to fetch logo from Logo.dev API (non-blocking, fails gracefully)
+    // This improves logo success rate by storing logo_url in database
+    let logoUrl: string | null = null;
+    const logoDevApiKey = process.env.LOGO_DEV_API_KEY || process.env.NEXT_PUBLIC_LOGO_DEV_API_KEY;
+    if (logoDevApiKey && validatedData.name) {
+      try {
+        logoUrl = await fetchLogoFromLogoDev(validatedData.name, logoDevApiKey);
+      } catch (error) {
+        // Fail silently - logo fetching is optional
+        // Client-side CompanyLogo component will handle fallback
+      }
+    }
+
+    // Create new company with logo_url if available
+    const companyData = {
+      ...validatedData,
+      ...(logoUrl && { logo_url: logoUrl }),
+    };
+
     const { data: newCompany, error: insertError } = await supabase
       .from("companies")
-      .insert(validatedData)
+      .insert(companyData)
       .select()
       .single();
 

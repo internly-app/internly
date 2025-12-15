@@ -43,6 +43,7 @@ const DOMAIN_MAP: Record<string, string> = {
   "Netlify": "netlify.com",
   "OpenAI": "openai.com",
   "Anthropic": "anthropic.com",
+  "AMD": "amd.com",
 };
 
 /**
