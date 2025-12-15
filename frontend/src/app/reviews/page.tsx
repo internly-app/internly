@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { Search, X, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
@@ -11,13 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
-import { useReviews } from "@/hooks/useReviews";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, X, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { useReviews } from "@/hooks/useReviews";
 import { sanitizeText } from "@/lib/security/content-filter";
 import type { ReviewWithDetails } from "@/lib/types/database";
-
-export const dynamic = 'force-dynamic';
 
 const REVIEWS_PER_PAGE = 15;
 
@@ -25,7 +24,9 @@ export default function ReviewsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Filter states
+  // ===== State Management =====
+  
+  // Filter states (initialized from URL params)
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [companyFilter, setCompanyFilter] = useState(searchParams.get("company") || "");
   const [workStyleFilter, setWorkStyleFilter] = useState(searchParams.get("work_style") || "");
@@ -36,12 +37,18 @@ export default function ReviewsPage() {
     const page = parseInt(searchParams.get("page") || "1", 10);
     return page > 0 ? page : 1;
   });
-  
-  // Companies list for filter
+
+  // Companies list for filter dropdown
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
+
+  // UI state
+  const [optimisticReview, setOptimisticReview] = useState<ReviewWithDetails | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   
-  // Fetch companies for filter
+  // ===== Data Fetching =====
+  
+  // Fetch companies for filter dropdown
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
@@ -58,50 +65,50 @@ export default function ReviewsPage() {
     };
     fetchCompanies();
   }, []);
-  
-  // Build query params with validation
+
+  // Build query params for reviews API
   // When searching, fetch all reviews for client-side filtering
   // Otherwise, use pagination
   const queryParams = useMemo(() => {
     const params: Record<string, string | number> = {
       sort: sortBy,
     };
-    
-    // If there's a search query, fetch all reviews (high limit for client-side filtering)
-    // Otherwise, use pagination
+
+    // Search mode: fetch all reviews for client-side filtering
     if (searchQuery.trim()) {
-      params.limit = 1000; // High limit to fetch all reviews for search
+      params.limit = 1000;
       params.offset = 0;
     } else {
+      // Pagination mode: fetch only current page
       params.limit = REVIEWS_PER_PAGE;
       params.offset = (currentPage - 1) * REVIEWS_PER_PAGE;
     }
-    
-    // Validate company_id is a valid UUID format
-    if (companyFilter && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyFilter)) {
+
+    // Validate and add filters
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (companyFilter && uuidRegex.test(companyFilter)) {
       params.company_id = companyFilter;
     }
-    
-    // Validate work_style is one of the allowed values
-    if (workStyleFilter && ["onsite", "hybrid", "remote"].includes(workStyleFilter)) {
+
+    const validWorkStyles = ["onsite", "hybrid", "remote"];
+    if (workStyleFilter && validWorkStyles.includes(workStyleFilter)) {
       params.work_style = workStyleFilter;
     }
-    
+
     return params;
   }, [companyFilter, workStyleFilter, sortBy, currentPage, searchQuery]);
-  
+
   const { reviews: fetchedReviews, total, loading, error } = useReviews(queryParams);
-  const [optimisticReview, setOptimisticReview] = useState<ReviewWithDetails | null>(null);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   
-  // Optimistically add newly created review to the list
+  // ===== Optimistic UI Updates =====
+  
+  // Load optimistic review from sessionStorage (set after review creation)
   useEffect(() => {
     const newlyCreatedReviewStr = sessionStorage.getItem("newlyCreatedReview");
     if (newlyCreatedReviewStr) {
       try {
-        const newlyCreatedReview = JSON.parse(newlyCreatedReviewStr) as ReviewWithDetails;
-        setOptimisticReview(newlyCreatedReview);
-        // Clear sessionStorage after reading
+        const review = JSON.parse(newlyCreatedReviewStr) as ReviewWithDetails;
+        setOptimisticReview(review);
         sessionStorage.removeItem("newlyCreatedReview");
       } catch (err) {
         console.error("Failed to parse newly created review:", err);
@@ -109,27 +116,134 @@ export default function ReviewsPage() {
       }
     }
   }, []);
-  
-  // Clear optimistic review when it appears in fetched reviews
+
+  // Clear optimistic review once it appears in fetched reviews
   useEffect(() => {
-    if (optimisticReview && fetchedReviews.some(r => r.id === optimisticReview.id)) {
+    if (optimisticReview && fetchedReviews.some((r) => r.id === optimisticReview.id)) {
       setOptimisticReview(null);
     }
   }, [optimisticReview, fetchedReviews]);
-  
-  // Combine fetched reviews with optimistic review (if not already in list)
+
+  // Combine fetched reviews with optimistic review
   const reviews = useMemo(() => {
     if (!optimisticReview) return fetchedReviews;
-    const exists = fetchedReviews.some(r => r.id === optimisticReview.id);
-    if (exists) {
-      // If it's already in the fetched list, return fetched reviews only
-      // (the useEffect above will clear the optimistic state)
-      return fetchedReviews;
-    }
-    // Add optimistic review to the beginning
+    
+    const exists = fetchedReviews.some((r) => r.id === optimisticReview.id);
+    if (exists) return fetchedReviews;
+    
     return [optimisticReview, ...fetchedReviews];
   }, [fetchedReviews, optimisticReview]);
 
+  // ===== Filtering & Search =====
+  
+  // Client-side search filtering (sanitized for security)
+  const filteredReviews = useMemo(() => {
+    if (!searchQuery.trim()) return reviews;
+
+    const sanitizedQuery = sanitizeText(searchQuery).slice(0, 200).toLowerCase();
+    if (!sanitizedQuery) return reviews;
+
+    return reviews.filter((review) => {
+      const searchableFields = [
+        review.company.name,
+        review.role.title,
+        review.location,
+        review.term,
+        review.technologies,
+        review.team_name,
+      ]
+        .filter((field): field is string => Boolean(field))
+        .map((field) => field.toLowerCase());
+
+      return searchableFields.some((field) => field.includes(sanitizedQuery));
+    });
+  }, [reviews, searchQuery]);
+  
+  // ===== URL Sync & Filter Effects =====
+  
+  // Helper to check if filter values changed
+  const getFilterValues = () => ({
+    searchQuery,
+    companyFilter,
+    workStyleFilter,
+    sortBy,
+  });
+
+  // Reset to page 1 when filters change (skip on initial mount)
+  const prevFiltersRef = useRef(getFilterValues());
+  const isInitialMountRef = useRef(true);
+
+  useEffect(() => {
+    const currentFilters = getFilterValues();
+
+    // Skip on initial mount
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      prevFiltersRef.current = currentFilters;
+      return;
+    }
+
+    // Check if filters actually changed
+    const filtersChanged =
+      prevFiltersRef.current.searchQuery !== currentFilters.searchQuery ||
+      prevFiltersRef.current.companyFilter !== currentFilters.companyFilter ||
+      prevFiltersRef.current.workStyleFilter !== currentFilters.workStyleFilter ||
+      prevFiltersRef.current.sortBy !== currentFilters.sortBy;
+
+    // Reset page if filters changed and not already on page 1
+    if (filtersChanged && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+
+    prevFiltersRef.current = currentFilters;
+  }, [searchQuery, companyFilter, workStyleFilter, sortBy, currentPage]);
+
+  // Update URL when filters or page change (skip on initial mount to prevent infinite loop)
+  const prevUrlParamsRef = useRef({
+    ...getFilterValues(),
+    currentPage,
+  });
+  const isUrlInitialMountRef = useRef(true);
+
+  useEffect(() => {
+    const currentParams = {
+      ...getFilterValues(),
+      currentPage,
+    };
+
+    // Skip on initial mount
+    if (isUrlInitialMountRef.current) {
+      isUrlInitialMountRef.current = false;
+      prevUrlParamsRef.current = currentParams;
+      return;
+    }
+
+    // Check if URL params actually changed
+    const urlParamsChanged =
+      prevUrlParamsRef.current.searchQuery !== currentParams.searchQuery ||
+      prevUrlParamsRef.current.companyFilter !== currentParams.companyFilter ||
+      prevUrlParamsRef.current.workStyleFilter !== currentParams.workStyleFilter ||
+      prevUrlParamsRef.current.sortBy !== currentParams.sortBy ||
+      prevUrlParamsRef.current.currentPage !== currentParams.currentPage;
+
+    // Update URL only if params changed
+    if (urlParamsChanged) {
+      const params = new URLSearchParams();
+      if (searchQuery) params.set("search", sanitizeText(searchQuery));
+      if (companyFilter) params.set("company", companyFilter);
+      if (workStyleFilter) params.set("work_style", workStyleFilter);
+      if (sortBy && sortBy !== "recent") params.set("sort", sortBy);
+      if (currentPage > 1) params.set("page", currentPage.toString());
+
+      const newUrl = `/reviews${params.toString() ? `?${params.toString()}` : ""}`;
+      router.replace(newUrl, { scroll: false });
+    }
+
+    prevUrlParamsRef.current = currentParams;
+  }, [searchQuery, companyFilter, workStyleFilter, sortBy, currentPage, router]);
+  
+  // ===== Event Handlers =====
+  
   const handleExpandedChange = (reviewId: string, expanded: boolean) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -141,56 +255,7 @@ export default function ReviewsPage() {
       return next;
     });
   };
-  
-  // Filter reviews by search query (client-side for text search)
-  // Sanitize search query to prevent XSS
-  const filteredReviews = useMemo(() => {
-    if (!searchQuery.trim()) return reviews;
-    
-    // Sanitize and limit search query length
-    const sanitizedQuery = sanitizeText(searchQuery).slice(0, 200).toLowerCase();
-    if (!sanitizedQuery) return reviews;
-    
-    return reviews.filter((review) => {
-      const companyName = review.company.name.toLowerCase();
-      const roleName = review.role.title.toLowerCase();
-      const location = review.location?.toLowerCase() || "";
-      const term = review.term?.toLowerCase() || "";
-      const technologies = review.technologies?.toLowerCase() || "";
-      const teamName = review.team_name?.toLowerCase() || "";
-      
-      return (
-        companyName.includes(sanitizedQuery) ||
-        roleName.includes(sanitizedQuery) ||
-        location.includes(sanitizedQuery) ||
-        term.includes(sanitizedQuery) ||
-        technologies.includes(sanitizedQuery) ||
-        teamName.includes(sanitizedQuery)
-      );
-    });
-  }, [reviews, searchQuery]);
-  
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [searchQuery, companyFilter, workStyleFilter, sortBy]);
 
-  // Update URL when filters or page change
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (searchQuery) params.set("search", sanitizeText(searchQuery));
-    if (companyFilter) params.set("company", companyFilter);
-    if (workStyleFilter) params.set("work_style", workStyleFilter);
-    if (sortBy) params.set("sort", sortBy);
-    if (currentPage > 1) params.set("page", currentPage.toString());
-    
-    const newUrl = `/reviews${params.toString() ? `?${params.toString()}` : ""}`;
-    router.replace(newUrl, { scroll: false });
-  }, [searchQuery, companyFilter, workStyleFilter, sortBy, currentPage, router]);
-  
-  // Clear all filters
   const clearFilters = () => {
     setSearchQuery("");
     setCompanyFilter("");
@@ -199,18 +264,18 @@ export default function ReviewsPage() {
     setCurrentPage(1);
   };
 
-  // Calculate pagination
-  const totalPages = Math.ceil(total / REVIEWS_PER_PAGE);
-  const hasNextPage = currentPage < totalPages;
-  const hasPrevPage = currentPage > 1;
-
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  // ===== Computed Values =====
   
+  const totalPages = Math.ceil(total / REVIEWS_PER_PAGE);
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
   const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "recent";
   
   return (
