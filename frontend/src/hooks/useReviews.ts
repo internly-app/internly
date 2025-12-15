@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ReviewWithDetails } from "@/lib/types/database";
 import type { ReviewsQuery, ReviewCreate } from "@/lib/validations/schemas";
 import { useAuth } from "@/components/AuthProvider";
@@ -18,10 +18,18 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
+  
+  // Track if initial auth load has completed to prevent refetch on tab focus
+  const authInitializedRef = useRef(false);
 
   useEffect(() => {
     // Wait for auth to finish loading before fetching reviews
     if (authLoading) return;
+    
+    // Mark auth as initialized after first load - prevents refetch on tab focus
+    if (!authInitializedRef.current) {
+      authInitializedRef.current = true;
+    }
 
     const fetchReviews = async () => {
       setLoading(true);
@@ -37,10 +45,11 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
         if (query.limit) params.set("limit", query.limit.toString());
         if (query.offset) params.set("offset", query.offset.toString());
 
-        // For authenticated users, always fetch fresh data to ensure user_has_liked is accurate
-        // For anonymous users, use cache for performance
+        // Use browser cache for all users - browser will respect Cache-Control headers from API
+        // This prevents unnecessary refetches on tab focus while still allowing fresh data
+        // The API sets appropriate cache headers (60s for authenticated, 300s for anonymous)
         const response = await fetch(`/api/reviews?${params.toString()}`, {
-          cache: user ? 'no-store' : 'default',
+          cache: 'default',
         });
 
         if (!response.ok) {
@@ -79,8 +88,8 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
     query.sort,
     query.limit,
     query.offset,
-    user, // Refetch when user changes (sign in/out)
-    authLoading, // Wait for auth to load
+    user?.id, // Only refetch when user ID changes (sign in/out), not on every user object change
+    // Note: authLoading is NOT in dependencies - we check it with early return to prevent refetch on tab focus
   ]);
 
   return { reviews, total, loading, error };
