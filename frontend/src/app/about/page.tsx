@@ -49,9 +49,6 @@ export default function AboutPage() {
           <h1 className="text-4xl font-bold mb-4 text-foreground">
             What is Internly?
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Real internship reviews from students, for students.
-          </p>
         </motion.div>
 
         {/* What is Internly */}
