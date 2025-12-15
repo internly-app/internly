@@ -128,7 +128,7 @@ export function LocationAutocomplete({
               <button
                 key={location}
                 onClick={() => handleSelect(location)}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors duration-200 first:rounded-t-md last:rounded-b-md"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none cursor-pointer transition-colors duration-200 first:rounded-t-md last:rounded-b-md"
               >
                 {location === "Other" ? (
                   <span className="text-muted-foreground">Other (custom location)</span>
