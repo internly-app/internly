@@ -178,7 +178,7 @@ export function CustomSelect({
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] max-h-60 overflow-y-auto">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
               <button
