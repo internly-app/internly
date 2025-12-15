@@ -4,7 +4,7 @@
  * TypeScript types for Supabase tables matching schema.sql
  */
 
-export type WorkStyle = "onsite" | "hybrid" | "remote";
+export type WorkLocation = "onsite" | "hybrid" | "remote";
 
 export interface Database {
   public: {
@@ -76,7 +76,7 @@ export interface Database {
           location: string;
           term: string;
           duration_months: number | null;
-          work_style: WorkStyle;
+          work_location: WorkLocation;
           team_name: string | null;
           technologies: string | null;
           hardest: string;
@@ -102,7 +102,7 @@ export interface Database {
           location: string;
           term: string;
           duration_months?: number | null;
-          work_style: WorkStyle;
+          work_location: WorkLocation;
           team_name?: string | null;
           technologies?: string | null;
           hardest: string;
@@ -128,7 +128,7 @@ export interface Database {
           location?: string;
           term?: string;
           duration_months?: number | null;
-          work_style?: WorkStyle;
+          work_location?: WorkLocation;
           team_name?: string | null;
           technologies?: string | null;
           hardest?: string;
@@ -238,7 +238,7 @@ export interface CompanyWithStats extends Company {
   max_pay_usd: number | null;
   avg_interview_rounds: number | null;
   common_interview_format: string | null;
-  work_style_breakdown: {
+  work_location_breakdown: {
     onsite: number;
     hybrid: number;
     remote: number;
