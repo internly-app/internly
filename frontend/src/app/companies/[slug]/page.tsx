@@ -28,6 +28,8 @@ import {
 import type { CompanyWithStats, ReviewWithDetails } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
 
+export const dynamic = 'force-dynamic';
+
 // Animation variants - fade in only (no y movement)
 const containerVariants = {
   hidden: { opacity: 0 },

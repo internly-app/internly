@@ -24,6 +24,8 @@ import { TermSelect } from "@/components/TermSelect";
 import { cn } from "@/lib/utils";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
+export const dynamic = 'force-dynamic';
+
 export default function WriteReviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
