@@ -22,8 +22,8 @@ export default function NotFound() {
         <Card>
           <CardContent className="pt-12 pb-12">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.3 }}
             >
               <h1 className="text-6xl font-bold text-foreground mb-4">404</h1>
