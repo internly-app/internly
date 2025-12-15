@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { ChevronDown } from "lucide-react";
+import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 import { cn } from "@/lib/utils";
 
 interface Option {
@@ -69,12 +70,39 @@ export function CustomSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedOption, value]);
 
-  // Filter options based on search (if searchable)
-  const filteredOptions = searchable
-    ? options.filter((option) =>
-        option.label.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : options;
+  // Filter options based on search with fuzzy matching (if searchable)
+  const filteredOptions = useMemo(() => {
+    if (!searchable) return options;
+    
+    if (!searchQuery.trim()) return options;
+
+    const query = searchQuery.toLowerCase().trim();
+    const optionsWithScores = options
+      .map((option) => {
+        const lowerLabel = option.label.toLowerCase();
+        const exactMatch = lowerLabel.includes(query);
+        const fuzzyScore = fuzzyMatch(query, lowerLabel);
+        
+        let score = 0;
+        if (exactMatch) {
+          score = 1.0;
+        } else if (fuzzyScore > 0) {
+          score = fuzzyScore;
+        }
+        
+        return { option, score };
+      })
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => {
+        if (Math.abs(a.score - b.score) > 0.01) {
+          return b.score - a.score;
+        }
+        return a.option.label.localeCompare(b.option.label);
+      })
+      .map(({ option }) => option);
+
+    return optionsWithScores;
+  }, [searchable, options, searchQuery]);
 
   const handleSelect = (optionValue: string) => {
     onChange(optionValue);

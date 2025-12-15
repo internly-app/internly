@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 
 // Comprehensive list of common technologies
 const TECHNOLOGY_OPTIONS = [
@@ -73,12 +74,40 @@ export function TechnologyAutocomplete({
     }
   }, [value]);
 
-  // Filter suggestions based on input (exclude already selected)
-  const filteredOptions = TECHNOLOGY_OPTIONS.filter(
-    (tech) =>
-      !selectedTechs.includes(tech) &&
-      (inputValue === "" || tech.toLowerCase().includes(inputValue.toLowerCase()))
-  );
+  // Filter suggestions based on input with fuzzy matching (exclude already selected)
+  const filteredOptions = useMemo(() => {
+    if (inputValue === "") {
+      return TECHNOLOGY_OPTIONS.filter(tech => !selectedTechs.includes(tech)).slice(0, 25);
+    }
+
+    const query = inputValue.toLowerCase().trim();
+    const optionsWithScores = TECHNOLOGY_OPTIONS
+      .filter(tech => !selectedTechs.includes(tech))
+      .map((tech) => {
+        const lowerTech = tech.toLowerCase();
+        const exactMatch = lowerTech.includes(query);
+        const fuzzyScore = fuzzyMatch(query, lowerTech);
+        
+        let score = 0;
+        if (exactMatch) {
+          score = 1.0;
+        } else if (fuzzyScore > 0) {
+          score = fuzzyScore;
+        }
+        
+        return { tech, score };
+      })
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => {
+        if (Math.abs(a.score - b.score) > 0.01) {
+          return b.score - a.score;
+        }
+        return a.tech.localeCompare(b.tech);
+      })
+      .map(({ tech }) => tech);
+
+    return optionsWithScores.slice(0, 25); // Limit to 25 results
+  }, [inputValue, selectedTechs]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

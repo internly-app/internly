@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 
 // Comprehensive list of popular companies (big tech, medium companies, popular startups)
 const POPULAR_COMPANIES = [
@@ -173,10 +174,37 @@ export function CompanyAutocomplete({
     fetchAndMergeCompanies();
   }, [value]);
 
-  // Filter companies based on input (like TechnologyAutocomplete)
-  const filteredCompanies = companies.filter((companyName) =>
-    companyName.toLowerCase().includes(inputValue.toLowerCase())
-  );
+  // Filter companies based on input with fuzzy matching
+  const filteredCompanies = useMemo(() => {
+    if (!inputValue.trim()) return companies.slice(0, 25); // Show top 25 when empty
+
+    const query = inputValue.toLowerCase().trim();
+    const companiesWithScores = companies
+      .map((companyName) => {
+        const lowerName = companyName.toLowerCase();
+        const exactMatch = lowerName.includes(query);
+        const fuzzyScore = fuzzyMatch(query, lowerName);
+        
+        let score = 0;
+        if (exactMatch) {
+          score = 1.0;
+        } else if (fuzzyScore > 0) {
+          score = fuzzyScore;
+        }
+        
+        return { companyName, score };
+      })
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => {
+        if (Math.abs(a.score - b.score) > 0.01) {
+          return b.score - a.score;
+        }
+        return a.companyName.localeCompare(b.companyName);
+      })
+      .map(({ companyName }) => companyName);
+
+    return companiesWithScores.slice(0, 25); // Limit to 25 results
+  }, [companies, inputValue]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

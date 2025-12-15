@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "@/components/ui/input";
+import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 import { cn } from "@/lib/utils";
 
 const COMMON_LOCATIONS = [
@@ -70,10 +71,37 @@ export function LocationAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter locations based on search
-  const filteredLocations = COMMON_LOCATIONS.filter(location =>
-    location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter locations based on search with fuzzy matching
+  const filteredLocations = useMemo(() => {
+    if (!searchQuery.trim()) return COMMON_LOCATIONS;
+
+    const query = searchQuery.toLowerCase().trim();
+    const locationsWithScores = COMMON_LOCATIONS
+      .map((location) => {
+        const lowerLocation = location.toLowerCase();
+        const exactMatch = lowerLocation.includes(query);
+        const fuzzyScore = fuzzyMatch(query, lowerLocation);
+        
+        let score = 0;
+        if (exactMatch) {
+          score = 1.0;
+        } else if (fuzzyScore > 0) {
+          score = fuzzyScore;
+        }
+        
+        return { location, score };
+      })
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => {
+        if (Math.abs(a.score - b.score) > 0.01) {
+          return b.score - a.score;
+        }
+        return a.location.localeCompare(b.location);
+      })
+      .map(({ location }) => location);
+
+    return locationsWithScores;
+  }, [searchQuery]);
 
   const handleSelect = (location: string) => {
     if (location === "Other") {

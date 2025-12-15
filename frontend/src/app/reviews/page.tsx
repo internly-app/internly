@@ -16,6 +16,8 @@ import { CustomSelect } from "@/components/CustomSelect";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReviews } from "@/hooks/useReviews";
 import { sanitizeText } from "@/lib/security/content-filter";
+import { useDebounce } from "@/hooks/useDebounce";
+import { fuzzyMatch, fuzzyMatchMultiple } from "@/lib/utils/fuzzy-match";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
 const REVIEWS_PER_PAGE = 15;
@@ -37,6 +39,9 @@ export default function ReviewsPage() {
     const page = parseInt(searchParams.get("page") || "1", 10);
     return page > 0 ? page : 1;
   });
+
+  // Debounce search query to reduce unnecessary filtering (300ms delay)
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Companies list for filter dropdown
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
@@ -74,8 +79,8 @@ export default function ReviewsPage() {
       sort: sortBy,
     };
 
-    // Search mode: fetch all reviews for client-side filtering
-    if (searchQuery.trim()) {
+    // Search mode: fetch all reviews for client-side filtering (use debounced query)
+    if (debouncedSearchQuery.trim()) {
       params.limit = 1000;
       params.offset = 0;
     } else {
@@ -96,7 +101,7 @@ export default function ReviewsPage() {
     }
 
     return params;
-  }, [companyFilter, workStyleFilter, sortBy, currentPage, searchQuery]);
+  }, [companyFilter, workStyleFilter, sortBy, currentPage, debouncedSearchQuery]);
 
   const { reviews: fetchedReviews, total, loading, error } = useReviews(queryParams);
   
@@ -136,34 +141,82 @@ export default function ReviewsPage() {
 
   // ===== Filtering & Search =====
   
-  // Client-side search filtering (sanitized for security)
+  // Enhanced search with fuzzy matching and debouncing
   const filteredReviews = useMemo(() => {
-    if (!searchQuery.trim()) return reviews;
+    if (!debouncedSearchQuery.trim()) return reviews;
 
-    const sanitizedQuery = sanitizeText(searchQuery).slice(0, 200).toLowerCase();
+    const sanitizedQuery = sanitizeText(debouncedSearchQuery).slice(0, 200).trim();
     if (!sanitizedQuery) return reviews;
 
-    return reviews.filter((review) => {
-      const searchableFields = [
-        review.company.name,
-        review.role.title,
-        review.location,
-        review.term,
-        review.technologies,
-        review.team_name,
-      ]
-        .filter((field): field is string => Boolean(field))
-        .map((field) => field.toLowerCase());
+    // Split query into words for better matching
+    const queryWords = sanitizedQuery.toLowerCase().split(/\s+/).filter(word => word.length > 0);
 
-      return searchableFields.some((field) => field.includes(sanitizedQuery));
-    });
-  }, [reviews, searchQuery]);
+    // Score and filter reviews using fuzzy matching
+    const reviewsWithScores = reviews
+      .map((review) => {
+        // Build searchable text array
+        const searchableTexts = [
+          review.company.name,
+          review.role.title,
+          review.location,
+          review.term,
+          review.technologies,
+          review.team_name,
+        ].filter((field): field is string => Boolean(field));
+
+        // Calculate match scores
+        const exactMatch = searchableTexts.some(text =>
+          text.toLowerCase().includes(sanitizedQuery.toLowerCase())
+        );
+
+        // For multi-word queries, check if all words are present
+        const allWordsMatch = queryWords.every(word =>
+          searchableTexts.some(text => text.toLowerCase().includes(word))
+        );
+
+        // Fuzzy match score
+        const fuzzyScore = fuzzyMatchMultiple(sanitizedQuery, searchableTexts);
+
+        // Calculate final score
+        let score = 0;
+        if (exactMatch) {
+          score = 1.0;
+        } else if (allWordsMatch) {
+          score = 0.8;
+        } else if (fuzzyScore > 0) {
+          score = fuzzyScore;
+        }
+
+        // Bonus for company name matches
+        const companyMatch = review.company.name.toLowerCase().includes(sanitizedQuery.toLowerCase());
+        if (companyMatch) {
+          score = Math.max(score, 0.9);
+        }
+
+        return { review, score };
+      })
+      .filter(({ score }) => score > 0) // Only include reviews with some match
+      .sort((a, b) => {
+        // Sort by score (highest first)
+        if (Math.abs(a.score - b.score) > 0.01) {
+          return b.score - a.score;
+        }
+        // Then by created date (most recent first) or likes (depending on sortBy)
+        if (sortBy === "likes") {
+          return (b.review.like_count || 0) - (a.review.like_count || 0);
+        }
+        return new Date(b.review.created_at).getTime() - new Date(a.review.created_at).getTime();
+      })
+      .map(({ review }) => review);
+
+    return reviewsWithScores;
+  }, [reviews, debouncedSearchQuery, sortBy]);
   
   // ===== URL Sync & Filter Effects =====
   
   // Helper to check if filter values changed
   const getFilterValues = () => ({
-    searchQuery,
+    searchQuery: debouncedSearchQuery,
     companyFilter,
     workStyleFilter,
     sortBy,
@@ -196,7 +249,7 @@ export default function ReviewsPage() {
     }
 
     prevFiltersRef.current = currentFilters;
-  }, [searchQuery, companyFilter, workStyleFilter, sortBy, currentPage]);
+  }, [debouncedSearchQuery, companyFilter, workStyleFilter, sortBy, currentPage]);
 
   // Update URL when filters or page change (skip on initial mount to prevent infinite loop)
   const prevUrlParamsRef = useRef({
@@ -229,7 +282,7 @@ export default function ReviewsPage() {
     // Update URL only if params changed
     if (urlParamsChanged) {
       const params = new URLSearchParams();
-      if (searchQuery) params.set("search", sanitizeText(searchQuery));
+      if (debouncedSearchQuery) params.set("search", sanitizeText(debouncedSearchQuery));
       if (companyFilter) params.set("company", companyFilter);
       if (workStyleFilter) params.set("work_style", workStyleFilter);
       if (sortBy && sortBy !== "recent") params.set("sort", sortBy);
@@ -240,7 +293,7 @@ export default function ReviewsPage() {
     }
 
     prevUrlParamsRef.current = currentParams;
-  }, [searchQuery, companyFilter, workStyleFilter, sortBy, currentPage, router]);
+  }, [debouncedSearchQuery, companyFilter, workStyleFilter, sortBy, currentPage, router]);
   
   // ===== Event Handlers =====
   
@@ -417,11 +470,11 @@ export default function ReviewsPage() {
             ) : (
               <>
                 Showing <span className="font-semibold text-foreground">
-                  {searchQuery ? filteredReviews.length : (currentPage - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(currentPage * REVIEWS_PER_PAGE, total)}
+                  {debouncedSearchQuery ? filteredReviews.length : (currentPage - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(currentPage * REVIEWS_PER_PAGE, total)}
                 </span>{" "}
                 of <span className="font-semibold text-foreground">{total}</span>{" "}
                 {total === 1 ? "review" : "reviews"}
-                {searchQuery && filteredReviews.length < total && ` (${total} total)`}
+                {debouncedSearchQuery && filteredReviews.length < total && ` (${total} total)`}
               </>
             )}
           </p>
@@ -484,7 +537,7 @@ export default function ReviewsPage() {
             </div>
 
             {/* Pagination Controls */}
-            {!searchQuery && totalPages > 1 && (
+            {!debouncedSearchQuery && totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 max-w-5xl mx-auto">
                 <Button
                   variant="outline"
