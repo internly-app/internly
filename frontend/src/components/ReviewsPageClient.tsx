@@ -41,7 +41,7 @@ export function ReviewsPageClient({
   const searchParams = useSearchParams();
 
   // ===== State Management =====
-  
+
   // Filter states (initialized from props/URL)
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || initialSearchQuery
@@ -82,7 +82,7 @@ export function ReviewsPageClient({
   }, [initialReviews, initialTotal]);
 
   // ===== Data Fetching =====
-  
+
   // Fetch companies for filter dropdown
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -102,7 +102,7 @@ export function ReviewsPageClient({
   }, []);
 
   // ===== Optimistic UI Updates =====
-  
+
   // Load optimistic review from sessionStorage (set after review creation)
   useEffect(() => {
     const newlyCreatedReviewStr = sessionStorage.getItem("newlyCreatedReview");
@@ -128,15 +128,15 @@ export function ReviewsPageClient({
   // Combine reviews with optimistic review
   const reviewsWithOptimistic = useMemo(() => {
     if (!optimisticReview) return reviews;
-    
+
     const exists = reviews.some((r) => r.id === optimisticReview.id);
     if (exists) return reviews;
-    
+
     return [optimisticReview, ...reviews];
   }, [reviews, optimisticReview]);
 
   // ===== Filtering & Search =====
-  
+
   // Filter by company and work style (server-side filters)
   const filteredByFilters = useMemo(() => {
     let filtered = reviewsWithOptimistic;
@@ -238,7 +238,7 @@ export function ReviewsPageClient({
       // When searching, show all filtered results (no pagination)
       return filteredReviews;
     }
-    
+
     // Otherwise, paginate
     const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
     const endIndex = startIndex + REVIEWS_PER_PAGE;
@@ -251,7 +251,7 @@ export function ReviewsPageClient({
   const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "recent";
 
   // ===== URL Sync & Filter Effects =====
-  
+
   // Reset to page 1 when filters change (skip on initial mount)
   const prevFiltersRef = useRef({ searchQuery: debouncedSearchQuery, companyFilter, workStyleFilter, sortBy });
   const isFiltersInitialMountRef = useRef(true);
@@ -318,9 +318,9 @@ export function ReviewsPageClient({
 
     prevUrlParamsRef.current = currentParams;
   }, [debouncedSearchQuery, companyFilter, workStyleFilter, sortBy, currentPage, router]);
-  
+
   // ===== Event Handlers =====
-  
+
   const handleExpandedChange = (reviewId: string, expanded: boolean) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -347,7 +347,7 @@ export function ReviewsPageClient({
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
-  
+
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <motion.div 
@@ -363,7 +363,7 @@ export function ReviewsPageClient({
             Discover real internship experiences from students. Filter by company, role, location, and more.
           </p>
         </div>
-        
+
         {/* Search and Filters */}
         <Card className="mb-8 max-w-5xl mx-auto">
           <CardHeader>
@@ -399,7 +399,7 @@ export function ReviewsPageClient({
                   )}
                 </div>
               </Field>
-              
+
               {/* Filters Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Company Filter */}
@@ -425,7 +425,7 @@ export function ReviewsPageClient({
                     searchable={false}
                   />
                 </Field>
-                
+
                 {/* Work Style Filter */}
                 <Field>
                   <FieldLabel htmlFor="work_style">Work Style</FieldLabel>
@@ -443,7 +443,7 @@ export function ReviewsPageClient({
                     searchable={false}
                   />
                 </Field>
-                
+
                 {/* Sort */}
                 <Field>
                   <FieldLabel htmlFor="sort">Sort By</FieldLabel>
@@ -481,8 +481,8 @@ export function ReviewsPageClient({
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-5xl mx-auto">
           <p className="text-sm text-muted-foreground">
             Showing <span className="font-semibold text-foreground">
-              {debouncedSearchQuery 
-                ? filteredReviews.length 
+              {debouncedSearchQuery
+                ? filteredReviews.length
                 : (currentPage - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(currentPage * REVIEWS_PER_PAGE, filteredReviews.length)}
             </span>{" "}
             of <span className="font-semibold text-foreground">{filteredReviews.length}</span>{" "}
@@ -490,7 +490,7 @@ export function ReviewsPageClient({
             {debouncedSearchQuery && filteredReviews.length < total && ` (${total} total)`}
           </p>
         </div>
-        
+
         {/* No Results */}
         {paginatedReviews.length === 0 && (
           <Card className="max-w-5xl mx-auto">
@@ -539,7 +539,7 @@ export function ReviewsPageClient({
                   <ChevronLeft className="size-4" />
                   Previous
                 </Button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum: number;
@@ -552,7 +552,7 @@ export function ReviewsPageClient({
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
-                    
+
                     return (
                       <Button
                         key={pageNum}
@@ -566,7 +566,7 @@ export function ReviewsPageClient({
                     );
                   })}
                 </div>
-                
+
                 <Button
                   variant="outline"
                   size="sm"

@@ -98,7 +98,7 @@ export function CompanyLogo({
   // Reset error states ONLY when company name or logoUrl actually changes (not on every render)
   // Use ref to track previous values to prevent unnecessary resets
   const prevPropsRef = useRef({ companyName, logoUrl });
-  
+
   useEffect(() => {
     const prev = prevPropsRef.current;
     // Only reset if props actually changed (not just re-render)
@@ -121,7 +121,7 @@ export function CompanyLogo({
         const img = imgRef.current;
         // Only timeout if: loading state is still true AND (no img element OR img hasn't completed loading)
         const isStillLoading = logoDevLoading && (!img || (!img.complete && img.naturalWidth === 0));
-        
+
         if (isStillLoading) {
           // Only log timeout warnings in development
           if (process.env.NODE_ENV === 'development') {

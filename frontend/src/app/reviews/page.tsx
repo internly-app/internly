@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
 interface PageProps {
-  searchParams: Promise<{ 
+  searchParams: Promise<{
     search?: string;
     company?: string;
     work_style?: string;
@@ -74,8 +74,8 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
     return (
       <>
         <Navigation />
-        <ReviewsPageClient 
-          initialReviews={[]} 
+        <ReviewsPageClient
+          initialReviews={[]}
           initialTotal={0}
           initialSearchQuery={searchQuery}
           initialCompanyFilter={companyFilter}
@@ -112,8 +112,8 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   return (
     <>
       <Navigation />
-      <ReviewsPageClient 
-        initialReviews={reviewsWithLikeStatus} 
+      <ReviewsPageClient
+        initialReviews={reviewsWithLikeStatus}
         initialTotal={count || 0}
         initialSearchQuery={searchQuery}
         initialCompanyFilter={companyFilter}
