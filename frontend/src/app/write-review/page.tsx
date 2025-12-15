@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select } from "@/components/ui/select";
+import { CustomSelect } from "@/components/CustomSelect";
 import {
   Card,
   CardContent,
@@ -719,24 +719,28 @@ export default function WriteReviewPage() {
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="wage_currency">Currency <span className="text-red-500">*</span></Label>
-                    <Select
+                    <CustomSelect
                       id="wage_currency"
                       value={formData.wage_currency}
-                      onChange={(e) =>
-                        setFormData({ ...formData, wage_currency: e.target.value })
+                      onChange={(value) =>
+                        setFormData({ ...formData, wage_currency: value })
                       }
-                    >
-                      <option value="CAD">CAD - Canadian Dollar</option>
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                      <option value="GBP">GBP - British Pound</option>
-                      <option value="AUD">AUD - Australian Dollar</option>
-                      <option value="JPY">JPY - Japanese Yen</option>
-                      <option value="CHF">CHF - Swiss Franc</option>
-                      <option value="CNY">CNY - Chinese Yuan</option>
-                      <option value="INR">INR - Indian Rupee</option>
-                      <option value="SGD">SGD - Singapore Dollar</option>
-                    </Select>
+                      options={[
+                        { value: "CAD", label: "CAD - Canadian Dollar" },
+                        { value: "USD", label: "USD - US Dollar" },
+                        { value: "EUR", label: "EUR - Euro" },
+                        { value: "GBP", label: "GBP - British Pound" },
+                        { value: "AUD", label: "AUD - Australian Dollar" },
+                        { value: "JPY", label: "JPY - Japanese Yen" },
+                        { value: "CHF", label: "CHF - Swiss Franc" },
+                        { value: "CNY", label: "CNY - Chinese Yuan" },
+                        { value: "INR", label: "INR - Indian Rupee" },
+                        { value: "SGD", label: "SGD - Singapore Dollar" },
+                      ]}
+                      placeholder="Select currency..."
+                      required
+                      searchable={false}
+                    />
                   </div>
 
                   <div className="grid gap-2">
