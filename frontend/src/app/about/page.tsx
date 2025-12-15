@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowRight, Search, Edit, Users, Building2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,12 @@ export default function AboutPage() {
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="max-w-3xl mx-auto px-6 py-24">
+      <motion.div 
+        className="max-w-3xl mx-auto px-6 py-24"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 text-foreground">
@@ -129,7 +135,7 @@ export default function AboutPage() {
             </Button>
           </div>
         </div>
-      </div>
+      </motion.div>
       <Footer />
     </main>
   );

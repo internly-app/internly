@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
   CardAction,
@@ -33,6 +34,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
   const [isExpanded, setIsExpanded] = useState(expanded ?? false);
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   // Sync expanded state if controlled
   useEffect(() => {
     if (isControlled) {
@@ -130,17 +132,16 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
       });
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card expansion when clicking delete
+    setShowDeleteModal(true);
+  };
 
+  const handleDeleteConfirm = async () => {
     if (isDeleting) return;
 
-    // Confirm deletion
-    if (!window.confirm("Are you sure you want to delete this review? This action cannot be undone.")) {
-      return;
-    }
-
     setIsDeleting(true);
+    setShowDeleteModal(false);
 
     try {
       const response = await fetch(`/api/reviews/${review.id}`, {
@@ -162,6 +163,10 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
     }
   };
 
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+  };
+
   const truncateText = (text: string | null | undefined, maxLength: number) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
@@ -178,6 +183,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
   // Compact view
   if (compact) {
   return (
+    <>
       <Card
         className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500"
         onClick={toggleExpanded}
@@ -194,7 +200,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
       >
         <CardHeader className="pb-3 px-4">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* Company Logo */}
               <CompanyLogo
                 companyName={review.company.name}
@@ -218,7 +224,11 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer group"
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer group ${
+                  likeData.hasLiked 
+                    ? "text-red-500" 
+                    : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                }`}
                 aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
                 aria-pressed={likeData.hasLiked}
               >
@@ -231,7 +241,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={`transition-all duration-200 group-hover:scale-110 ${likeData.hasLiked ? "text-red-500" : "group-hover:text-red-400"}`}
+                  className="transition-all duration-200"
                   aria-hidden="true"
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -250,7 +260,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               )}
               {onDelete && (
                 <button
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   disabled={isDeleting}
                   className={`p-1.5 rounded-md transition-all disabled:opacity-50 cursor-pointer ${
                     isDeleting 
@@ -402,11 +412,62 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           </CardContent>
         )}
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={handleDeleteCancel}
+            />
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Card className="max-w-md w-full">
+                <CardHeader>
+                  <CardTitle>Delete Review</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Are you sure you want to delete this review? This action cannot be undone.
+                  </p>
+                </CardContent>
+                <CardFooter className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={handleDeleteCancel}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDeleteConfirm}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
     );
   }
 
   // Full view (original implementation for detail pages)
   return (
+    <>
     <Card>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
@@ -550,7 +611,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               disabled={isDeleting}
               className="gap-2 px-3 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all duration-200 disabled:opacity-50 cursor-pointer"
               aria-label="Delete this review"
@@ -566,7 +627,11 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             size="sm"
             onClick={handleLike}
             disabled={isLiking}
-            className="gap-0 px-4 hover:bg-muted rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 cursor-pointer group"
+            className={`gap-0 px-4 rounded-full transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer group ${
+              likeData.hasLiked 
+                ? "text-red-500" 
+                : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+            }`}
             aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
             aria-pressed={likeData.hasLiked}
           >
@@ -579,7 +644,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={`transition-all duration-200 flex-shrink-0 group-hover:scale-125 ${likeData.hasLiked ? "text-red-500" : "group-hover:text-red-400 group-hover:fill-red-400/20"}`}
+              className="transition-all duration-200 flex-shrink-0"
               aria-hidden="true"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -589,5 +654,55 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         </div>
       </CardFooter>
     </Card>
+
+    {/* Delete Confirmation Modal */}
+    <AnimatePresence>
+      {showDeleteModal && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={handleDeleteCancel}
+          />
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Card className="max-w-md w-full">
+              <CardHeader>
+                <CardTitle>Delete Review</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Are you sure you want to delete this review? This action cannot be undone.
+                </p>
+              </CardContent>
+              <CardFooter className="flex justify-end gap-2">
+                <Button variant="outline" onClick={handleDeleteCancel}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
