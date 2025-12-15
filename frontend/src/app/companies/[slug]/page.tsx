@@ -248,14 +248,14 @@ export default function CompanyDetailPage() {
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Logo and Basic Info */}
-                <div className="flex items-start gap-4 flex-1">
+                <div className="flex items-center gap-4 flex-1">
                   <CompanyLogo
                     companyName={company.name}
                     logoUrl={company.logo_url}
                     size={80}
                   />
                   <div className="flex-1">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
                           {company.name}

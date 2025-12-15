@@ -206,15 +206,20 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Filter out companies with no reviews - they're not useful to browse
+    const companiesWithReviews = companiesWithStats.filter(
+      (c) => c.review_count > 0
+    );
+
     // Sort by review count (most reviewed first)
-    companiesWithStats.sort((a, b) => b.review_count - a.review_count);
+    companiesWithReviews.sort((a, b) => b.review_count - a.review_count);
 
     // Add cache headers for public anonymous requests
     const cacheControl = user
       ? 'private, max-age=60, stale-while-revalidate=120' // Authenticated: reduce refetch on tab return
       : 'public, s-maxage=300, stale-while-revalidate=600'; // Anonymous: keep 5min cache
 
-    return NextResponse.json(companiesWithStats, {
+    return NextResponse.json(companiesWithReviews, {
       headers: {
         'Cache-Control': cacheControl,
       },

@@ -219,8 +219,9 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               </div>
             </div>
 
-            {/* Top Right: Like & Delete buttons */}
+            {/* Top Right: Date, Like & Delete buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
               <button
                 onClick={handleLike}
                 disabled={isLiking}
@@ -297,18 +298,17 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0 pb-3 px-4">
-          {/* Truncated Best Part */}
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {truncateText(review.best, 150)}
-          </p>
-        </CardContent>
+        {/* Preview text - only show when collapsed */}
+        {!isExpanded && (
+          <CardContent className="pt-0 pb-3 px-4">
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {truncateText(review.best, 150)}
+            </p>
+          </CardContent>
+        )}
 
-        <CardFooter className="flex items-center justify-between pt-0 pb-3 px-4">
-          {/* Left side: Date */}
-          <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
-          
-          {/* Right side: Expand/Collapse indicator */}
+        <CardFooter className="flex items-center justify-end pt-0 pb-3 px-4">
+          {/* Expand/Collapse indicator */}
           <div className="text-muted-foreground" aria-hidden="true">
             {isExpanded ? (
               <ChevronUp className="size-4" />
@@ -486,12 +486,15 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             </div>
           </div>
 
-          {/* Term Badge */}
-          <CardAction>
-            <Badge variant="outline" className="h-fit">
-              {review.term}
-            </Badge>
-          </CardAction>
+          {/* Top Right: Date & Term Badge */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
+            <CardAction>
+              <Badge variant="outline" className="h-fit">
+                {review.term}
+              </Badge>
+            </CardAction>
+          </div>
         </div>
 
         {/* Meta info badges */}

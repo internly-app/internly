@@ -13,11 +13,13 @@ import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
 import { useReviews } from "@/hooks/useReviews";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, X, Filter } from "lucide-react";
+import { Search, X, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
 export const dynamic = 'force-dynamic';
+
+const REVIEWS_PER_PAGE = 15;
 
 export default function ReviewsPage() {
   const router = useRouter();
@@ -30,6 +32,10 @@ export default function ReviewsPage() {
   const [sortBy, setSortBy] = useState<"likes" | "recent">(
     (searchParams.get("sort") as "likes" | "recent") || "recent"
   );
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    return page > 0 ? page : 1;
+  });
   
   // Companies list for filter
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
@@ -54,11 +60,22 @@ export default function ReviewsPage() {
   }, []);
   
   // Build query params with validation
+  // When searching, fetch all reviews for client-side filtering
+  // Otherwise, use pagination
   const queryParams = useMemo(() => {
     const params: Record<string, string | number> = {
       sort: sortBy,
-      limit: 20,
     };
+    
+    // If there's a search query, fetch all reviews (high limit for client-side filtering)
+    // Otherwise, use pagination
+    if (searchQuery.trim()) {
+      params.limit = 1000; // High limit to fetch all reviews for search
+      params.offset = 0;
+    } else {
+      params.limit = REVIEWS_PER_PAGE;
+      params.offset = (currentPage - 1) * REVIEWS_PER_PAGE;
+    }
     
     // Validate company_id is a valid UUID format
     if (companyFilter && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyFilter)) {
@@ -71,7 +88,7 @@ export default function ReviewsPage() {
     }
     
     return params;
-  }, [companyFilter, workStyleFilter, sortBy]);
+  }, [companyFilter, workStyleFilter, sortBy, currentPage, searchQuery]);
   
   const { reviews: fetchedReviews, total, loading, error } = useReviews(queryParams);
   const [optimisticReview, setOptimisticReview] = useState<ReviewWithDetails | null>(null);
@@ -153,17 +170,25 @@ export default function ReviewsPage() {
     });
   }, [reviews, searchQuery]);
   
-  // Update URL when filters change
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchQuery, companyFilter, workStyleFilter, sortBy]);
+
+  // Update URL when filters or page change
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("search", sanitizeText(searchQuery));
     if (companyFilter) params.set("company", companyFilter);
     if (workStyleFilter) params.set("work_style", workStyleFilter);
     if (sortBy) params.set("sort", sortBy);
+    if (currentPage > 1) params.set("page", currentPage.toString());
     
     const newUrl = `/reviews${params.toString() ? `?${params.toString()}` : ""}`;
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, companyFilter, workStyleFilter, sortBy, router]);
+  }, [searchQuery, companyFilter, workStyleFilter, sortBy, currentPage, router]);
   
   // Clear all filters
   const clearFilters = () => {
@@ -171,6 +196,19 @@ export default function ReviewsPage() {
     setCompanyFilter("");
     setWorkStyleFilter("");
     setSortBy("recent");
+    setCurrentPage(1);
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(total / REVIEWS_PER_PAGE);
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
   
   const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "recent";
@@ -306,9 +344,12 @@ export default function ReviewsPage() {
               "Loading..."
             ) : (
               <>
-                Showing <span className="font-semibold text-foreground">{filteredReviews.length}</span>{" "}
-                {filteredReviews.length === 1 ? "review" : "reviews"}
-                {total > filteredReviews.length && ` of ${total} total`}
+                Showing <span className="font-semibold text-foreground">
+                  {searchQuery ? filteredReviews.length : (currentPage - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(currentPage * REVIEWS_PER_PAGE, total)}
+                </span>{" "}
+                of <span className="font-semibold text-foreground">{total}</span>{" "}
+                {total === 1 ? "review" : "reviews"}
+                {searchQuery && filteredReviews.length < total && ` (${total} total)`}
               </>
             )}
           </p>
@@ -357,17 +398,74 @@ export default function ReviewsPage() {
 
         {/* Reviews Grid */}
         {!loading && !error && filteredReviews.length > 0 && (
-          <div className="grid gap-4 max-w-5xl mx-auto">
-            {filteredReviews.map((review) => (
-              <ReviewCard
-                key={review.id}
-                review={review}
-                compact={true}
-                expanded={expandedIds.has(review.id)}
-                onExpandedChange={handleExpandedChange}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-4 max-w-5xl mx-auto mb-8">
+              {filteredReviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  compact={true}
+                  expanded={expandedIds.has(review.id)}
+                  onExpandedChange={handleExpandedChange}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {!searchQuery && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 max-w-5xl mx-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!hasPrevPage || loading}
+                  className="gap-2"
+                >
+                  <ChevronLeft className="size-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        disabled={loading}
+                        className="min-w-[40px]"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!hasNextPage || loading}
+                  className="gap-2"
+                >
+                  Next
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </motion.div>
       <Footer />

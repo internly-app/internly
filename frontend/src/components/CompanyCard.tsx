@@ -109,8 +109,8 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
     <Link href={`/companies/${company.slug}`}>
       <Card className="transition-all duration-200 hover:shadow-md hover:border-zinc-500 cursor-pointer h-full">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* Company Logo */}
               <CompanyLogo
                 companyName={company.name}
@@ -139,7 +139,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
               disabled={isSaving}
               className={`group h-8 w-8 p-0 transition-colors ${
                 isSaved 
-                  ? "text-primary" 
+                  ? "text-primary hover:bg-zinc-700/50" 
                   : "text-muted-foreground hover:text-foreground hover:bg-zinc-700/50"
               }`}
               aria-label={isSaved ? "Unsave company" : "Save company"}
