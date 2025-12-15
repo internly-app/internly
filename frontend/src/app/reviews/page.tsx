@@ -52,23 +52,10 @@ export default function ReviewsPage() {
     return page > 0 ? page : 1;
   });
 
-  // Debounce search query to reduce unnecessary filtering (300ms delay)
-  // On initial mount, use searchQuery directly to avoid delay causing queryParams to change
-  const isInitialMountRef = useRef(true);
-  const debouncedSearchQuery = useDebounce(
-    searchQuery, 
-    isInitialMountRef.current ? 0 : 300
-  );
-  
-  // Mark initial mount as complete after first render
-  useEffect(() => {
-    if (isInitialMountRef.current) {
-      // Use setTimeout to ensure this runs after the first render cycle
-      setTimeout(() => {
-        isInitialMountRef.current = false;
-      }, 100);
-    }
-  }, []);
+  // Debounce search query for client-side filtering only (300ms delay)
+  // Note: We don't use debouncedSearchQuery in queryParams to prevent infinite loops
+  // Instead, we always fetch paginated data and filter client-side
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Companies list for filter dropdown
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
@@ -99,20 +86,17 @@ export default function ReviewsPage() {
   }, []);
 
   // Build query params for reviews API
-  // When searching, fetch all reviews for client-side filtering
-  // Otherwise, use pagination
-  // Use searchQuery directly on initial mount to prevent queryParams from changing after debounce
+  // IMPORTANT: Never include debouncedSearchQuery in dependencies to prevent infinite loops
+  // When searching, fetch all reviews (limit=1000) for client-side filtering
+  // Otherwise, use pagination (limit=15 per page)
   const queryParams = useMemo(() => {
     const params: Record<string, string | number> = {
       sort: sortBy,
     };
 
-    // On initial mount, use searchQuery directly to avoid queryParams changing after 300ms
-    // After initial mount, use debouncedSearchQuery to reduce API calls while typing
-    const searchToUse = isInitialMountRef.current ? searchQuery : debouncedSearchQuery;
-
-    // Search mode: fetch all reviews for client-side filtering
-    if (searchToUse.trim()) {
+    // If user is actively searching, fetch all reviews for client-side filtering
+    // Otherwise, use pagination
+    if (searchQuery.trim()) {
       params.limit = 1000;
       params.offset = 0;
     } else {
@@ -133,7 +117,7 @@ export default function ReviewsPage() {
     }
 
     return params;
-  }, [companyFilter, workStyleFilter, sortBy, currentPage, searchQuery, debouncedSearchQuery]);
+  }, [companyFilter, workStyleFilter, sortBy, currentPage, searchQuery]);
 
   const { reviews: fetchedReviews, total, loading, error } = useReviews(queryParams);
   
