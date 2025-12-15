@@ -62,6 +62,7 @@ export function CompanyLogo({
   const [imageError, setImageError] = useState(false);
   const [logoDevError, setLogoDevError] = useState(false);
   const [logoDevLoading, setLogoDevLoading] = useState(true);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   // Generate domain from company name for Logo.dev API
   const getDomain = (name: string): string => {
@@ -110,22 +111,30 @@ export function CompanyLogo({
   }, [companyName, logoUrl]);
 
   // Add timeout for Logo.dev loading - if it takes too long, show initial
+  // Increased timeout to account for lazy loading and network delays when many logos load at once
   useEffect(() => {
-    if (!isValidLogoUrl && !imageError && !logoDevError) {
+    if (!isValidLogoUrl && !imageError && !logoDevError && logoDevLoading) {
+      // Give browser time to start loading (lazy loading can delay start)
+      // Also accounts for network congestion when many logos load simultaneously on page refresh
       const timeout = setTimeout(() => {
-        if (logoDevLoading) {
+        // Check if image is still loading (not loaded and not errored)
+        const img = imgRef.current;
+        // Only timeout if: loading state is still true AND (no img element OR img hasn't completed loading)
+        const isStillLoading = logoDevLoading && (!img || (!img.complete && img.naturalWidth === 0));
+        
+        if (isStillLoading) {
           // Only log timeout warnings in development
           if (process.env.NODE_ENV === 'development') {
-            console.warn(`Logo.dev logo timeout for ${companyName}`);
+            console.warn(`Logo.dev logo timeout for ${companyName} (domain: ${domain})`);
           }
           setLogoDevError(true);
           setLogoDevLoading(false);
         }
-      }, 2000); // 2 second timeout (within 1500-2000ms range for optimal UX)
+      }, 3500); // 3.5 second timeout - accounts for lazy loading delay + network delays when many logos load at once
 
       return () => clearTimeout(timeout);
     }
-  }, [companyName, isValidLogoUrl, imageError, logoDevError, logoDevLoading]);
+  }, [companyName, domain, isValidLogoUrl, imageError, logoDevError, logoDevLoading]);
 
   // Priority: logo_url > Logo.dev API > Initial fallback
   const shouldUseLogoDev = !isValidLogoUrl || imageError;
@@ -158,6 +167,7 @@ export function CompanyLogo({
       {isUsingLogoDev ? (
         // Use regular img tag for Logo.dev API (more reliable, no optimization needed)
         <img
+          ref={imgRef}
           src={logoDevUrl}
           alt={`${companyName} logo`}
           width={size}
@@ -172,7 +182,7 @@ export function CompanyLogo({
             setLogoDevLoading(false);
           }}
           onLoad={() => {
-            // Successfully loaded
+            // Successfully loaded - clear any pending timeout
             setLogoDevLoading(false);
             if (logoDevError) {
               setLogoDevError(false);
