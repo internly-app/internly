@@ -174,7 +174,7 @@ export const reviewsQuerySchema = z.object({
   role_id: z.string().uuid().optional(),
   work_style: z.enum(["onsite", "hybrid", "remote"]).optional(),
   sort: z.enum(["likes", "recent"]).default("recent"),
-  limit: z.coerce.number().int().min(1).max(50).default(20),
+  limit: z.coerce.number().int().min(1).max(1000).default(20), // Increased max to 1000 for search scenarios
   offset: z.coerce.number().int().min(0).default(0),
 });
 
