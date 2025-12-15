@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
@@ -21,9 +21,13 @@ import {
   Code,
   ArrowLeft,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import type { CompanyWithStats, ReviewWithDetails } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
+
+const REVIEWS_PER_PAGE = 10;
 
 // Animation variants - fade in only (no y movement)
 const containerVariants = {
@@ -62,22 +66,103 @@ export function CompanyDetailClient({
   initialIsSaved,
 }: CompanyDetailClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
 
+  // ===== State Management =====
+  
   const [company] = useState<CompanyWithStats>(initialCompany);
   const [reviews] = useState<ReviewWithDetails[]>(initialReviews);
   const [roles] = useState<string[]>(initialRoles);
-  const [roleFilter, setRoleFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState(searchParams.get("role") || "");
   const [isSaved, setIsSaved] = useState(initialIsSaved);
   const [isSaving, setIsSaving] = useState(false);
   const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    return page > 0 ? page : 1;
+  });
 
+  // ===== Filtering =====
+  
   // Filter reviews by role
   const filteredReviews = useMemo(() => {
     if (!roleFilter) return reviews;
     return reviews.filter((r) => r.role?.title === roleFilter);
   }, [reviews, roleFilter]);
 
+  // ===== Pagination =====
+  
+  // Paginate filtered reviews
+  const paginatedReviews = useMemo(() => {
+    const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
+    const endIndex = startIndex + REVIEWS_PER_PAGE;
+    return filteredReviews.slice(startIndex, endIndex);
+  }, [filteredReviews, currentPage]);
+
+  const total = filteredReviews.length;
+  const totalPages = Math.ceil(total / REVIEWS_PER_PAGE);
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
+
+  // ===== URL Sync & Effects =====
+  
+  // Reset to page 1 when role filter changes
+  const prevRoleFilterRef = useRef(roleFilter);
+  const isInitialMountRef = useRef(true);
+
+  useEffect(() => {
+    // Skip on initial mount
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      prevRoleFilterRef.current = roleFilter;
+      return;
+    }
+
+    // Reset page if role filter changed and not already on page 1
+    if (prevRoleFilterRef.current !== roleFilter && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+
+    prevRoleFilterRef.current = roleFilter;
+  }, [roleFilter, currentPage]);
+
+  // Update URL when role filter or page changes
+  const prevUrlParamsRef = useRef({ roleFilter, currentPage });
+  const isUrlInitialMountRef = useRef(true);
+
+  useEffect(() => {
+    const currentParams = { roleFilter, currentPage };
+
+    // Skip on initial mount
+    if (isUrlInitialMountRef.current) {
+      isUrlInitialMountRef.current = false;
+      prevUrlParamsRef.current = currentParams;
+      return;
+    }
+
+    // Check if URL params actually changed
+    const urlParamsChanged =
+      prevUrlParamsRef.current.roleFilter !== currentParams.roleFilter ||
+      prevUrlParamsRef.current.currentPage !== currentParams.currentPage;
+
+    // Update URL only if params changed
+    if (urlParamsChanged) {
+      const params = new URLSearchParams();
+      if (roleFilter) params.set("role", roleFilter);
+      if (currentPage > 1) params.set("page", currentPage.toString());
+
+      const newUrl = `/companies/${company.slug}${params.toString() ? `?${params.toString()}` : ""}`;
+      router.replace(newUrl, { scroll: false });
+    }
+
+    prevUrlParamsRef.current = currentParams;
+  }, [roleFilter, currentPage, router, company.slug]);
+
+  // ===== Event Handlers =====
+  
   const handleExpandedChange = (reviewId: string, expanded: boolean) => {
     setExpandedReviewIds((prev) => {
       const next = new Set(prev);
@@ -88,6 +173,13 @@ export function CompanyDetailClient({
       }
       return next;
     });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleSaveToggle = async () => {
@@ -413,7 +505,7 @@ export function CompanyDetailClient({
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h2 className="text-xl font-semibold">
-              Reviews ({filteredReviews.length})
+              Reviews ({total})
             </h2>
 
             {/* Role Filter */}
@@ -438,8 +530,19 @@ export function CompanyDetailClient({
             )}
           </div>
 
+          {/* Reviews Count */}
+          <div className="mb-4 text-sm text-muted-foreground">
+            Showing{" "}
+            <span className="font-semibold text-foreground">
+              {(currentPage - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(currentPage * REVIEWS_PER_PAGE, total)}
+            </span>{" "}
+            of <span className="font-semibold text-foreground">{total}</span>{" "}
+            {total === 1 ? "review" : "reviews"}
+            {roleFilter && ` for ${roleFilter}`}
+          </div>
+
           {/* Reviews List */}
-          {filteredReviews.length === 0 ? (
+          {paginatedReviews.length === 0 ? (
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center py-12">
@@ -452,17 +555,73 @@ export function CompanyDetailClient({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4">
-              {filteredReviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  compact={true}
-                  expanded={expandedReviewIds.has(review.id)}
-                  onExpandedChange={handleExpandedChange}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-4 mb-8">
+                {paginatedReviews.map((review) => (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    compact={true}
+                    expanded={expandedReviewIds.has(review.id)}
+                    onExpandedChange={handleExpandedChange}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={!hasPrevPage}
+                    className="gap-2"
+                  >
+                    <ChevronLeft className="size-4" />
+                    Previous
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className="min-w-[40px]"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={!hasNextPage}
+                    className="gap-2"
+                  >
+                    Next
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </motion.div>
       </div>
