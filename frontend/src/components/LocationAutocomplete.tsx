@@ -2,63 +2,25 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 const COMMON_LOCATIONS = [
   "Remote",
   "San Francisco, CA",
   "New York, NY",
   "Seattle, WA",
+  "Austin, TX",
+  "Boston, MA",
   "Los Angeles, CA",
   "Chicago, IL",
-  "Boston, MA",
-  "Austin, TX",
   "Washington, DC",
-  "San Diego, CA",
-  "Dallas, TX",
-  "Houston, TX",
-  "Phoenix, AZ",
-  "Philadelphia, PA",
-  "San Jose, CA",
   "Denver, CO",
-  "Portland, OR",
   "Atlanta, GA",
-  "Minneapolis, MN",
   "Miami, FL",
-  "Nashville, TN",
-  "Raleigh, NC",
-  "Salt Lake City, UT",
-  "Orlando, FL",
-  "Las Vegas, NV",
-  "Detroit, MI",
   "Toronto, ON",
   "Vancouver, BC",
   "Montreal, QC",
-  "Calgary, AB",
-  "Ottawa, ON",
-  "Edmonton, AB",
-  "Winnipeg, MB",
-  "Quebec City, QC",
-  "Halifax, NS",
   "London, UK",
-  "Berlin, Germany",
-  "Amsterdam, Netherlands",
-  "Zurich, Switzerland",
-  "Paris, France",
-  "Dublin, Ireland",
-  "Stockholm, Sweden",
-  "Copenhagen, Denmark",
-  "Tel Aviv, Israel",
-  "Singapore",
-  "Tokyo, Japan",
-  "Seoul, South Korea",
-  "Hong Kong",
-  "Sydney, Australia",
-  "Melbourne, Australia",
-  "Bangalore, India",
-  "Mumbai, India",
-  "Delhi, India",
-  "São Paulo, Brazil",
-  "Mexico City, Mexico",
   "Other"
 ];
 
@@ -86,7 +48,7 @@ export function LocationAutocomplete({
   useEffect(() => {
     const isCommonLocation = COMMON_LOCATIONS.includes(value);
     setIsOtherSelected(!isCommonLocation && value !== "");
-
+    
     // If it's a common location or empty, show the location name
     // If it's custom, show the custom value
     if (isCommonLocation || value === "") {
@@ -129,7 +91,7 @@ export function LocationAutocomplete({
 
   const handleInputChange = (newValue: string) => {
     setSearchQuery(newValue);
-
+    
     if (isOtherSelected) {
       // If "Other" is selected, update the actual value
       onChange(newValue);
@@ -160,13 +122,13 @@ export function LocationAutocomplete({
       />
 
       {isOpen && !isOtherSelected && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] max-h-60 overflow-y-auto">
           {filteredLocations.length > 0 ? (
             filteredLocations.map((location) => (
               <button
                 key={location}
                 onClick={() => handleSelect(location)}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none cursor-pointer transition-colors"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors duration-200 first:rounded-t-md last:rounded-b-md"
               >
                 {location === "Other" ? (
                   <span className="text-muted-foreground">Other (custom location)</span>
