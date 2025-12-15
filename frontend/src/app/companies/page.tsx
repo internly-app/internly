@@ -1,250 +1,213 @@
-"use client";
-
-import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
-import CompanyCard from "@/components/CompanyCard";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Search, X, Building2 } from "lucide-react";
-import { sanitizeText } from "@/lib/security/content-filter";
+import { CompaniesPageClient } from "@/components/CompaniesPageClient";
+import { createClient } from "@/lib/supabase/server";
 import type { CompanyWithStats } from "@/lib/types/database";
 
-export const dynamic = 'force-dynamic';
+export default async function CompaniesPage() {
+  const supabase = await createClient();
 
-export default function CompaniesPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  // Parallel: Check auth and fetch companies simultaneously
+  const [authResult, companiesResult] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("companies").select("*").order("name"),
+  ]);
 
-  // Filter states
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Track if initial load animation has played
-  const hasAnimated = useRef(false);
+  const { data: { user } } = authResult;
+  const { data: companies, error: companiesError } = companiesResult;
 
-  // Fetch companies with stats
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch("/api/companies/with-stats");
-        if (!response.ok) {
-          throw new Error("Failed to fetch companies");
-        }
-        const data = await response.json();
-        setCompanies(data || []);
-      } catch (err) {
-        console.error("Failed to fetch companies:", err);
-        setError("Failed to load companies. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCompanies();
-  }, []);
-
-  // Improved search with word matching and fuzzy search
-  const filteredCompanies = useMemo(() => {
-    if (!searchQuery.trim()) return companies;
-
-    const sanitizedQuery = sanitizeText(searchQuery).slice(0, 200).toLowerCase().trim();
-    if (!sanitizedQuery) return companies;
-
-    // Split query into words for better matching
-    const queryWords = sanitizedQuery.split(/\s+/).filter(word => word.length > 0);
-
-    return companies.filter((company) => {
-      const searchableText = [
-        company.name,
-        company.industry || "",
-        ...company.common_technologies,
-        ...company.common_locations,
-        ...company.common_roles,
-      ].join(" ").toLowerCase();
-
-      // Check if ALL query words are found (AND logic for multi-word search)
-      return queryWords.every(word => searchableText.includes(word));
-    }).sort((a, b) => {
-      // Prioritize exact company name matches
-      const aNameMatch = a.name.toLowerCase().includes(sanitizedQuery);
-      const bNameMatch = b.name.toLowerCase().includes(sanitizedQuery);
-      if (aNameMatch && !bNameMatch) return -1;
-      if (!aNameMatch && bNameMatch) return 1;
-      
-      // Then sort by review count (more reviews = more relevant)
-      return b.review_count - a.review_count;
-    });
-  }, [companies, searchQuery]);
-
-  // Update URL when search changes
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (searchQuery) params.set("search", sanitizeText(searchQuery));
-
-    const newUrl = `/companies${params.toString() ? `?${params.toString()}` : ""}`;
-    router.replace(newUrl, { scroll: false });
-  }, [searchQuery, router]);
-
-  const handleSaveToggle = (companyId: string, saved: boolean) => {
-    setCompanies((prev) =>
-      prev.map((c) =>
-        c.id === companyId ? { ...c, user_has_saved: saved } : c
-      )
+  if (companiesError) {
+    console.error("Companies fetch error:", companiesError);
+    // Return empty array on error - client will handle error state
+    return (
+      <>
+        <Navigation />
+        <CompaniesPageClient initialCompanies={[]} />
+      </>
     );
-  };
+  }
+
+  if (!companies || companies.length === 0) {
+    return (
+      <>
+        <Navigation />
+        <CompaniesPageClient initialCompanies={[]} />
+      </>
+    );
+  }
+
+  // Parallel: Fetch reviews and saved companies simultaneously
+  const companyIds = companies.map((c) => c.id);
+  const [reviewsResult, savedCompaniesResult] = await Promise.all([
+    supabase
+      .from("reviews")
+      .select(`
+        company_id,
+        wage_hourly,
+        wage_currency,
+        interview_round_count,
+        work_style,
+        duration_months,
+        location,
+        technologies,
+        interview_rounds_description,
+        role:roles(title)
+      `)
+      .in("company_id", companyIds),
+    user
+      ? supabase
+          .from("saved_companies")
+          .select("company_id")
+          .eq("user_id", user.id)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const { data: reviews, error: reviewsError } = reviewsResult;
+  if (reviewsError) {
+    console.error("Reviews fetch error:", reviewsError);
+  }
+
+  // Build saved companies set
+  let savedCompanyIds: Set<string> = new Set();
+  if (savedCompaniesResult.data) {
+    savedCompanyIds = new Set(savedCompaniesResult.data.map((s) => s.company_id));
+  }
+
+  // Aggregate stats for each company
+  const companiesWithStats: CompanyWithStats[] = companies.map((company) => {
+    const companyReviews = (reviews || []).filter(
+      (r) => r.company_id === company.id
+    );
+
+    // Calculate averages
+    const cadReviews = companyReviews.filter(
+      (r) => r.wage_hourly && r.wage_currency === "CAD"
+    );
+    const usdReviews = companyReviews.filter(
+      (r) => r.wage_hourly && r.wage_currency === "USD"
+    );
+    const reviewsWithRounds = companyReviews.filter(
+      (r) => r.interview_round_count > 0
+    );
+    const reviewsWithDuration = companyReviews.filter(
+      (r) => r.duration_months
+    );
+
+    // Work style breakdown
+    const workStyleBreakdown = {
+      onsite: companyReviews.filter((r) => r.work_style === "onsite").length,
+      hybrid: companyReviews.filter((r) => r.work_style === "hybrid").length,
+      remote: companyReviews.filter((r) => r.work_style === "remote").length,
+    };
+
+    // Common roles (count occurrences)
+    const roleCounts: Record<string, number> = {};
+    companyReviews.forEach((r) => {
+      const roleTitle = (r.role as { title?: string })?.title;
+      if (roleTitle) {
+        roleCounts[roleTitle] = (roleCounts[roleTitle] || 0) + 1;
+      }
+    });
+    const commonRoles = Object.entries(roleCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([role]) => role);
+
+    // Common locations
+    const locationCounts: Record<string, number> = {};
+    companyReviews.forEach((r) => {
+      if (r.location) {
+        locationCounts[r.location] = (locationCounts[r.location] || 0) + 1;
+      }
+    });
+    const commonLocations = Object.entries(locationCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([loc]) => loc);
+
+    // Common technologies
+    const techCounts: Record<string, number> = {};
+    companyReviews.forEach((r) => {
+      if (r.technologies) {
+        r.technologies.split(",").forEach((tech: string) => {
+          const trimmed = tech.trim();
+          if (trimmed) {
+            techCounts[trimmed] = (techCounts[trimmed] || 0) + 1;
+          }
+        });
+      }
+    });
+    const commonTechnologies = Object.entries(techCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([tech]) => tech);
+
+    // Common interview format (simplified - most mentioned pattern)
+    const formatCounts: Record<string, number> = {};
+    companyReviews.forEach((r) => {
+      if (r.interview_rounds_description) {
+        // Extract common patterns
+        const desc = r.interview_rounds_description.toLowerCase();
+        if (desc.includes("technical") && desc.includes("behavioral")) {
+          formatCounts["Technical + Behavioral"] =
+            (formatCounts["Technical + Behavioral"] || 0) + 1;
+        } else if (desc.includes("technical")) {
+          formatCounts["Technical"] = (formatCounts["Technical"] || 0) + 1;
+        } else if (desc.includes("behavioral")) {
+          formatCounts["Behavioral"] = (formatCounts["Behavioral"] || 0) + 1;
+        } else if (desc.includes("case study") || desc.includes("case-study")) {
+          formatCounts["Case Study"] = (formatCounts["Case Study"] || 0) + 1;
+        }
+      }
+    });
+    const commonInterviewFormat =
+      Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+    // Calculate pay ranges (min/max)
+    const cadWages = cadReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
+    const usdWages = usdReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
+
+    return {
+      ...company,
+      review_count: companyReviews.length,
+      min_pay_cad: cadWages.length > 0 ? Math.min(...cadWages) : null,
+      max_pay_cad: cadWages.length > 0 ? Math.max(...cadWages) : null,
+      min_pay_usd: usdWages.length > 0 ? Math.min(...usdWages) : null,
+      max_pay_usd: usdWages.length > 0 ? Math.max(...usdWages) : null,
+      avg_interview_rounds:
+        reviewsWithRounds.length > 0
+          ? reviewsWithRounds.reduce(
+              (sum, r) => sum + r.interview_round_count,
+              0
+            ) / reviewsWithRounds.length
+          : null,
+      common_interview_format: commonInterviewFormat,
+      work_style_breakdown: workStyleBreakdown,
+      common_roles: commonRoles,
+      common_locations: commonLocations,
+      avg_duration_months:
+        reviewsWithDuration.length > 0
+          ? reviewsWithDuration.reduce(
+              (sum, r) => sum + (r.duration_months || 0),
+              0
+            ) / reviewsWithDuration.length
+          : null,
+      common_technologies: commonTechnologies,
+      user_has_saved: savedCompanyIds.has(company.id),
+    };
+  });
+
+  // Filter out companies with no reviews - they're not useful to browse
+  const companiesWithReviews = companiesWithStats.filter(
+    (c) => c.review_count > 0
+  );
+
+  // Sort by review count (most reviewed first)
+  companiesWithReviews.sort((a, b) => b.review_count - a.review_count);
 
   return (
-    <main className="min-h-screen bg-background flex flex-col">
+    <>
       <Navigation />
-
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8 sm:mb-12 max-w-5xl mx-auto text-center"
-        >
-          <h1 className="text-heading-1 mb-4 text-foreground">Browse Companies</h1>
-          <p className="text-lg text-muted-foreground">
-            Explore companies with internship reviews. See pay data, interview processes, and more.
-          </p>
-        </motion.div>
-
-        {/* Search */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.05 }}
-        >
-          <Card className="mb-8 max-w-5xl mx-auto">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="size-5" />
-                Search Companies
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="search">Search</FieldLabel>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                    <Input
-                      id="search"
-                      type="text"
-                      placeholder="Search by company name, technologies, location, roles..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 pr-10"
-                      maxLength={200}
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="Clear search"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    )}
-                  </div>
-                </Field>
-              </FieldGroup>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Results Count */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-5xl mx-auto"
-        >
-          <p className="text-sm text-muted-foreground">
-            {loading ? (
-              "Loading..."
-            ) : (
-              <>
-                Showing <span className="font-semibold text-foreground">{filteredCompanies.length}</span>{" "}
-                {filteredCompanies.length === 1 ? "company" : "companies"}
-                {searchQuery && ` matching "${searchQuery}"`}
-              </>
-            )}
-          </p>
-        </motion.div>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="h-80 w-full rounded-xl" />
-            ))}
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <Card className="max-w-5xl mx-auto">
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <p className="text-destructive mb-4">{error}</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="text-primary hover:underline"
-                >
-                  Try Again
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* No Results */}
-        {!loading && !error && filteredCompanies.length === 0 && (
-          <Card className="max-w-5xl mx-auto">
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  {searchQuery
-                    ? "No companies match your search. Try adjusting your query."
-                    : "No companies with reviews yet."}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Companies Grid */}
-        {!loading && !error && filteredCompanies.length > 0 && (
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
-            initial={hasAnimated.current ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            onAnimationComplete={() => {
-              hasAnimated.current = true;
-            }}
-          >
-            {filteredCompanies.map((company) => (
-              <div key={company.id}>
-                <CompanyCard company={company} onSaveToggle={handleSaveToggle} />
-              </div>
-            ))}
-          </motion.div>
-        )}
-      </div>
-      <Footer />
-    </main>
+      <CompaniesPageClient initialCompanies={companiesWithReviews} />
+    </>
   );
 }
-
