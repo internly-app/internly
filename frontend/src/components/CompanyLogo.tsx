@@ -44,6 +44,7 @@ const DOMAIN_MAP: Record<string, string> = {
   "OpenAI": "openai.com",
   "Anthropic": "anthropic.com",
   "AMD": "amd.com",
+  "Rootly": "rootly.com",
 };
 
 /**
