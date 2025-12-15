@@ -227,7 +227,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 disabled={isLiking}
                 className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer group ${
                   likeData.hasLiked 
-                    ? "text-red-500" 
+                    ? "text-red-500 hover:bg-red-500/10" 
                     : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
                 }`}
                 aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
@@ -632,7 +632,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           disabled={isLiking}
             className={`gap-0 px-4 rounded-full transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer group ${
               likeData.hasLiked 
-                ? "text-red-500" 
+                ? "text-red-500 hover:bg-red-500/10" 
                 : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
             }`}
             aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
