@@ -13,7 +13,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Internly - Real Internship Reviews from Students",
+    default: "Internly",
     template: "%s | Internly",
   },
   description: "Read honest internship reviews from students who actually did the work. Get insights on interview processes, compensation, company culture, and real day-to-day experiences.",
