@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Search, X, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
+import { useDebounce } from "@/hooks/useDebounce";
+import { fuzzyMatch, fuzzyMatchMultiple } from "@/lib/utils/fuzzy-match";
 import type { CompanyWithStats } from "@/lib/types/database";
 
 const COMPANIES_PER_PAGE = 15;
@@ -44,6 +46,9 @@ export function CompaniesPageClient({
   // Track if initial load animation has played
   const hasAnimated = useRef(false);
 
+  // Debounce search query to reduce unnecessary filtering (300ms delay)
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   // Sync companies state when initialCompanies changes (e.g., after server revalidation)
   useEffect(() => {
     setCompanies(initialCompanies);
@@ -51,44 +56,78 @@ export function CompaniesPageClient({
 
   // ===== Filtering & Search =====
   
-  // Improved search with word matching and fuzzy search
+  // Enhanced search with fuzzy matching and word matching
   const filteredCompanies = useMemo(() => {
-    if (!searchQuery.trim()) return companies;
+    if (!debouncedSearchQuery.trim()) return companies;
 
-    const sanitizedQuery = sanitizeText(searchQuery).slice(0, 200).toLowerCase().trim();
+    const sanitizedQuery = sanitizeText(debouncedSearchQuery).slice(0, 200).trim();
     if (!sanitizedQuery) return companies;
 
     // Split query into words for better matching
-    const queryWords = sanitizedQuery.split(/\s+/).filter(word => word.length > 0);
+    const queryWords = sanitizedQuery.toLowerCase().split(/\s+/).filter(word => word.length > 0);
 
-    return companies.filter((company) => {
-      const searchableText = [
-        company.name,
-        company.industry || "",
-        ...company.common_technologies,
-        ...company.common_locations,
-        ...company.common_roles,
-      ].join(" ").toLowerCase();
+    // Score and filter companies using fuzzy matching
+    const companiesWithScores = companies
+      .map((company) => {
+        // Build searchable text array
+        const searchableTexts = [
+          company.name,
+          company.industry || "",
+          ...company.common_technologies,
+          ...company.common_locations,
+          ...company.common_roles,
+        ].filter(Boolean);
 
-      // Check if ALL query words are found (AND logic for multi-word search)
-      return queryWords.every(word => searchableText.includes(word));
-    }).sort((a, b) => {
-      // Prioritize exact company name matches
-      const aNameMatch = a.name.toLowerCase().includes(sanitizedQuery);
-      const bNameMatch = b.name.toLowerCase().includes(sanitizedQuery);
-      if (aNameMatch && !bNameMatch) return -1;
-      if (!aNameMatch && bNameMatch) return 1;
-      
-      // Then sort by review count (more reviews = more relevant)
-      return b.review_count - a.review_count;
-    });
-  }, [companies, searchQuery]);
+        // Calculate match scores
+        const exactMatch = searchableTexts.some(text =>
+          text.toLowerCase().includes(sanitizedQuery.toLowerCase())
+        );
+
+        // For multi-word queries, check if all words are present
+        const allWordsMatch = queryWords.every(word =>
+          searchableTexts.some(text => text.toLowerCase().includes(word))
+        );
+
+        // Fuzzy match score
+        const fuzzyScore = fuzzyMatchMultiple(sanitizedQuery, searchableTexts);
+
+        // Calculate final score
+        let score = 0;
+        if (exactMatch) {
+          score = 1.0;
+        } else if (allWordsMatch) {
+          score = 0.8;
+        } else if (fuzzyScore > 0) {
+          score = fuzzyScore;
+        }
+
+        // Bonus for company name matches
+        const nameMatch = company.name.toLowerCase().includes(sanitizedQuery.toLowerCase());
+        if (nameMatch) {
+          score = Math.max(score, 0.9);
+        }
+
+        return { company, score };
+      })
+      .filter(({ score }) => score > 0) // Only include companies with some match
+      .sort((a, b) => {
+        // Sort by score (highest first)
+        if (Math.abs(a.score - b.score) > 0.01) {
+          return b.score - a.score;
+        }
+        // Then by review count (more reviews = more relevant)
+        return b.company.review_count - a.company.review_count;
+      })
+      .map(({ company }) => company);
+
+    return companiesWithScores;
+  }, [companies, debouncedSearchQuery]);
 
   // ===== Pagination =====
   
   // Paginate filtered companies (when not searching, show paginated results)
   const paginatedCompanies = useMemo(() => {
-    if (searchQuery.trim()) {
+    if (debouncedSearchQuery.trim()) {
       // When searching, show all results (no pagination)
       return filteredCompanies;
     }
@@ -97,7 +136,7 @@ export function CompaniesPageClient({
     const startIndex = (currentPage - 1) * COMPANIES_PER_PAGE;
     const endIndex = startIndex + COMPANIES_PER_PAGE;
     return filteredCompanies.slice(startIndex, endIndex);
-  }, [filteredCompanies, currentPage, searchQuery]);
+  }, [filteredCompanies, currentPage, debouncedSearchQuery]);
 
   const total = filteredCompanies.length;
   const totalPages = Math.ceil(total / COMPANIES_PER_PAGE);
@@ -106,34 +145,34 @@ export function CompaniesPageClient({
 
   // ===== URL Sync & Effects =====
   
-  // Reset to page 1 when search changes
-  const prevSearchRef = useRef(searchQuery);
+  // Reset to page 1 when debounced search changes
+  const prevDebouncedSearchRef = useRef(debouncedSearchQuery);
   const isInitialMountRef = useRef(true);
 
   useEffect(() => {
-    const currentSearch = searchQuery;
+    const currentSearch = debouncedSearchQuery;
     
     // Skip on initial mount
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
-      prevSearchRef.current = currentSearch;
+      prevDebouncedSearchRef.current = currentSearch;
       return;
     }
     
     // Reset page if search changed
-    if (prevSearchRef.current !== currentSearch && currentPage !== 1) {
+    if (prevDebouncedSearchRef.current !== currentSearch && currentPage !== 1) {
       setCurrentPage(1);
     }
     
-    prevSearchRef.current = currentSearch;
-  }, [searchQuery, currentPage]);
+    prevDebouncedSearchRef.current = currentSearch;
+  }, [debouncedSearchQuery, currentPage]);
 
-  // Update URL when search or page changes
-  const prevUrlParamsRef = useRef({ searchQuery, currentPage });
+  // Update URL when debounced search or page changes
+  const prevUrlParamsRef = useRef({ searchQuery: debouncedSearchQuery, currentPage });
   const isUrlInitialMountRef = useRef(true);
 
   useEffect(() => {
-    const currentParams = { searchQuery, currentPage };
+    const currentParams = { searchQuery: debouncedSearchQuery, currentPage };
 
     // Skip on initial mount
     if (isUrlInitialMountRef.current) {
@@ -150,7 +189,7 @@ export function CompaniesPageClient({
     // Update URL only if params changed
     if (urlParamsChanged) {
       const params = new URLSearchParams();
-      if (searchQuery) params.set("search", sanitizeText(searchQuery));
+      if (debouncedSearchQuery) params.set("search", sanitizeText(debouncedSearchQuery));
       if (currentPage > 1) params.set("page", currentPage.toString());
 
       const newUrl = `/companies${params.toString() ? `?${params.toString()}` : ""}`;
@@ -158,7 +197,7 @@ export function CompaniesPageClient({
     }
 
     prevUrlParamsRef.current = currentParams;
-  }, [searchQuery, currentPage, router]);
+  }, [debouncedSearchQuery, currentPage, router]);
 
   // ===== Event Handlers =====
   
@@ -246,11 +285,11 @@ export function CompaniesPageClient({
           className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-5xl mx-auto"
         >
           <p className="text-sm text-muted-foreground">
-            {searchQuery ? (
+            {debouncedSearchQuery ? (
               <>
                 Showing <span className="font-semibold text-foreground">{filteredCompanies.length}</span>{" "}
                 {filteredCompanies.length === 1 ? "company" : "companies"}
-                {` matching "${searchQuery}"`}
+                {` matching "${debouncedSearchQuery}"`}
               </>
             ) : (
               <>
@@ -270,7 +309,7 @@ export function CompaniesPageClient({
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">
-                  {searchQuery
+                  {debouncedSearchQuery
                     ? "No companies match your search. Try adjusting your query."
                     : "No companies with reviews yet."}
                 </p>
@@ -299,7 +338,7 @@ export function CompaniesPageClient({
             </motion.div>
 
             {/* Pagination Controls */}
-            {!searchQuery && totalPages > 1 && (
+            {!debouncedSearchQuery && totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 max-w-5xl mx-auto">
                 <Button
                   variant="outline"
