@@ -18,7 +18,7 @@ export const revalidate = 3600;
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen flex flex-col">
       <Navigation animate={true} />
       <HeroSection />
 
