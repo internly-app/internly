@@ -284,7 +284,7 @@ export function CompanyAutocomplete({
       {isOpen && (filteredCompanies.length > 0 || showCreateOption || inputValue.trim()) && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-card border border-border rounded-md shadow-lg"
+          className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-card border border-border rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]"
         >
           {/* Suggestions from list */}
           {filteredCompanies.slice(0, 25).map((companyName) => (
