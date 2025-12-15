@@ -670,7 +670,7 @@ export default function WriteReviewPage() {
                   </Label>
                   <textarea
                     id="interview_rounds_description"
-                    placeholder="Describe each interview round in detail. Include: round number, type of interview (phone screen, technical, behavioral, etc.), what was discussed, duration, and difficulty level. Example: Round 1: 30-min phone screen with recruiter discussing background and interest. Round 2: 1-hour technical coding challenge on HackerRank covering algorithms and data structures..."
+                    placeholder="Example: Round 1: 30-min phone screen with recruiter discussing background and resume grill. Round 2: 1-hour technical coding challenge on CodeSignal. I was asked to implement a function to find the longest common subsequence of two strings (Leetcode 1143). Round 3: 1-hour System Design interview with a senior engineer discussing the architecture of Netflix."
                     value={formData.interview_rounds_description}
                     onChange={(e) =>
                       setFormData({
