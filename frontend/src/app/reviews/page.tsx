@@ -53,8 +53,22 @@ export default function ReviewsPage() {
   });
 
   // Debounce search query to reduce unnecessary filtering (300ms delay)
-  // Initialize with the actual search query value to avoid empty initial state
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  // On initial mount, use searchQuery directly to avoid delay causing queryParams to change
+  const isInitialMountRef = useRef(true);
+  const debouncedSearchQuery = useDebounce(
+    searchQuery, 
+    isInitialMountRef.current ? 0 : 300
+  );
+  
+  // Mark initial mount as complete after first render
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      // Use setTimeout to ensure this runs after the first render cycle
+      setTimeout(() => {
+        isInitialMountRef.current = false;
+      }, 100);
+    }
+  }, []);
 
   // Companies list for filter dropdown
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
@@ -87,13 +101,18 @@ export default function ReviewsPage() {
   // Build query params for reviews API
   // When searching, fetch all reviews for client-side filtering
   // Otherwise, use pagination
+  // Use searchQuery directly on initial mount to prevent queryParams from changing after debounce
   const queryParams = useMemo(() => {
     const params: Record<string, string | number> = {
       sort: sortBy,
     };
 
-    // Search mode: fetch all reviews for client-side filtering (use debounced query)
-    if (debouncedSearchQuery.trim()) {
+    // On initial mount, use searchQuery directly to avoid queryParams changing after 300ms
+    // After initial mount, use debouncedSearchQuery to reduce API calls while typing
+    const searchToUse = isInitialMountRef.current ? searchQuery : debouncedSearchQuery;
+
+    // Search mode: fetch all reviews for client-side filtering
+    if (searchToUse.trim()) {
       params.limit = 1000;
       params.offset = 0;
     } else {
@@ -114,7 +133,7 @@ export default function ReviewsPage() {
     }
 
     return params;
-  }, [companyFilter, workStyleFilter, sortBy, currentPage, debouncedSearchQuery]);
+  }, [companyFilter, workStyleFilter, sortBy, currentPage, searchQuery, debouncedSearchQuery]);
 
   const { reviews: fetchedReviews, total, loading, error } = useReviews(queryParams);
   
@@ -237,14 +256,14 @@ export default function ReviewsPage() {
 
   // Reset to page 1 when filters change (skip on initial mount)
   const prevFiltersRef = useRef(getFilterValues());
-  const isInitialMountRef = useRef(true);
+  const isFiltersInitialMountRef = useRef(true);
 
   useEffect(() => {
     const currentFilters = getFilterValues();
 
     // Skip on initial mount
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false;
+    if (isFiltersInitialMountRef.current) {
+      isFiltersInitialMountRef.current = false;
       prevFiltersRef.current = currentFilters;
       return;
     }
