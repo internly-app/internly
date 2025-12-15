@@ -3,7 +3,12 @@ import { CompaniesPageClient } from "@/components/CompaniesPageClient";
 import { createClient } from "@/lib/supabase/server";
 import type { CompanyWithStats } from "@/lib/types/database";
 
-export default async function CompaniesPage() {
+interface PageProps {
+  searchParams: Promise<{ page?: string; search?: string }>;
+}
+
+export default async function CompaniesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
   const supabase = await createClient();
 
   // Parallel: Check auth and fetch companies simultaneously
@@ -207,7 +212,10 @@ export default async function CompaniesPage() {
   return (
     <>
       <Navigation />
-      <CompaniesPageClient initialCompanies={companiesWithReviews} />
+      <CompaniesPageClient 
+        initialCompanies={companiesWithReviews} 
+        initialSearchQuery={params.search || ""}
+      />
     </>
   );
 }
