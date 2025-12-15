@@ -610,7 +610,7 @@ export default function WriteReviewPage() {
                     <Label htmlFor="hardest">Hardest Part <span className="text-red-500">*</span></Label>
                   <textarea
                     id="hardest"
-                      placeholder="What were the biggest challenges you faced? (e.g., steep learning curve, tight deadlines, complex technical problems, communication barriers...)"
+                      placeholder="What were the biggest challenges you faced? (e.g., steep learning curve, tight deadlines, complex codebases, communication barriers...)"
                     value={formData.hardest}
                     onChange={(e) =>
                       setFormData({ ...formData, hardest: e.target.value })
@@ -802,7 +802,7 @@ export default function WriteReviewPage() {
                   <Label htmlFor="perks">Other Perks</Label>
                   <textarea
                     id="perks"
-                    placeholder="List any additional perks or benefits you received (e.g., free lunch, gym membership, relocation bonus, transportation allowance, stock options, health insurance, learning budget, team events...)"
+                    placeholder="List any additional perks or benefits you received (e.g., free lunch, gym membership, relocation bonus, transportation allowance, learning budget, team events...)"
                     value={formData.perks}
                     onChange={(e) =>
                       setFormData({ ...formData, perks: e.target.value })
