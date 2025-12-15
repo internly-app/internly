@@ -1,3 +1,5 @@
+"use client";
+
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -8,9 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Dynamic imports for below-the-fold components
 const Footer = dynamic(() => import("@/components/Footer"));
-
-// ISR: Revalidate every hour for static content
-export const revalidate = 3600;
 
 export default function AboutPage() {
   return (
