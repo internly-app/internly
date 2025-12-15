@@ -8,8 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { useAuth } from "@/components/AuthProvider";
 
-export const dynamic = 'force-dynamic';
-
 export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

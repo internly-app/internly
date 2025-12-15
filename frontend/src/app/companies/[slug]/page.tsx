@@ -1,553 +1,207 @@
-"use client";
-
-import { useState, useEffect, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import { notFound } from "next/navigation";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
-import ReviewCard from "@/components/ReviewCard";
-import { CompanyLogo } from "@/components/CompanyLogo";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Select } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Bookmark,
-  MapPin,
-  Briefcase,
-  Clock,
-  Users,
-  DollarSign,
-  Code,
-  ArrowLeft,
-  ExternalLink,
-} from "lucide-react";
+import { CompanyDetailClient } from "@/components/CompanyDetailClient";
+import { createClient } from "@/lib/supabase/server";
 import type { CompanyWithStats, ReviewWithDetails } from "@/lib/types/database";
-import { useAuth } from "@/components/AuthProvider";
 
-// Animation variants - fade in only (no y movement)
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 0.3,
-      ease: "easeOut" as const,
-    },
-  },
-};
-
-export default function CompanyDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const slug = params.slug as string;
-  const { user } = useAuth();
-
-  const [company, setCompany] = useState<CompanyWithStats | null>(null);
-  const [reviews, setReviews] = useState<ReviewWithDetails[]>([]);
-  const [roles, setRoles] = useState<string[]>([]);
-  const [roleFilter, setRoleFilter] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
-
-  // Fetch company data
-  useEffect(() => {
-    const fetchCompany = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`/api/companies/${slug}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("Company not found");
-          } else {
-            throw new Error("Failed to fetch company");
-          }
-          return;
-        }
-        const data = await response.json();
-        setCompany(data.company);
-        setReviews(data.reviews);
-        setRoles(data.roles);
-        setIsSaved(data.company.user_has_saved || false);
-      } catch (err) {
-        console.error("Failed to fetch company:", err);
-        setError("Failed to load company. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCompany();
-  }, [slug]);
-
-  // Filter reviews by role
-  const filteredReviews = useMemo(() => {
-    if (!roleFilter) return reviews;
-    return reviews.filter((r) => r.role?.title === roleFilter);
-  }, [reviews, roleFilter]);
-
-  const handleExpandedChange = (reviewId: string, expanded: boolean) => {
-    setExpandedReviewIds((prev) => {
-      const next = new Set(prev);
-      if (expanded) {
-        next.add(reviewId);
-      } else {
-        next.delete(reviewId);
-      }
-      return next;
-    });
-  };
-
-  const handleSaveToggle = async () => {
-    if (!user) {
-      window.location.href = "/signin";
-      return;
-    }
-
-    if (!company || isSaving) return;
-
-    setIsSaving(true);
-    const previousState = isSaved;
-    setIsSaved(!isSaved);
-
-    try {
-      const response = await fetch(`/api/companies/save/${company.id}`, {
-        method: isSaved ? "DELETE" : "POST",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to toggle save");
-      }
-
-      const data = await response.json();
-      setIsSaved(data.saved);
-    } catch (error) {
-      console.error("Failed to save company:", error);
-      setIsSaved(previousState);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const workStyleBadge = {
-    onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/20",
-    hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/20",
-    remote: "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/20",
-  } as const;
-
-  const formatPayRange = (min: number | null, max: number | null, currency: string) => {
-    if (!min && !max) return null;
-    if (min === max || !max) return `$${min?.toFixed(0)} ${currency}`;
-    if (!min) return `$${max.toFixed(0)} ${currency}`;
-    return `$${min.toFixed(0)}-${max.toFixed(0)} ${currency}`;
-  };
-
-  // Loading state
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-background flex flex-col">
-        <Navigation />
-        <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
-          <Skeleton className="h-8 w-32 mb-6" />
-          <Skeleton className="h-48 w-full rounded-xl mb-8" />
-          <Skeleton className="h-64 w-full rounded-xl mb-4" />
-          <Skeleton className="h-64 w-full rounded-xl" />
-        </div>
-        <Footer />
-      </main>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <main className="min-h-screen bg-background flex flex-col">
-        <Navigation />
-        <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
-          <button
-            onClick={() => {
-              if (window.history.length > 1) {
-                router.back();
-              } else {
-                router.push("/companies");
-              }
-            }}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
-          >
-            <ArrowLeft className="size-4" />
-            Back
-          </button>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <p className="text-destructive mb-4">{error}</p>
-                <Button asChild>
-                  <Link href="/companies">Browse Companies</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <Footer />
-      </main>
-    );
-  }
-
-  if (!company) return null;
-
-  return (
-    <main className="min-h-screen bg-background flex flex-col">
-      <Navigation />
-
-      <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full">
-        {/* Back Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <button
-            onClick={() => {
-              if (window.history.length > 1) {
-                router.back();
-              } else {
-                router.push("/companies");
-              }
-            }}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
-          >
-            <ArrowLeft className="size-4" />
-            Back
-          </button>
-        </motion.div>
-
-        {/* Company Header */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card className="mb-8">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Logo and Basic Info */}
-                <div className="flex items-center gap-4 flex-1">
-                  <CompanyLogo
-                    companyName={company.name}
-                    logoUrl={company.logo_url}
-                    size={80}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
-                          {company.name}
-                        </h1>
-                        {company.industry && (
-                          <p className="text-muted-foreground">{company.industry}</p>
-                        )}
-                        {company.website && (
-                          <a
-                            href={company.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1"
-                          >
-                            {company.website.replace(/^https?:\/\//, "")}
-                            <ExternalLink className="size-3" />
-                          </a>
-                        )}
-                      </div>
-
-                      {/* Save Button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSaveToggle}
-                        disabled={isSaving}
-                        className="gap-2"
-                        aria-label={isSaved ? "Unsave company" : "Save company"}
-                      >
-                        <Bookmark
-                          className={`size-4 ${isSaved ? "fill-current" : ""}`}
-                        />
-                        {isSaved ? "Saved" : "Save"}
-                      </Button>
-                    </div>
-
-                    {/* Review count badge */}
-                    <div className="flex items-center gap-2 mt-4">
-                      <Badge variant="outline">
-                        {company.review_count} {company.review_count === 1 ? "review" : "reviews"}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-        >
-          {/* Pay */}
-          <motion.div variants={itemVariants}>
-            <Card className="h-full">
-              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <DollarSign className="size-4" />
-                  <span className="text-sm">Pay Range</span>
-                </div>
-                <div className="text-lg font-semibold">
-                  {(company.min_pay_cad || company.min_pay_usd) ? (
-                    <div className="space-y-1">
-                      {(company.min_pay_usd || company.max_pay_usd) && (
-                        <div>{formatPayRange(company.min_pay_usd, company.max_pay_usd, "USD")}/hr</div>
-                      )}
-                      {(company.min_pay_cad || company.max_pay_cad) && (
-                        <div>{formatPayRange(company.min_pay_cad, company.max_pay_cad, "CAD")}/hr</div>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground font-normal">—</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Interview Rounds */}
-          <motion.div variants={itemVariants}>
-            <Card className="h-full">
-              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <Users className="size-4" />
-                  <span className="text-sm">Avg Interview Rounds</span>
-                </div>
-                <div className="text-lg font-semibold">
-                  {company.avg_interview_rounds ? (
-                    <>~{Math.round(company.avg_interview_rounds)} rounds</>
-                  ) : (
-                    <span className="text-muted-foreground font-normal">—</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Duration */}
-          <motion.div variants={itemVariants}>
-            <Card className="h-full">
-              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <Clock className="size-4" />
-                  <span className="text-sm">Typical Term</span>
-                </div>
-                <div className="text-lg font-semibold">
-                  {company.avg_duration_months ? (
-                    <>~{Math.round(company.avg_duration_months)} months</>
-                  ) : (
-                    <span className="text-muted-foreground font-normal">—</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Work Style */}
-          <motion.div variants={itemVariants}>
-            <Card className="h-full">
-              <CardContent className="pt-4 pb-4 h-full flex flex-col justify-between min-h-[100px]">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <Briefcase className="size-4" />
-                  <span className="text-sm">Work Style</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {company.work_style_breakdown.onsite > 0 ||
-                  company.work_style_breakdown.hybrid > 0 ||
-                  company.work_style_breakdown.remote > 0 ? (
-                    <>
-                      {company.work_style_breakdown.onsite > 0 && (
-                        <Badge className={workStyleBadge.onsite}>
-                          Onsite ({company.work_style_breakdown.onsite})
-                        </Badge>
-                      )}
-                      {company.work_style_breakdown.hybrid > 0 && (
-                        <Badge className={workStyleBadge.hybrid}>
-                          Hybrid ({company.work_style_breakdown.hybrid})
-                        </Badge>
-                      )}
-                      {company.work_style_breakdown.remote > 0 && (
-                        <Badge className={workStyleBadge.remote}>
-                          Remote ({company.work_style_breakdown.remote})
-                        </Badge>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-lg font-semibold text-muted-foreground font-normal">—</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </motion.div>
-
-        {/* Common Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
-        >
-          {/* Common Roles */}
-          {company.common_roles.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Briefcase className="size-4" />
-                  Common Roles
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex flex-wrap gap-2">
-                  {company.common_roles.map((role) => (
-                    <Badge key={role} variant="outline">
-                      {role}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Common Locations */}
-          {company.common_locations.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <MapPin className="size-4" />
-                  Locations
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex flex-wrap gap-2">
-                  {company.common_locations.map((location) => (
-                    <Badge key={location} variant="outline">
-                      {location}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Technologies */}
-          {company.common_technologies.length > 0 && (
-            <Card className="md:col-span-2">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Code className="size-4" />
-                  Technologies
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex flex-wrap gap-2">
-                  {company.common_technologies.map((tech) => (
-                    <Badge key={tech} variant="outline">
-                      {tech}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </motion.div>
-
-        {/* Reviews Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-xl font-semibold">
-              Reviews ({filteredReviews.length})
-            </h2>
-
-            {/* Role Filter */}
-            {roles.length > 1 && (
-              <Field className="w-full sm:w-64">
-                <FieldLabel htmlFor="role-filter" className="sr-only">
-                  Filter by role
-                </FieldLabel>
-                <Select
-                  id="role-filter"
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="">All roles</option>
-                  {roles.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            )}
-          </div>
-
-          {/* Reviews List */}
-          {filteredReviews.length === 0 ? (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">
-                    {roleFilter
-                      ? "No reviews for this role. Try selecting a different role."
-                      : "No reviews yet for this company."}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {filteredReviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  compact={true}
-                  expanded={expandedReviewIds.has(review.id)}
-                  onExpandedChange={handleExpandedChange}
-                />
-              ))}
-            </div>
-          )}
-        </motion.div>
-      </div>
-      <Footer />
-    </main>
-  );
+interface PageProps {
+  params: Promise<{ slug: string }>;
 }
 
+export default async function CompanyDetailPage({ params }: PageProps) {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  // Check if user is authenticated
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Fetch company by slug
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (companyError || !company) {
+    notFound();
+  }
+
+  // Fetch all reviews for this company with role data
+  const { data: reviews, error: reviewsError } = await supabase
+    .from("reviews")
+    .select(`
+      *,
+      company:companies(*),
+      role:roles(*)
+    `)
+    .eq("company_id", company.id)
+    .order("created_at", { ascending: false });
+
+  if (reviewsError) {
+    console.error("Reviews fetch error:", reviewsError);
+  }
+
+  // Fetch user's likes if authenticated
+  let userLikes: Set<string> = new Set();
+  if (user && reviews && reviews.length > 0) {
+    const reviewIds = reviews.map((r) => r.id);
+    const { data: likes } = await supabase
+      .from("review_likes")
+      .select("review_id")
+      .eq("user_id", user.id)
+      .in("review_id", reviewIds);
+
+    if (likes) {
+      userLikes = new Set(likes.map((l) => l.review_id));
+    }
+  }
+
+  // Check if user has saved this company
+  let userHasSaved = false;
+  if (user) {
+    const { data: savedCompany } = await supabase
+      .from("saved_companies")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("company_id", company.id)
+      .single();
+
+    userHasSaved = !!savedCompany;
+  }
+
+  // Add user_has_liked to reviews
+  const reviewsWithLikes: ReviewWithDetails[] = (reviews || []).map((r) => ({
+    ...r,
+    user_has_liked: userLikes.has(r.id),
+  }));
+
+  // Calculate aggregated stats
+  const cadReviews = reviewsWithLikes.filter(
+    (r) => r.wage_hourly && r.wage_currency === "CAD"
+  );
+  const usdReviews = reviewsWithLikes.filter(
+    (r) => r.wage_hourly && r.wage_currency === "USD"
+  );
+  const reviewsWithRounds = reviewsWithLikes.filter(
+    (r) => r.interview_round_count > 0
+  );
+  const reviewsWithDuration = reviewsWithLikes.filter(
+    (r) => r.duration_months
+  );
+
+  // Work style breakdown
+  const workStyleBreakdown = {
+    onsite: reviewsWithLikes.filter((r) => r.work_style === "onsite").length,
+    hybrid: reviewsWithLikes.filter((r) => r.work_style === "hybrid").length,
+    remote: reviewsWithLikes.filter((r) => r.work_style === "remote").length,
+  };
+
+  // Common roles
+  const roleCounts: Record<string, number> = {};
+  reviewsWithLikes.forEach((r) => {
+    const roleTitle = r.role?.title;
+    if (roleTitle) {
+      roleCounts[roleTitle] = (roleCounts[roleTitle] || 0) + 1;
+    }
+  });
+  const commonRoles = Object.entries(roleCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([role]) => role);
+
+  // Common locations
+  const locationCounts: Record<string, number> = {};
+  reviewsWithLikes.forEach((r) => {
+    if (r.location) {
+      locationCounts[r.location] = (locationCounts[r.location] || 0) + 1;
+    }
+  });
+  const commonLocations = Object.entries(locationCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([loc]) => loc);
+
+  // Common technologies
+  const techCounts: Record<string, number> = {};
+  reviewsWithLikes.forEach((r) => {
+    if (r.technologies) {
+      r.technologies.split(",").forEach((tech: string) => {
+        const trimmed = tech.trim();
+        if (trimmed) {
+          techCounts[trimmed] = (techCounts[trimmed] || 0) + 1;
+        }
+      });
+    }
+  });
+  const commonTechnologies = Object.entries(techCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15)
+    .map(([tech]) => tech);
+
+  // Common interview format
+  const formatCounts: Record<string, number> = {};
+  reviewsWithLikes.forEach((r) => {
+    if (r.interview_rounds_description) {
+      const desc = r.interview_rounds_description.toLowerCase();
+      if (desc.includes("technical") && desc.includes("behavioral")) {
+        formatCounts["Technical + Behavioral"] =
+          (formatCounts["Technical + Behavioral"] || 0) + 1;
+      } else if (desc.includes("technical")) {
+        formatCounts["Technical"] = (formatCounts["Technical"] || 0) + 1;
+      } else if (desc.includes("behavioral")) {
+        formatCounts["Behavioral"] = (formatCounts["Behavioral"] || 0) + 1;
+      } else if (desc.includes("case study") || desc.includes("case-study")) {
+        formatCounts["Case Study"] = (formatCounts["Case Study"] || 0) + 1;
+      }
+    }
+  });
+  const commonInterviewFormat =
+    Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+  // Calculate pay ranges (min/max)
+  const cadWages = cadReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
+  const usdWages = usdReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
+
+  const companyWithStats: CompanyWithStats = {
+    ...company,
+    review_count: reviewsWithLikes.length,
+    min_pay_cad: cadWages.length > 0 ? Math.min(...cadWages) : null,
+    max_pay_cad: cadWages.length > 0 ? Math.max(...cadWages) : null,
+    min_pay_usd: usdWages.length > 0 ? Math.min(...usdWages) : null,
+    max_pay_usd: usdWages.length > 0 ? Math.max(...usdWages) : null,
+    avg_interview_rounds:
+      reviewsWithRounds.length > 0
+        ? reviewsWithRounds.reduce(
+            (sum, r) => sum + r.interview_round_count,
+            0
+          ) / reviewsWithRounds.length
+        : null,
+    common_interview_format: commonInterviewFormat,
+    work_style_breakdown: workStyleBreakdown,
+    common_roles: commonRoles,
+    common_locations: commonLocations,
+    avg_duration_months:
+      reviewsWithDuration.length > 0
+        ? reviewsWithDuration.reduce(
+            (sum, r) => sum + (r.duration_months || 0),
+            0
+          ) / reviewsWithDuration.length
+        : null,
+    common_technologies: commonTechnologies,
+    user_has_saved: userHasSaved,
+  };
+
+  return (
+    <>
+      <Navigation />
+      <CompanyDetailClient
+        initialCompany={companyWithStats}
+        initialReviews={reviewsWithLikes}
+        initialRoles={commonRoles}
+        initialIsSaved={userHasSaved}
+      />
+    </>
+  );
+}
