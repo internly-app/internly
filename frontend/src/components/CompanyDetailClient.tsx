@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
-import { Select } from "@/components/ui/select";
+import { CustomSelect } from "@/components/CustomSelect";
 import {
   Bookmark,
   MapPin,
@@ -514,18 +514,20 @@ export function CompanyDetailClient({
                 <FieldLabel htmlFor="role-filter" className="sr-only">
                   Filter by role
                 </FieldLabel>
-                <Select
+                <CustomSelect
                   id="role-filter"
                   value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="">All roles</option>
-                  {roles.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </Select>
+                  onChange={setRoleFilter}
+                  options={[
+                    { value: "", label: "All roles" },
+                    ...roles.map((role) => ({
+                      value: role,
+                      label: role,
+                    })),
+                  ]}
+                  placeholder="All roles"
+                  searchable={false}
+                />
               </Field>
             )}
           </div>

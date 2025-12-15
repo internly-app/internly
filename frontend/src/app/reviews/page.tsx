@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
-import { Select } from "@/components/ui/select";
+import { CustomSelect } from "@/components/CustomSelect";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReviews } from "@/hooks/useReviews";
 import { sanitizeText } from "@/lib/security/content-filter";
@@ -337,52 +337,59 @@ export default function ReviewsPage() {
                 {/* Company Filter */}
                 <Field>
                   <FieldLabel htmlFor="company">Company</FieldLabel>
-                  <Select
+                  <CustomSelect
                     id="company"
                     value={companyFilter}
-                    onChange={(e) => setCompanyFilter(e.target.value)}
-                  >
-                    <option value="">All companies</option>
-                    {loadingCompanies ? (
-                      <option value="loading" disabled>Loading...</option>
-                    ) : (
-                      companies
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((company) => (
-                          <option key={company.id} value={company.id}>
-                            {company.name}
-                          </option>
-                        ))
-                    )}
-                  </Select>
+                    onChange={setCompanyFilter}
+                    options={[
+                      { value: "", label: "All companies" },
+                      ...(loadingCompanies
+                        ? []
+                        : companies
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((company) => ({
+                              value: company.id,
+                              label: company.name,
+                            }))
+                      ),
+                    ]}
+                    placeholder="All companies"
+                    searchable={false}
+                  />
                 </Field>
                 
                 {/* Work Style Filter */}
                 <Field>
                   <FieldLabel htmlFor="work_style">Work Style</FieldLabel>
-                  <Select
+                  <CustomSelect
                     id="work_style"
                     value={workStyleFilter}
-                    onChange={(e) => setWorkStyleFilter(e.target.value)}
-                  >
-                    <option value="">All styles</option>
-                    <option value="onsite">Onsite</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="remote">Remote</option>
-                  </Select>
+                    onChange={setWorkStyleFilter}
+                    options={[
+                      { value: "", label: "All styles" },
+                      { value: "onsite", label: "Onsite" },
+                      { value: "hybrid", label: "Hybrid" },
+                      { value: "remote", label: "Remote" },
+                    ]}
+                    placeholder="All styles"
+                    searchable={false}
+                  />
                 </Field>
                 
                 {/* Sort */}
                 <Field>
                   <FieldLabel htmlFor="sort">Sort By</FieldLabel>
-                  <Select
+                  <CustomSelect
                     id="sort"
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as "likes" | "recent")}
-                  >
-                    <option value="recent">Most Recent</option>
-                    <option value="likes">Most Liked</option>
-                  </Select>
+                    onChange={(value) => setSortBy(value as "likes" | "recent")}
+                    options={[
+                      { value: "recent", label: "Most Recent" },
+                      { value: "likes", label: "Most Liked" },
+                    ]}
+                    placeholder="Sort by..."
+                    searchable={false}
+                  />
                 </Field>
                 
                 {/* Clear Filters */}

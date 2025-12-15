@@ -1,6 +1,6 @@
 "use client";
 
-import { Select } from "@/components/ui/select";
+import { CustomSelect } from "@/components/CustomSelect";
 
 // Generate terms dynamically based on current year
 const generateTerms = () => {
@@ -43,20 +43,20 @@ export function TermSelect({
   required = false,
 }: TermSelectProps) {
   const terms = generateTerms();
+  const options = terms.map((term) => ({
+    value: term,
+    label: term,
+  }));
 
   return (
-    <Select
+    <CustomSelect
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange}
+      options={options}
+      placeholder="Select term..."
       disabled={disabled}
       required={required}
-    >
-      <option value="">Select term...</option>
-      {terms.map((term) => (
-        <option key={term} value={term}>
-          {term}
-        </option>
-      ))}
-    </Select>
+      searchable={false}
+    />
   );
 }
