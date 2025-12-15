@@ -55,7 +55,7 @@ export async function POST(
     // Foreign key error -> review not found
     if (insertError.code === "23503") {
       return NextResponse.json({ error: "Review not found" }, { status: 404 });
-    }
+        }
 
     console.error("Like toggle error:", insertError);
     return NextResponse.json({ error: "Failed to toggle like" }, { status: 500 });

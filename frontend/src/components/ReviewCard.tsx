@@ -110,7 +110,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
 
     // Fire-and-forget: API call in background
     fetch(`/api/reviews/${review.id}/like`, {
-      method: "POST",
+        method: "POST",
     })
       .then(async (response) => {
         // Check if response is ok (status 200-299)
@@ -149,7 +149,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
       });
 
       if (!response.ok) {
-        const data = await response.json();
+      const data = await response.json();
         throw new Error(data.error || "Failed to delete review");
       }
 
@@ -274,15 +274,15 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 </button>
               )}
             </div>
-          </div>
+      </div>
 
           {/* Key Info Badges */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
             {review.work_style && (
-              <Badge
-                variant="outline"
+            <Badge
+              variant="outline"
                 className={`text-xs ${workStyleBadge[review.work_style] || ""}`}
-              >
+        >
                 {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
               </Badge>
             )}
@@ -301,10 +301,10 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         {/* Preview text - only show when collapsed */}
         {!isExpanded && (
           <CardContent className="pt-0 pb-3 px-4">
-            <p className="text-sm text-muted-foreground line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2">
               {truncateText(review.best, 150)}
-            </p>
-          </CardContent>
+          </p>
+        </CardContent>
         )}
 
         <CardFooter className="flex items-center justify-end pt-0 pb-3 px-4">
@@ -315,7 +315,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             ) : (
               <ChevronDown className="size-4" />
             )}
-          </div>
+      </div>
         </CardFooter>
 
         {/* Expanded Content */}
@@ -377,38 +377,38 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   {review.interview_rounds_description}
                 </p>
                 {review.interview_tips && (
-                  <p>
-                    <span className="font-medium text-foreground">Tips:</span>{" "}
-                    {review.interview_tips}
-                  </p>
+                <p>
+                  <span className="font-medium text-foreground">Tips:</span>{" "}
+                  {review.interview_tips}
+                </p>
                 )}
               </div>
             </div>
 
             {/* Compensation */}
-            <div>
-              <div className="border-t border-zinc-700 mb-4" />
-              <h4 className="font-semibold mb-2 text-sm">Compensation</h4>
-              <div className="space-y-1 text-sm text-muted-foreground">
+              <div>
+                <div className="border-t border-zinc-700 mb-4" />
+                <h4 className="font-semibold mb-2 text-sm">Compensation</h4>
+                <div className="space-y-1 text-sm text-muted-foreground">
                 <p>
                   ${review.wage_hourly?.toFixed(2) || "0.00"}/hr {review.wage_currency || "CAD"}
-                </p>
+                    </p>
                 {review.housing_stipend_provided && (
-                  <p>
+                    <p>
                     {review.housing_stipend 
                       ? `$${review.housing_stipend.toFixed(2)}/mo housing`
                       : "Housing provided"
                     }
-                  </p>
-                )}
-                {review.perks && (
-                  <p>
-                    <span className="font-medium text-foreground">Perks:</span>{" "}
-                    {review.perks}
-                  </p>
-                )}
+                    </p>
+                  )}
+                  {review.perks && (
+                    <p>
+                      <span className="font-medium text-foreground">Perks:</span>{" "}
+                      {review.perks}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
           </CardContent>
         )}
       </Card>
@@ -489,21 +489,21 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           {/* Top Right: Date & Term Badge */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
-            <CardAction>
-              <Badge variant="outline" className="h-fit">
-                {review.term}
-              </Badge>
-            </CardAction>
+          <CardAction>
+            <Badge variant="outline" className="h-fit">
+              {review.term}
+            </Badge>
+          </CardAction>
           </div>
         </div>
 
         {/* Meta info badges */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
           {review.work_style && (
-            <Badge
-              variant="outline"
+          <Badge
+            variant="outline"
               className={`${workStyleBadge[review.work_style] || ""}`}
-            >
+          >
               {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
             </Badge>
           )}
@@ -532,7 +532,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 </Badge>
               ))}
             </div>
-          </div>
+        </div>
         )}
 
         {/* Best & Hardest */}
@@ -560,47 +560,47 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           <div className="border-t border-zinc-700 my-4" />
           <h4 className="font-semibold mb-2">Interview Process</h4>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>
+          <p>
               <span className="font-medium text-foreground">Rounds:</span>{" "}
-              {review.interview_round_count}
-            </p>
-            <p>
+            {review.interview_round_count}
+          </p>
+          <p>
               <span className="font-medium text-foreground">Description:</span>{" "}
-              {review.interview_rounds_description}
-            </p>
+            {review.interview_rounds_description}
+          </p>
             {review.interview_tips && (
-              <p>
-                <span className="font-medium text-foreground">Tips:</span>{" "}
-                {review.interview_tips}
-              </p>
+          <p>
+              <span className="font-medium text-foreground">Tips:</span>{" "}
+            {review.interview_tips}
+          </p>
             )}
-          </div>
         </div>
+      </div>
 
       {/* Compensation */}
-      <div>
-        <div className="border-t border-zinc-700 my-4" />
-        <h4 className="font-semibold mb-2">Compensation</h4>
-        <div className="space-y-1 text-sm text-muted-foreground">
-          <p>
+          <div>
+            <div className="border-t border-zinc-700 my-4" />
+            <h4 className="font-semibold mb-2">Compensation</h4>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>
             ${review.wage_hourly?.toFixed(2) || "0.00"}/hr {review.wage_currency || "CAD"}
-          </p>
+              </p>
           {review.housing_stipend_provided && (
-            <p>
+              <p>
               {review.housing_stipend 
                 ? `$${review.housing_stipend.toFixed(2)}/mo housing`
                 : "Housing provided"
               }
-            </p>
-          )}
-          {review.perks && (
-            <p>
-              <span className="font-medium text-foreground">Perks:</span>{" "}
-              {review.perks}
-            </p>
-          )}
+              </p>
+            )}
+            {review.perks && (
+              <p>
+                  <span className="font-medium text-foreground">Perks:</span>{" "}
+                {review.perks}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-6">
@@ -624,12 +624,12 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             </Button>
           )}
 
-          {/* Like Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLike}
-            disabled={isLiking}
+        {/* Like Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLike}
+          disabled={isLiking}
             className={`gap-0 px-4 rounded-full transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer group ${
               likeData.hasLiked 
                 ? "text-red-500" 
@@ -637,23 +637,23 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             }`}
             aria-label={likeData.hasLiked ? `Unlike this review (${likeData.likeCount} likes)` : `Like this review (${likeData.likeCount} likes)`}
             aria-pressed={likeData.hasLiked}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill={likeData.hasLiked ? "currentColor" : "none"}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill={likeData.hasLiked ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
               className="transition-all duration-200 flex-shrink-0"
               aria-hidden="true"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
             <span className="text-sm font-medium ml-4" aria-hidden="true">{likeData.likeCount}</span>
-          </Button>
+        </Button>
         </div>
       </CardFooter>
     </Card>

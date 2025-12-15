@@ -207,7 +207,7 @@ export function CompanyAutocomplete({
       onChange(existingCompany.id, companyName);
     } else {
       // New company - pass empty ID, will be created on review submission
-      onChange("", companyName);
+        onChange("", companyName);
     }
 
     setIsOpen(false);
