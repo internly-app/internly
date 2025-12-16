@@ -843,4 +843,108 @@ npx tsc --noEmit    # Check types without compiling
 
 ---
 
+## 🔒 Privacy & Security for Public Repository
+
+### Privacy Policy
+
+**Last Updated:** December 15, 2024
+
+**Information We Collect:**
+- Account information (email, name) via Google OAuth
+- Review content (company, role, experience, compensation, interview details)
+- Usage data and device information for security/analytics
+
+**How We Use Information:**
+- Provide the Service (display reviews, enable interactions)
+- Improve the Service (analyze usage patterns)
+- Security (protect against fraud, abuse, unauthorized access)
+- Communication (respond to inquiries)
+
+**Data Sharing:**
+- Reviews are publicly visible (content only, not email/identity)
+- Company data is publicly accessible
+- Third-party services: Supabase (database/auth), Vercel (hosting), Google OAuth
+- We do not sell, trade, or rent personal information
+
+**Data Security:**
+- Row Level Security (RLS) on all database tables
+- HTTPS/TLS encryption for all data transmission
+- OAuth-based authentication via Supabase Auth
+- API endpoints enforce authentication and authorization
+
+**User Rights:**
+- Access: Request copy of personal data
+- Correction: Update information through profile
+- Deletion: Delete account and all associated data
+- Opt-Out: Stop using Service at any time
+
+**Contact:** [Update with your email address]
+
+### Data Retention Policy
+
+**User Accounts:**
+- Active accounts remain active while in use
+- Inactive accounts (2+ years) may be deleted after notification
+- Deleted accounts: All data permanently deleted within 30 days
+
+**Reviews:**
+- Remain visible until user deletes review, deletes account, or violates Terms of Service
+
+**Logs & Analytics:**
+- Server logs: 90 days
+- Error logs: 30 days
+- Aggregated analytics: May be retained indefinitely (anonymized)
+
+**Automatic Deletion:**
+- Account deletion removes: profile, reviews, saved companies, likes, all metadata
+- Cascade deletes via foreign key constraints
+- Backups retained for 30 days for disaster recovery
+
+**Legal Requirements:**
+- Data may be retained longer if required by law or legal process
+
+### Security Checklist for Public Repository
+
+**✅ Completed:**
+- All secrets in environment variables (no hardcoded credentials)
+- `.env` files in `.gitignore`
+- RLS enabled on all tables
+- Input validation via Zod schemas
+- XSS protection (DOMPurify sanitization)
+- Rate limiting implemented
+- Content filtering (profanity, spam)
+- Authentication required for write operations
+- Privacy policy documented
+- Data retention policy documented
+
+**Required Environment Variables (Safe to Expose):**
+- `NEXT_PUBLIC_SUPABASE_URL` - Public Supabase URL (protected by RLS)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Public anon key (protected by RLS)
+- `NEXT_PUBLIC_LOGO_DEV_API_KEY` - Logo.dev API key (rate-limited)
+
+**What's Safe to Expose:**
+- Public Supabase URL and anon key (designed to be public, protected by RLS)
+- Logo.dev/LogoKit API keys (public keys with rate limiting)
+- All source code
+
+**What Must Stay Private:**
+- Supabase service role key (not used in frontend)
+- Database connection strings (not used in frontend)
+- Admin credentials (not stored in codebase)
+
+**No File Storage:**
+- Application does not store files/resumes
+- All data is text-based (reviews, company info)
+- No file expiration policies needed
+
+**Vercel Deployment:**
+1. Make repository public on GitHub
+2. Import to Vercel, set root directory to `frontend`
+3. Add environment variables in Vercel dashboard
+4. Deploy automatically
+
+**Status:** ✅ Ready for public repository
+
+---
+
 **This document contains everything needed to understand and work with the Internly codebase.**
