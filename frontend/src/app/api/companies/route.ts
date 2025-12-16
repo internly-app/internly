@@ -9,7 +9,7 @@ import {
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
 import { fetchLogoFromLogoKit } from "@/lib/utils/logo-fetcher";
-import { stripHTML, sanitizeURL } from "@/lib/security/xss-protection";
+import { stripHTML, sanitizeURL } from "@/lib/security/xss-protection-server";
 
 // Logo fetching: Try server-side first (non-blocking), fallback to client-side
 // LogoKit API: Free tier with 5K requests/day, millions of logos, no API key needed
