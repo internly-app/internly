@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Roboto, Instrument_Serif } from "next/font/google";
+import { Lato, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const roboto = Roboto({
+const lato = Lato({
   subsets: ["latin"],
-  variable: "--font-roboto",
+  variable: "--font-lato",
   display: "swap",
-  weight: ["300", "400", "500", "700"],
+  weight: ["300", "400", "700"],
   preload: true,
 });
 
@@ -61,7 +61,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased`}>
+      <body className={`${lato.className} ${lato.variable} ${instrumentSerif.variable} font-sans antialiased`}>
           <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
