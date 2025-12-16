@@ -1,8 +1,13 @@
+"use client";
+
 /**
- * XSS Protection Utility
+ * XSS Protection Utility (Client-side)
  *
  * Sanitizes user-generated HTML content to prevent XSS attacks.
  * Uses isomorphic-dompurify which works in both browser and Node.js environments.
+ * 
+ * NOTE: This is a client-only module. For server-side usage (API routes),
+ * use xss-protection-server.ts instead.
  */
 
 import DOMPurify from 'isomorphic-dompurify';

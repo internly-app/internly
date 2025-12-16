@@ -9,7 +9,7 @@ import {
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
 import { fetchLogoFromLogoDev } from "@/lib/utils/logo-fetcher";
-import { stripHTML, sanitizeURL } from "@/lib/security/xss-protection";
+import { stripHTML, sanitizeURL } from "@/lib/security/xss-protection-server";
 
 // Logo fetching: Try server-side first (non-blocking), fallback to client-side
 // Server-side fetching improves logo success rate and reduces client-side API calls

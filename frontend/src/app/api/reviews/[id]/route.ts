@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { reviewUpdateSchema } from "@/lib/validations/schemas";
-import { stripHTML } from "@/lib/security/xss-protection";
+import { stripHTML } from "@/lib/security/xss-protection-server";
 
 /**
  * GET /api/reviews/[id]
