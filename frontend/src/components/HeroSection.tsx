@@ -173,7 +173,8 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center mb-6 md:mb-8"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-center mb-6 md:mb-8"
+          style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
           <div className="h-[1.2em] overflow-visible">
             <AnimatePresence mode="wait">
