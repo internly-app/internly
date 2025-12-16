@@ -50,10 +50,13 @@ const DOMAIN_MAP: Record<string, string> = {
 /**
  * CompanyLogo component that displays company logos with smart fallbacks:
  * 1. Uses logo_url from database if available
- * 2. Falls back to Logo.dev API (free tier available)
+ * 2. Falls back to LogoKit API with automatic domain variation trying
+ *    - Tries multiple TLDs: .com, .ai, .io, .co, .app
+ *    - Automatically retries with next variation on failure
  * 3. Falls back to company initial in a circle
  *
  * Uses Next.js Image for optimization (lazy loading, WebP conversion, etc.)
+ * LogoKit API: https://logokit.com/company-logo-api
  */
 export function CompanyLogo({
   companyName,
@@ -62,33 +65,44 @@ export function CompanyLogo({
   className = "",
 }: CompanyLogoProps) {
   const [imageError, setImageError] = useState(false);
-  const [logoDevError, setLogoDevError] = useState(false);
-  const [logoDevLoading, setLogoDevLoading] = useState(true);
+  const [logoKitError, setLogoKitError] = useState(false);
+  const [logoKitLoading, setLogoKitLoading] = useState(true);
+  const [domainVariationIndex, setDomainVariationIndex] = useState(0);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  // Generate domain from company name for Logo.dev API
-  const getDomain = (name: string): string => {
+  // Generate domain variations for LogoKit API
+  // Returns array of domains to try in order (most likely first)
+  const getDomainVariations = (name: string): string[] => {
+    // Check domain map first (most reliable)
     if (DOMAIN_MAP[name]) {
-      return DOMAIN_MAP[name];
+      return [DOMAIN_MAP[name]];
     }
 
-    // Try to generate domain from name
+    // Generate base name
     const cleanName = name
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, "")
       .replace(/\s+/g, "");
 
-    // Common patterns
-    if (cleanName.endsWith("inc") || cleanName.endsWith("llc") || cleanName.endsWith("corp")) {
-      return cleanName.replace(/(inc|llc|corp)$/, "") + ".com";
-    }
+    // Remove common suffixes
+    const baseName = cleanName.replace(/(inc|llc|corp)$/, "");
 
-    return cleanName + ".com";
+    // Try common TLDs in order of likelihood
+    return [
+      `${baseName}.com`,
+      `${baseName}.ai`,
+      `${baseName}.io`,
+      `${baseName}.co`,
+      `${baseName}.app`,
+    ];
   };
 
-  const domain = getDomain(companyName);
-  const logoDevApiKey = process.env.NEXT_PUBLIC_LOGO_DEV_API_KEY;
-  const logoDevUrl = `https://img.logo.dev/${domain}?token=${logoDevApiKey}`;
+  const domainVariations = getDomainVariations(companyName);
+  const currentDomain = domainVariations[domainVariationIndex] || domainVariations[0];
+  const apiKey = process.env.NEXT_PUBLIC_LOGOKIT_API_KEY;
+  const logoKitUrl = apiKey
+    ? `https://img.logokit.com/${currentDomain}?token=${apiKey}`
+    : `https://img.logokit.com/${currentDomain}`;
   const initial = companyName[0]?.toUpperCase() || "?";
 
   // Validate logoUrl - must be a non-empty string that looks like a URL
@@ -106,41 +120,52 @@ export function CompanyLogo({
     // Only reset if props actually changed (not just re-render)
     if (prev.companyName !== companyName || prev.logoUrl !== logoUrl) {
       setImageError(false);
-      setLogoDevError(false);
-      setLogoDevLoading(true);
+      setLogoKitError(false);
+      setLogoKitLoading(true);
+      setDomainVariationIndex(0); // Reset to first domain variation
       prevPropsRef.current = { companyName, logoUrl };
     }
   }, [companyName, logoUrl]);
 
-  // Add timeout for Logo.dev loading - if it takes too long, show initial
+  // Add timeout for LogoKit loading - if it takes too long, try next domain variation or show initial
   // Increased timeout to account for lazy loading and network delays when many logos load at once
   useEffect(() => {
-    if (!isValidLogoUrl && !imageError && !logoDevError && logoDevLoading) {
+    if (!isValidLogoUrl && !imageError && !logoKitError && logoKitLoading) {
       // Give browser time to start loading (lazy loading can delay start)
       // Also accounts for network congestion when many logos load simultaneously on page refresh
       const timeout = setTimeout(() => {
         // Check if image is still loading (not loaded and not errored)
         const img = imgRef.current;
         // Only timeout if: loading state is still true AND (no img element OR img hasn't completed loading)
-        const isStillLoading = logoDevLoading && (!img || (!img.complete && img.naturalWidth === 0));
+        const isStillLoading = logoKitLoading && (!img || (!img.complete && img.naturalWidth === 0));
 
         if (isStillLoading) {
-          // Only log timeout warnings in development
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(`Logo.dev logo timeout for ${companyName} (domain: ${domain})`);
+          // Check if we have more domain variations to try
+          if (domainVariationIndex < domainVariations.length - 1) {
+            // Try next domain variation
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`LogoKit timeout for ${companyName} (${currentDomain}), trying next variation...`);
+            }
+            setDomainVariationIndex(prev => prev + 1);
+            setLogoKitLoading(true);
+          } else {
+            // No more variations to try, show fallback
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`LogoKit logo timeout for ${companyName}, all domain variations exhausted`);
+            }
+            setLogoKitError(true);
+            setLogoKitLoading(false);
           }
-          setLogoDevError(true);
-          setLogoDevLoading(false);
         }
       }, 3500); // 3.5 second timeout - accounts for lazy loading delay + network delays when many logos load at once
 
       return () => clearTimeout(timeout);
     }
-  }, [companyName, domain, isValidLogoUrl, imageError, logoDevError, logoDevLoading]);
+  }, [companyName, currentDomain, domainVariations.length, domainVariationIndex, isValidLogoUrl, imageError, logoKitError, logoKitLoading]);
 
-  // Priority: logo_url > Logo.dev API > Initial fallback
-  const shouldUseLogoDev = !isValidLogoUrl || imageError;
-  const shouldShowInitial = shouldUseLogoDev && logoDevError;
+  // Priority: logo_url > LogoKit API > Initial fallback
+  const shouldUseLogoKit = !isValidLogoUrl || imageError;
+  const shouldShowInitial = shouldUseLogoKit && logoKitError;
 
   // Fallback: show initial letter (clean, consistent fallback state)
   if (shouldShowInitial) {
@@ -156,9 +181,9 @@ export function CompanyLogo({
     );
   }
 
-  // Use regular img tag for Logo.dev URLs and external HTTP URLs (more reliable)
+  // Use regular img tag for LogoKit URLs and external HTTP URLs (more reliable)
   // Use Next.js Image only for local paths (optimized)
-  const isUsingLogoDev = !isValidLogoUrl || imageError;
+  const isUsingLogoKit = !isValidLogoUrl || imageError;
   const isExternalUrl = isValidLogoUrl && logoUrl.startsWith('http');
 
   return (
@@ -166,28 +191,38 @@ export function CompanyLogo({
       className={`relative rounded-lg overflow-hidden bg-muted flex-shrink-0 ${className}`}
       style={{ width: size, height: size, minWidth: size, minHeight: size }}
     >
-      {isUsingLogoDev ? (
-        // Use regular img tag for Logo.dev API (more reliable, no optimization needed)
+      {isUsingLogoKit ? (
+        // Use regular img tag for LogoKit API (more reliable, no optimization needed)
         <img
           ref={imgRef}
-          src={logoDevUrl}
+          src={logoKitUrl}
           alt={`${companyName} logo`}
           width={size}
           height={size}
           className="w-full h-full object-contain p-[10%]"
           onError={(e) => {
-            // Only log in development to avoid console spam
-            if (process.env.NODE_ENV === 'development') {
-              console.warn(`Logo.dev logo failed for ${companyName} (${domain}):`, logoDevUrl);
+            // Check if we have more domain variations to try
+            if (domainVariationIndex < domainVariations.length - 1) {
+              // Try next domain variation
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`LogoKit failed for ${companyName} (${currentDomain}), trying next variation...`);
+              }
+              setDomainVariationIndex(prev => prev + 1);
+              setLogoKitLoading(true);
+            } else {
+              // No more variations to try, show fallback
+              if (process.env.NODE_ENV === 'development') {
+                console.warn(`LogoKit logo failed for ${companyName}, all domain variations exhausted`);
+              }
+              setLogoKitError(true);
+              setLogoKitLoading(false);
             }
-            setLogoDevError(true);
-            setLogoDevLoading(false);
           }}
           onLoad={() => {
             // Successfully loaded - clear any pending timeout
-            setLogoDevLoading(false);
-            if (logoDevError) {
-              setLogoDevError(false);
+            setLogoKitLoading(false);
+            if (logoKitError) {
+              setLogoKitError(false);
             }
           }}
           loading="lazy"
