@@ -13,13 +13,14 @@ import { Button } from "@/components/ui/button";
 import type { CompanyWithStats } from "@/lib/types/database";
 import { useAuth } from "@/components/AuthProvider";
 import { CompanyLogo } from "@/components/CompanyLogo";
-import { 
-  Bookmark, 
-  MapPin, 
-  Briefcase, 
+import {
+  Bookmark,
+  MapPin,
+  Briefcase,
   DollarSign,
   MessageSquare,
 } from "lucide-react";
+import { stripHTML } from "@/lib/security/xss-protection";
 
 interface CompanyCardProps {
   company: CompanyWithStats;
@@ -121,11 +122,11 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
               {/* Company Name & Industry */}
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-lg font-semibold mb-1 truncate">
-                  {company.name}
+                  {stripHTML(company.name)}
                 </CardTitle>
                 {company.industry && (
                   <p className="text-sm text-muted-foreground truncate">
-                    {company.industry}
+                    {stripHTML(company.industry)}
                   </p>
                 )}
               </div>
@@ -188,7 +189,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
             <span className="text-foreground">
               {company.common_locations.length > 0 ? (
                 <>
-                  {company.common_locations.slice(0, 2).map(getCityName).join(", ")}
+                  {company.common_locations.slice(0, 2).map(loc => stripHTML(getCityName(loc))).join(", ")}
                   {company.common_locations.length > 2 && ` +${company.common_locations.length - 2}`}
                 </>
               ) : (
@@ -203,7 +204,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
             <span className="text-foreground line-clamp-1">
               {company.common_roles.length > 0 ? (
                 <>
-                  {company.common_roles.slice(0, 2).join(", ")}
+                  {company.common_roles.slice(0, 2).map(role => stripHTML(role)).join(", ")}
                   {company.common_roles.length > 2 && ` +${company.common_roles.length - 2}`}
                 </>
               ) : (

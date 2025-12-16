@@ -18,6 +18,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { ChevronDown, ChevronUp, Trash2, Pencil } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import Link from "next/link";
+import { stripHTML } from "@/lib/security/xss-protection";
 
 interface ReviewCardProps {
   review: ReviewWithDetails;
@@ -302,7 +303,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
         {!isExpanded && (
           <CardContent className="pt-0 pb-3 px-4">
           <p className="text-sm text-muted-foreground line-clamp-2">
-              {truncateText(review.best, 150)}
+              {truncateText(stripHTML(review.best), 150)}
           </p>
         </CardContent>
         )}
@@ -330,7 +331,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 <div className="flex flex-wrap gap-2">
                   {review.technologies.split(",").map((tech, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
-                      {tech.trim()}
+                      {stripHTML(tech.trim())}
                     </Badge>
                   ))}
                 </div>
@@ -347,7 +348,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   ✓ Best Part
                 </Badge>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {review.best}
+                  {stripHTML(review.best)}
                 </p>
               </div>
               <div className="space-y-2">
@@ -358,7 +359,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   ✗ Hardest Part
                 </Badge>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {review.hardest}
+                  {stripHTML(review.hardest)}
                 </p>
               </div>
             </div>
@@ -374,12 +375,12 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 </p>
                 <p>
                   <span className="font-medium text-foreground">Description:</span>{" "}
-                  {review.interview_rounds_description}
+                  {stripHTML(review.interview_rounds_description)}
                 </p>
                 {review.interview_tips && (
                 <p>
                   <span className="font-medium text-foreground">Tips:</span>{" "}
-                  {review.interview_tips}
+                  {stripHTML(review.interview_tips)}
                 </p>
                 )}
               </div>
@@ -395,7 +396,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                     </p>
                 {review.housing_stipend_provided && (
                     <p>
-                    {review.housing_stipend 
+                    {review.housing_stipend
                       ? `$${review.housing_stipend.toFixed(2)}/mo housing`
                       : "Housing provided"
                     }
@@ -404,7 +405,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   {review.perks && (
                     <p>
                       <span className="font-medium text-foreground">Perks:</span>{" "}
-                      {review.perks}
+                      {stripHTML(review.perks)}
                     </p>
                   )}
                 </div>
@@ -528,7 +529,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             <div className="flex flex-wrap gap-2">
               {review.technologies.split(",").map((tech, idx) => (
                 <Badge key={idx} variant="outline">
-                  {tech.trim()}
+                  {stripHTML(tech.trim())}
                 </Badge>
               ))}
             </div>
@@ -542,7 +543,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               ✓ Best Part
             </Badge>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {review.best}
+              {stripHTML(review.best)}
             </p>
           </div>
           <div className="space-y-2">
@@ -550,7 +551,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               ✗ Hardest Part
             </Badge>
             <p className="text-sm text-muted-foreground leading-relaxed">
-            {review.hardest}
+            {stripHTML(review.hardest)}
           </p>
         </div>
       </div>
@@ -566,12 +567,12 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           </p>
           <p>
               <span className="font-medium text-foreground">Description:</span>{" "}
-            {review.interview_rounds_description}
+            {stripHTML(review.interview_rounds_description)}
           </p>
             {review.interview_tips && (
           <p>
               <span className="font-medium text-foreground">Tips:</span>{" "}
-            {review.interview_tips}
+            {stripHTML(review.interview_tips)}
           </p>
             )}
         </div>
@@ -587,7 +588,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
               </p>
           {review.housing_stipend_provided && (
               <p>
-              {review.housing_stipend 
+              {review.housing_stipend
                 ? `$${review.housing_stipend.toFixed(2)}/mo housing`
                 : "Housing provided"
               }
@@ -596,7 +597,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
             {review.perks && (
               <p>
                   <span className="font-medium text-foreground">Perks:</span>{" "}
-                {review.perks}
+                {stripHTML(review.perks)}
               </p>
             )}
           </div>

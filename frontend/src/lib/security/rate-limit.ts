@@ -14,12 +14,22 @@ interface RateLimitStore {
   [key: string]: {
     count: number;
     resetTime: number;
+    violations: number; // Track how many times this identifier hit the limit
   };
+}
+
+interface BlocklistEntry {
+  blockedUntil: number;
+  reason: string;
+  violations: number;
 }
 
 // In-memory store (resets on server restart)
 // For production, use Redis or similar
 const rateLimitStore: RateLimitStore = {};
+
+// Blocklist for repeated violators (temporary bans)
+const blocklist: Map<string, BlocklistEntry> = new Map();
 
 /**
  * Rate limit configuration
@@ -57,7 +67,7 @@ export const RATE_LIMITS = {
  * Checks if a request should be rate limited
  * @param identifier - Unique identifier (usually user ID or IP)
  * @param config - Rate limit configuration
- * @returns Object with `allowed` boolean and `remaining` requests
+ * @returns Object with `allowed` boolean, `remaining` requests, and optional `blocked` info
  */
 export function checkRateLimit(
   identifier: string,
@@ -66,22 +76,42 @@ export function checkRateLimit(
   allowed: boolean;
   remaining: number;
   resetTime: number;
+  blocked?: boolean;
+  blockedUntil?: number;
 } {
   const now = Date.now();
   const key = identifier;
-  const record = rateLimitStore[key];
+
+  // Check if identifier is blocked
+  const blockEntry = blocklist.get(key);
+  if (blockEntry && now < blockEntry.blockedUntil) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetTime: blockEntry.blockedUntil,
+      blocked: true,
+      blockedUntil: blockEntry.blockedUntil,
+    };
+  } else if (blockEntry && now >= blockEntry.blockedUntil) {
+    // Block expired, remove from blocklist
+    blocklist.delete(key);
+  }
 
   // Clean up expired entries periodically
   if (Math.random() < 0.01) {
     // 1% chance to clean up (to avoid doing it on every request)
     cleanupExpiredEntries();
+    cleanupBlocklist();
   }
+
+  const record = rateLimitStore[key];
 
   if (!record || now > record.resetTime) {
     // No record or expired, create new window
     rateLimitStore[key] = {
       count: 1,
       resetTime: now + config.windowMs,
+      violations: record?.violations || 0, // Preserve violation count
     };
     return {
       allowed: true,
@@ -92,6 +122,20 @@ export function checkRateLimit(
 
   // Record exists and is within window
   if (record.count >= config.maxRequests) {
+    // Increment violation count
+    record.violations = (record.violations || 0) + 1;
+
+    // Block after 5 violations
+    if (record.violations >= 5) {
+      const blockDuration = 60 * 60 * 1000; // 1 hour
+      blocklist.set(key, {
+        blockedUntil: now + blockDuration,
+        reason: 'Repeated rate limit violations',
+        violations: record.violations,
+      });
+      console.warn(`[Rate Limit] Blocked ${key} for ${blockDuration / 1000}s due to ${record.violations} violations`);
+    }
+
     return {
       allowed: false,
       remaining: 0,
@@ -116,6 +160,18 @@ function cleanupExpiredEntries(): void {
   for (const key in rateLimitStore) {
     if (rateLimitStore[key].resetTime < now) {
       delete rateLimitStore[key];
+    }
+  }
+}
+
+/**
+ * Cleans up expired blocklist entries
+ */
+function cleanupBlocklist(): void {
+  const now = Date.now();
+  for (const [key, entry] of blocklist.entries()) {
+    if (entry.blockedUntil < now) {
+      blocklist.delete(key);
     }
   }
 }
