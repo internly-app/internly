@@ -4,19 +4,27 @@
  * XSS Protection Utility (Client-side)
  *
  * Sanitizes user-generated HTML content to prevent XSS attacks.
- * Uses isomorphic-dompurify which works in both browser and Node.js environments.
+ * Uses dompurify (browser-only) to avoid SSR issues with jsdom.
  * 
  * NOTE: This is a client-only module. For server-side usage (API routes),
  * use xss-protection-server.ts instead.
  */
 
-import DOMPurify from 'isomorphic-dompurify';
+// Define Config type locally to avoid importing from dompurify at top level
+type DOMPurifyConfig = {
+  ALLOWED_TAGS?: string[];
+  ALLOWED_ATTR?: string[];
+  ALLOW_DATA_ATTR?: boolean;
+  ALLOW_UNKNOWN_PROTOCOLS?: boolean;
+  SAFE_FOR_TEMPLATES?: boolean;
+  KEEP_CONTENT?: boolean;
+};
 
 /**
  * Default configuration for HTML sanitization
  * Allows only safe, basic formatting tags
  */
-const DEFAULT_CONFIG: DOMPurify.Config = {
+const DEFAULT_CONFIG: DOMPurifyConfig = {
   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li'],
   ALLOWED_ATTR: ['href', 'target', 'rel'],
   ALLOW_DATA_ATTR: false,
@@ -28,12 +36,39 @@ const DEFAULT_CONFIG: DOMPurify.Config = {
  * Strict configuration for plain text only
  * Strips all HTML tags
  */
-const STRICT_CONFIG: DOMPurify.Config = {
+const STRICT_CONFIG: DOMPurifyConfig = {
   ALLOWED_TAGS: [],
   ALLOWED_ATTR: [],
   ALLOW_DATA_ATTR: false,
   KEEP_CONTENT: true,
 };
+
+// Lazy load DOMPurify only in browser to avoid SSR issues
+let DOMPurifyInstance: { sanitize: (dirty: string, config?: DOMPurifyConfig) => string } | null = null;
+
+function getDOMPurify() {
+  // Check if we're in browser
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  // Return cached instance if available
+  if (DOMPurifyInstance) {
+    return DOMPurifyInstance;
+  }
+
+  // Dynamically import dompurify only in browser
+  // Use Function constructor to prevent Next.js static analysis
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const requireFunc = new Function('moduleName', 'return require(moduleName)');
+    const dompurifyModule = requireFunc('dompurify');
+    DOMPurifyInstance = dompurifyModule;
+    return DOMPurifyInstance;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Sanitizes HTML content with the default configuration
@@ -50,7 +85,12 @@ const STRICT_CONFIG: DOMPurify.Config = {
  */
 export function sanitizeHTML(dirty: string | null | undefined): string {
   if (!dirty) return '';
-  return DOMPurify.sanitize(dirty, DEFAULT_CONFIG);
+  const DOMPurify = getDOMPurify();
+  if (DOMPurify) {
+    return DOMPurify.sanitize(dirty, DEFAULT_CONFIG);
+  }
+  // Fallback for SSR: basic HTML tag removal
+  return dirty.replace(/<[^>]+>/g, '');
 }
 
 /**
@@ -69,7 +109,12 @@ export function sanitizeHTML(dirty: string | null | undefined): string {
  */
 export function stripHTML(dirty: string | null | undefined): string {
   if (!dirty) return '';
-  return DOMPurify.sanitize(dirty, STRICT_CONFIG);
+  const DOMPurify = getDOMPurify();
+  if (DOMPurify) {
+    return DOMPurify.sanitize(dirty, STRICT_CONFIG);
+  }
+  // Fallback for SSR: basic HTML tag removal
+  return dirty.replace(/<[^>]+>/g, '').trim();
 }
 
 /**
@@ -109,10 +154,15 @@ export function sanitizeURL(url: string | null | undefined): string {
  */
 export function sanitizeWithConfig(
   dirty: string | null | undefined,
-  config: DOMPurify.Config
+  config: DOMPurifyConfig
 ): string {
   if (!dirty) return '';
-  return DOMPurify.sanitize(dirty, config);
+  const DOMPurify = getDOMPurify();
+  if (DOMPurify) {
+    return DOMPurify.sanitize(dirty, config);
+  }
+  // Fallback for SSR: basic HTML tag removal
+  return dirty.replace(/<[^>]+>/g, '');
 }
 
 /**
