@@ -156,13 +156,21 @@ export default function ProfilePage() {
     if (!hasCachedReviews) setLoadingReviews(true);
     if (!hasCachedSaved) setLoadingSaved(true);
 
-    const fetchReviews = fetch("/api/user/reviews").then((response) =>
-      response.ok ? response.json() : Promise.reject(new Error("Failed to fetch reviews"))
-    );
+    const fetchReviews = fetch("/api/user/reviews").then(async (response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.error || `Failed to fetch reviews (${response.status})`);
+    });
 
-    const fetchSaved = fetch("/api/user/saved-companies").then((response) =>
-      response.ok ? response.json() : Promise.reject(new Error("Failed to fetch saved companies"))
-    );
+    const fetchSaved = fetch("/api/user/saved-companies").then(async (response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.error || `Failed to fetch saved companies (${response.status})`);
+    });
 
     Promise.allSettled([fetchReviews, fetchSaved]).then((results) => {
       if (isCancelled) return;

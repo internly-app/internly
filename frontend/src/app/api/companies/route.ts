@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { companyCreateSchema } from "@/lib/validations/schemas";
 import {
   checkRateLimit,
@@ -164,11 +164,21 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    let supabaseAdmin;
+    try {
+      supabaseAdmin = createServiceRoleClient();
+    } catch (error) {
+      console.error("Failed to create service role client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
 
-    let query = supabase.from("companies").select("*");
+    let query = supabaseAdmin.from("companies").select("*");
 
     if (search) {
       query = query.ilike("name", `%${search}%`);
@@ -179,7 +189,7 @@ export async function GET(request: NextRequest) {
     const { data: companies, error } = await query;
 
     if (error) {
-      console.error("Companies fetch error:", error);
+      console.error("Companies fetch error:", error.message);
       return NextResponse.json(
         { error: "Failed to fetch companies" },
         { status: 500 }

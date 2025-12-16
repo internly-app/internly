@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { CompanyWithStats } from "@/lib/types/database";
 
 /**
@@ -9,16 +9,25 @@ import type { CompanyWithStats } from "@/lib/types/database";
  */
 export async function GET(request: NextRequest) {
   try {
+    let supabaseAdmin;
+    try {
+      supabaseAdmin = createServiceRoleClient();
+    } catch (error) {
+      console.error("Failed to create service role client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const limit = parseInt(searchParams.get("limit") || "50");
-
-    // Parallel: Check auth and fetch companies simultaneously
     const [authResult, companiesResult] = await Promise.all([
       supabase.auth.getUser(),
       (async () => {
-        let companiesQuery = supabase.from("companies").select("*");
+        let companiesQuery = supabaseAdmin.from("companies").select("*");
         if (search) {
           companiesQuery = companiesQuery.ilike("name", `%${search}%`);
         }
@@ -48,7 +57,7 @@ export async function GET(request: NextRequest) {
     // Parallel: Fetch reviews and saved companies simultaneously
     const companyIds = companies.map((c) => c.id);
     const [reviewsResult, savedCompaniesResult] = await Promise.all([
-      supabase
+      supabaseAdmin
         .from("reviews")
         .select(`
           company_id,
@@ -71,12 +80,7 @@ export async function GET(request: NextRequest) {
         : Promise.resolve({ data: null }),
     ]);
 
-    const { data: reviews, error: reviewsError } = reviewsResult;
-    if (reviewsError) {
-      console.error("Reviews fetch error:", reviewsError);
-    }
-
-    // Build saved companies set
+    const { data: reviews } = reviewsResult;
     let savedCompanyIds: Set<string> = new Set();
     if (savedCompaniesResult.data) {
       savedCompanyIds = new Set(savedCompaniesResult.data.map((s) => s.company_id));

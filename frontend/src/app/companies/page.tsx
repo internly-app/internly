@@ -1,6 +1,6 @@
 import Navigation from "@/components/Navigation";
 import { CompaniesPageClient } from "@/components/CompaniesPageClient";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { CompanyWithStats } from "@/lib/types/database";
 
 interface PageProps {
@@ -9,24 +9,35 @@ interface PageProps {
 
 export default async function CompaniesPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const supabase = await createClient();
+  
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = createServiceRoleClient();
+  } catch (error) {
+    console.error("Failed to create service role client:", error);
+    return (
+      <>
+        <Navigation />
+        <CompaniesPageClient initialCompanies={[]} initialSearchQuery={params.search || ""} />
+      </>
+    );
+  }
 
-  // Parallel: Check auth and fetch companies simultaneously
+  const supabase = await createClient();
   const [authResult, companiesResult] = await Promise.all([
     supabase.auth.getUser(),
-    supabase.from("companies").select("*").order("name"),
+    supabaseAdmin.from("companies").select("*").order("name"),
   ]);
 
   const { data: { user } } = authResult;
   const { data: companies, error: companiesError } = companiesResult;
 
   if (companiesError) {
-    console.error("Companies fetch error:", companiesError);
-    // Return empty array on error - client will handle error state
+    console.error("Companies fetch error:", companiesError.message);
     return (
       <>
         <Navigation />
-        <CompaniesPageClient initialCompanies={[]} />
+        <CompaniesPageClient initialCompanies={[]} initialSearchQuery={params.search || ""} />
       </>
     );
   }
@@ -40,10 +51,9 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
     );
   }
 
-  // Parallel: Fetch reviews and saved companies simultaneously
   const companyIds = companies.map((c) => c.id);
   const [reviewsResult, savedCompaniesResult] = await Promise.all([
-    supabase
+    supabaseAdmin
       .from("reviews")
       .select(`
         company_id,
@@ -66,24 +76,18 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
       : Promise.resolve({ data: null }),
   ]);
 
-  const { data: reviews, error: reviewsError } = reviewsResult;
-  if (reviewsError) {
-    console.error("Reviews fetch error:", reviewsError);
-  }
+  const { data: reviews } = reviewsResult;
 
-  // Build saved companies set
   let savedCompanyIds: Set<string> = new Set();
   if (savedCompaniesResult.data) {
     savedCompanyIds = new Set(savedCompaniesResult.data.map((s) => s.company_id));
   }
 
-  // Aggregate stats for each company
   const companiesWithStats: CompanyWithStats[] = companies.map((company) => {
     const companyReviews = (reviews || []).filter(
       (r) => r.company_id === company.id
     );
 
-    // Calculate averages
     const cadReviews = companyReviews.filter(
       (r) => r.wage_hourly && r.wage_currency === "CAD"
     );
@@ -97,14 +101,12 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
       (r) => r.duration_months
     );
 
-    // Work style breakdown
     const workStyleBreakdown = {
       onsite: companyReviews.filter((r) => r.work_style === "onsite").length,
       hybrid: companyReviews.filter((r) => r.work_style === "hybrid").length,
       remote: companyReviews.filter((r) => r.work_style === "remote").length,
     };
 
-    // Common roles (count occurrences)
     const roleCounts: Record<string, number> = {};
     companyReviews.forEach((r) => {
       const roleTitle = (r.role as { title?: string })?.title;
@@ -117,7 +119,6 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
       .slice(0, 5)
       .map(([role]) => role);
 
-    // Common locations
     const locationCounts: Record<string, number> = {};
     companyReviews.forEach((r) => {
       if (r.location) {
@@ -129,7 +130,6 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
       .slice(0, 5)
       .map(([loc]) => loc);
 
-    // Common technologies
     const techCounts: Record<string, number> = {};
     companyReviews.forEach((r) => {
       if (r.technologies) {
@@ -146,11 +146,9 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
       .slice(0, 10)
       .map(([tech]) => tech);
 
-    // Common interview format (simplified - most mentioned pattern)
     const formatCounts: Record<string, number> = {};
     companyReviews.forEach((r) => {
       if (r.interview_rounds_description) {
-        // Extract common patterns
         const desc = r.interview_rounds_description.toLowerCase();
         if (desc.includes("technical") && desc.includes("behavioral")) {
           formatCounts["Technical + Behavioral"] =
@@ -167,7 +165,6 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
     const commonInterviewFormat =
       Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
-    // Calculate pay ranges (min/max)
     const cadWages = cadReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
     const usdWages = usdReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
 
@@ -201,13 +198,9 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
     };
   });
 
-  // Filter out companies with no reviews - they're not useful to browse
-  const companiesWithReviews = companiesWithStats.filter(
-    (c) => c.review_count > 0
-  );
-
-  // Sort by review count (most reviewed first)
-  companiesWithReviews.sort((a, b) => b.review_count - a.review_count);
+  const companiesWithReviews = companiesWithStats
+    .filter((c) => c.review_count > 0)
+    .sort((a, b) => b.review_count - a.review_count);
 
   return (
     <>

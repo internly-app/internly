@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { CompanyWithStats } from "@/lib/types/database";
 
 /**
@@ -20,7 +20,16 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch user's saved companies
+    let supabaseAdmin;
+    try {
+      supabaseAdmin = createServiceRoleClient();
+    } catch (error) {
+      console.error("Failed to create service role client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
     const { data: savedCompanies, error: savedError } = await supabase
       .from("saved_companies")
       .select(`
@@ -32,7 +41,7 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (savedError) {
-      console.error("Saved companies fetch error:", savedError);
+      console.error("Saved companies fetch error:", savedError.message);
       return NextResponse.json(
         { error: "Failed to fetch saved companies" },
         { status: 500 }
@@ -43,28 +52,22 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    // Get all company IDs
     const companyIds = savedCompanies.map((s) => s.company_id);
-
-    // Fetch reviews for these companies to calculate stats
-    const { data: reviews } = await supabase
+    const { data: reviews } = await supabaseAdmin
       .from("reviews")
       .select(`
         *,
         role:roles(title)
       `)
       .in("company_id", companyIds);
-
-    // Calculate stats for each company
     const companiesWithStats: CompanyWithStats[] = savedCompanies
-      .filter((s) => s.company && !Array.isArray(s.company)) // Filter out any null or invalid companies
+      .filter((s) => s.company && !Array.isArray(s.company))
       .map((savedCompany) => {
         const company = savedCompany.company as unknown as { id: string; name: string; slug: string; logo_url: string | null; website: string | null; industry: string | null; created_at: string; updated_at: string };
         const companyReviews = (reviews || []).filter(
           (r) => r.company_id === company.id
         );
 
-        // Calculate averages
         const cadReviews = companyReviews.filter(
           (r) => r.wage_hourly && r.wage_currency === "CAD"
         );
@@ -78,14 +81,12 @@ export async function GET() {
           (r) => r.duration_months
         );
 
-        // Work style breakdown
         const workStyleBreakdown = {
           onsite: companyReviews.filter((r) => r.work_style === "onsite").length,
           hybrid: companyReviews.filter((r) => r.work_style === "hybrid").length,
           remote: companyReviews.filter((r) => r.work_style === "remote").length,
         };
 
-        // Common roles
         const roleCounts: Record<string, number> = {};
         companyReviews.forEach((r) => {
           const roleTitle = (r.role as { title?: string })?.title;
@@ -98,7 +99,6 @@ export async function GET() {
           .slice(0, 5)
           .map(([role]) => role);
 
-        // Common locations
         const locationCounts: Record<string, number> = {};
         companyReviews.forEach((r) => {
           if (r.location) {
@@ -110,7 +110,6 @@ export async function GET() {
           .slice(0, 5)
           .map(([loc]) => loc);
 
-        // Common technologies
         const techCounts: Record<string, number> = {};
         companyReviews.forEach((r) => {
           if (r.technologies) {
@@ -127,7 +126,6 @@ export async function GET() {
           .slice(0, 10)
           .map(([tech]) => tech);
 
-        // Common interview format (most mentioned pattern)
         const formatCounts: Record<string, number> = {};
         companyReviews.forEach((r) => {
           if (r.interview_rounds_description) {
@@ -147,7 +145,6 @@ export async function GET() {
         const commonInterviewFormat =
           Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
-        // Calculate pay ranges (min/max)
         const cadWages = cadReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
         const usdWages = usdReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
 

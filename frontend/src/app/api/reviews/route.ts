@@ -146,6 +146,18 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    const { createServiceRoleClient, createClient } = await import("@/lib/supabase/server");
+    let supabaseAdmin;
+    try {
+      supabaseAdmin = createServiceRoleClient();
+    } catch (error) {
+      console.error("Failed to create service role client:", error);
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
 
@@ -159,13 +171,10 @@ export async function GET(request: NextRequest) {
       offset: searchParams.get("offset") || "0",
     });
 
-    // Check if user is authenticated first
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
-    // Build query with user likes included in single query
-    let dbQuery = supabase.from("reviews").select(
+    let dbQuery = supabaseAdmin.from("reviews").select(
       `
         *,
         company:companies(*),
@@ -200,7 +209,7 @@ export async function GET(request: NextRequest) {
     const { data: reviews, error: fetchError, count } = await dbQuery;
 
     if (fetchError) {
-      console.error("Reviews fetch error:", fetchError);
+      console.error("Reviews fetch error:", fetchError.message);
       return NextResponse.json(
         { error: "Failed to fetch reviews" },
         { status: 500 }
@@ -210,7 +219,6 @@ export async function GET(request: NextRequest) {
     let reviewsWithLikeStatus: ReviewWithDetails[] = reviews || [];
 
     if (user && reviews && reviews.length > 0) {
-      // Get user's likes for these reviews in a single optimized query
       const reviewIds = reviews.map((r) => r.id);
       const { data: userLikes, error: likesError } = await supabase
         .from("review_likes")

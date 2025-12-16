@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import { CompanyDetailClient } from "@/components/CompanyDetailClient";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { CompanyWithStats, ReviewWithDetails } from "@/lib/types/database";
 
 interface PageProps {
@@ -10,15 +10,21 @@ interface PageProps {
 
 export default async function CompanyDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
+  
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = createServiceRoleClient();
+  } catch (error) {
+    console.error("Failed to create service role client:", error);
+    notFound();
+  }
 
-  // Check if user is authenticated
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch company by slug
-  const { data: company, error: companyError } = await supabase
+  const { data: company, error: companyError } = await supabaseAdmin
     .from("companies")
     .select("*")
     .eq("slug", slug)
@@ -27,9 +33,7 @@ export default async function CompanyDetailPage({ params }: PageProps) {
   if (companyError || !company) {
     notFound();
   }
-
-  // Fetch all reviews for this company with role data
-  const { data: reviews, error: reviewsError } = await supabase
+  const { data: reviews } = await supabaseAdmin
     .from("reviews")
     .select(`
       *,
@@ -38,12 +42,6 @@ export default async function CompanyDetailPage({ params }: PageProps) {
     `)
     .eq("company_id", company.id)
     .order("created_at", { ascending: false });
-
-  if (reviewsError) {
-    console.error("Reviews fetch error:", reviewsError);
-  }
-
-  // Fetch user's likes if authenticated
   let userLikes: Set<string> = new Set();
   if (user && reviews && reviews.length > 0) {
     const reviewIds = reviews.map((r) => r.id);
