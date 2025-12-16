@@ -338,32 +338,6 @@ export default function HeroSection() {
           />
 
         </div>
-        
-        {/* Scroll indicator - positioned at bottom of viewport */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
-          >
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-          </motion.div>
-        </motion.div>
       </div>
     </AuroraBackground>
   );
