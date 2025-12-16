@@ -12,7 +12,7 @@ import {
   getIpAddress,
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
-import { stripHTML } from "@/lib/security/xss-protection";
+import { stripHTML } from "@/lib/security/xss-protection-server";
 
 /**
  * POST /api/reviews
