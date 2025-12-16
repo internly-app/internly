@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Roboto, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const inter = Inter({
+const roboto = Roboto({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-roboto",
   display: "swap",
-  weight: ["400", "600", "700"], // Reduced from 6 weights to 3 for faster loading
+  weight: ["300", "400", "500", "700"],
   preload: true,
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+  display: "swap",
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -54,7 +61,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} ${inter.variable} font-sans antialiased`}>
+      <body className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased`}>
           <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
