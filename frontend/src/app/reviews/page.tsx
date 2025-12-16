@@ -1,6 +1,6 @@
 import Navigation from "@/components/Navigation";
 import { ReviewsPageClient } from "@/components/ReviewsPageClient";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
 interface PageProps {
@@ -15,7 +15,6 @@ interface PageProps {
 
 export default async function ReviewsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const supabase = await createClient();
 
   // Parse query parameters
   const searchQuery = params.search || "";
@@ -25,13 +24,33 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const page = parseInt(params.page || "1", 10);
   const currentPage = page > 0 ? page : 1;
 
-  // Check if user is authenticated
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = createServiceRoleClient();
+  } catch (error) {
+    console.error("Failed to create service role client:", error);
+    return (
+      <>
+        <Navigation />
+        <ReviewsPageClient
+          initialReviews={[]}
+          initialTotal={0}
+          initialSearchQuery={searchQuery}
+          initialCompanyFilter={companyFilter}
+          initialWorkStyleFilter={workStyleFilter}
+          initialSortBy={sortBy}
+          initialPage={currentPage}
+        />
+      </>
+    );
+  }
+
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Build query
-  let dbQuery = supabase.from("reviews").select(
+  let dbQuery = supabaseAdmin.from("reviews").select(
     `
       *,
       company:companies(*),
@@ -70,7 +89,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const { data: reviews, error: reviewsError, count } = await dbQuery;
 
   if (reviewsError) {
-    console.error("Reviews fetch error:", reviewsError);
+    console.error("Reviews fetch error:", reviewsError.message);
     return (
       <>
         <Navigation />
@@ -87,7 +106,6 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
     );
   }
 
-  // Get user's likes if authenticated
   let reviewsWithLikeStatus: ReviewWithDetails[] = reviews || [];
   if (user && reviews && reviews.length > 0) {
     const reviewIds = reviews.map((r) => r.id);
