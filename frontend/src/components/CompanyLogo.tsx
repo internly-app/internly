@@ -88,7 +88,10 @@ export function CompanyLogo({
   };
 
   const domain = getDomain(companyName);
-  const logoKitUrl = `https://img.logokit.com/${domain}`;
+  const apiKey = process.env.NEXT_PUBLIC_LOGOKIT_API_KEY;
+  const logoKitUrl = apiKey
+    ? `https://img.logokit.com/${domain}?token=${apiKey}`
+    : `https://img.logokit.com/${domain}`;
   const initial = companyName[0]?.toUpperCase() || "?";
 
   // Validate logoUrl - must be a non-empty string that looks like a URL

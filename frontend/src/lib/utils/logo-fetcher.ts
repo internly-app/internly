@@ -75,38 +75,30 @@ function getDomainFromCompanyName(name: string): string {
  * Returns the logo URL if successful, null otherwise
  * Non-blocking: fails gracefully if API is slow or unavailable
  *
+ * NOTE: LogoKit blocks programmatic access (server-side requests).
+ * The img.logokit.com endpoint only works when embedded in browser <img> tags.
+ * This function now just constructs the URL - actual validation happens client-side.
+ *
  * @param companyName - Company name (e.g., "Nooks", "Google")
- * @returns Logo URL or null if not found
+ * @returns Logo URL with API key, or null if no API key available
  */
 export async function fetchLogoFromLogoKit(
   companyName: string
 ): Promise<string | null> {
   try {
-    const domain = getDomainFromCompanyName(companyName);
-    const logoUrl = `https://img.logokit.com/${domain}`;
+    const apiKey = process.env.NEXT_PUBLIC_LOGOKIT_API_KEY;
 
-    // Fetch with timeout (3 seconds max)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    try {
-      const response = await fetch(logoUrl, {
-        method: "HEAD", // HEAD request is faster - just check if resource exists
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      // If HEAD request succeeds, return the URL
-      if (response.ok) {
-        return logoUrl;
-      }
-    } catch (error) {
-      clearTimeout(timeoutId);
-      // Silently fail - logo fetching is optional
+    // If no API key, return null (client will use fallback)
+    if (!apiKey) {
+      return null;
     }
 
-    return null;
+    const domain = getDomainFromCompanyName(companyName);
+    const logoUrl = `https://img.logokit.com/${domain}?token=${apiKey}`;
+
+    // Return the URL directly - LogoKit blocks server-side verification
+    // The browser will validate when the <img> tag loads
+    return logoUrl;
   } catch (error) {
     // Fail silently - logo fetching is optional
     // Client-side fallback will handle it
