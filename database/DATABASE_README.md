@@ -1,245 +1,250 @@
-# 🗄️ Database Setup & Optimization Guide
+# Internly Database Documentation
 
-This directory contains all SQL scripts for setting up and optimizing the Internly database in Supabase.
+## Overview
+
+Internly uses PostgreSQL via Supabase for storing company information, internship reviews, and user data.
+
+**Database:** PostgreSQL 15+ (Supabase)
+**Schema File:** `schema.sql`
 
 ---
 
-## 📋 **Quick Start**
+## Quick Setup
 
-Run these SQL files in your Supabase SQL Editor **in this order**:
+1. Go to your Supabase project → SQL Editor
+2. Copy and paste the contents of `schema.sql`
+3. Run the SQL script
 
-### 1. **schema.sql** (Required - First Time Setup)
+This creates all tables, indexes, triggers, and security policies.
+
+---
+
+## Database Schema
+
+### Tables
+
+#### 1. **companies**
+Stores company information.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| name | TEXT | Company name (unique) |
+| slug | TEXT | URL-friendly identifier (unique) |
+| logo_url | TEXT | Company logo URL |
+| website | TEXT | Company website |
+| industry | TEXT | Industry category |
+| created_at | TIMESTAMPTZ | Creation timestamp |
+| updated_at | TIMESTAMPTZ | Last update timestamp |
+
+**Security:** Public read, authenticated write
+
+---
+
+#### 2. **roles**
+Job roles at companies (e.g., "Software Engineering Intern").
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| title | TEXT | Role title |
+| slug | TEXT | URL-friendly identifier |
+| company_id | UUID | Foreign key → companies.id |
+| created_at | TIMESTAMPTZ | Creation timestamp |
+| updated_at | TIMESTAMPTZ | Last update timestamp |
+
+**Unique Constraint:** One slug per company
+**Security:** Public read, authenticated write
+
+---
+
+#### 3. **reviews**
+Detailed internship reviews from users.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| id | UUID | ✓ | Primary key |
+| user_id | UUID | ✓ | Foreign key → auth.users.id |
+| company_id | UUID | ✓ | Foreign key → companies.id |
+| role_id | UUID | ✓ | Foreign key → roles.id |
+| location | TEXT | ✓ | Internship location |
+| term | TEXT | ✓ | e.g., "Summer 2024" |
+| duration_months | INTEGER | | Duration in months |
+| work_style | TEXT | ✓ | onsite, hybrid, or remote |
+| team_name | TEXT | | Team name |
+| technologies | TEXT | | Tech stack used |
+| hardest | TEXT | ✓ | Hardest part of internship |
+| best | TEXT | ✓ | Best part of internship |
+| advice | TEXT | | Advice for future interns |
+| wage_hourly | NUMERIC | ✓ | Hourly wage |
+| wage_currency | TEXT | ✓ | Currency (default: CAD) |
+| housing_stipend_provided | BOOLEAN | ✓ | Housing provided? |
+| housing_stipend | NUMERIC | | Housing stipend amount |
+| perks | TEXT | | Additional perks |
+| interview_round_count | INTEGER | ✓ | Number of interview rounds |
+| interview_rounds_description | TEXT | ✓ | Interview process details |
+| interview_tips | TEXT | | Tips for interviews |
+| like_count | INTEGER | ✓ | Number of likes (auto-updated) |
+| created_at | TIMESTAMPTZ | ✓ | Creation timestamp |
+| updated_at | TIMESTAMPTZ | ✓ | Last update timestamp |
+
+**Unique Constraint:** One review per user per role
+**Security:** Public read, users manage their own
+
+---
+
+#### 4. **review_likes**
+Tracks which users liked which reviews.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key → auth.users.id |
+| review_id | UUID | Foreign key → reviews.id |
+| created_at | TIMESTAMPTZ | Creation timestamp |
+
+**Unique Constraint:** One like per user per review
+**Security:** Public read, users manage their own
+
+---
+
+#### 5. **saved_companies**
+User bookmarks for companies.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key → auth.users.id |
+| company_id | UUID | Foreign key → companies.id |
+| created_at | TIMESTAMPTZ | Creation timestamp |
+
+**Unique Constraint:** One save per user per company
+**Security:** Private (users only see their own)
+
+---
+
+## Key Features
+
+### 1. Automatic Timestamps
+The `updated_at` field is automatically updated when records are modified.
+
+### 2. Automatic Like Counts
+When users like/unlike reviews, the `like_count` field updates automatically via database trigger.
+
+### 3. Row Level Security (RLS)
+All tables have RLS enabled with appropriate policies:
+- **Companies & Roles:** Anyone can view, authenticated users can create
+- **Reviews:** Anyone can view, users can only edit/delete their own
+- **Review Likes:** Public counts, users manage their own likes
+- **Saved Companies:** Private, users only see their own
+
+### 4. Performance Indexes
+Optimized indexes for common queries:
+- Company and role lookups
+- Reviews filtered by company, role, or work style
+- Reviews sorted by likes or date
+- Full-text search on company names, industries, and technologies
+- Partial indexes for wage and housing filters
+
+---
+
+## Common Operations
+
+### Create a Company
 ```sql
--- Creates all tables, indexes, triggers, and RLS policies
--- Run this first when setting up a new database
+INSERT INTO companies (name, slug, website, industry)
+VALUES ('Google', 'google', 'https://careers.google.com', 'Technology');
 ```
 
-### 2. **saved_companies.sql** (Required - First Time Setup)
+### Create a Role
 ```sql
--- Adds the saved_companies table for user bookmarks
--- Run this after schema.sql
+INSERT INTO roles (title, slug, company_id)
+VALUES ('Software Engineering Intern', 'software-engineering-intern', 'company-uuid');
 ```
 
-### 3. **performance-indexes.sql** (Recommended - Run After Setup)
+### Get Reviews for a Company
 ```sql
--- Adds advanced performance indexes
--- 99% faster queries (500ms → 5ms)
--- Run this after you have some data in the database
+SELECT * FROM reviews
+WHERE company_id = 'company-uuid'
+ORDER BY like_count DESC
+LIMIT 20;
+```
+
+### Check if User Liked a Review
+```sql
+SELECT EXISTS(
+  SELECT 1 FROM review_likes
+  WHERE user_id = 'user-uuid' AND review_id = 'review-uuid'
+);
 ```
 
 ---
 
-## 📊 **Performance Impact**
+## Maintenance
 
-### **Before Performance Indexes:**
-- Reviews filtered by company: **500ms**
-- Reviews with likes check: **300ms**
-- Company search: **200ms**
-- Complex multi-filter queries: **1000ms+**
-
-### **After Performance Indexes:**
-- Reviews filtered by company: **5-10ms** (99% faster ⚡)
-- Reviews with likes check: **10-15ms** (95% faster ⚡)
-- Company search: **5ms** (97% faster ⚡)
-- Complex multi-filter queries: **20-50ms** (98% faster ⚡)
-
----
-
-## 🔐 **Security Features**
-
-All tables have **Row Level Security (RLS)** enabled:
-
-### **Companies & Roles**
-- ✅ **Public read** - Anyone can view
-- ✅ **Authenticated write** - Only logged-in users can create
-
-### **Reviews**
-- ✅ **Public read** - Anyone can view all reviews
-- ✅ **User-owned write** - Users can only edit/delete their own reviews
-- ✅ **Unique constraint** - One review per user per role
-
-### **Review Likes**
-- ✅ **Public read** - Anyone can see like counts
-- ✅ **User-owned write** - Users can only manage their own likes
-- ✅ **Unique constraint** - One like per user per review
-
-### **Saved Companies**
-- ✅ **Private read** - Users can only see their own saved companies
-- ✅ **User-owned write** - Users can only manage their own bookmarks
-- ✅ **Unique constraint** - Can't save same company twice
-
----
-
-## 🚀 **Performance Indexes Explained**
-
-### **Composite Indexes**
-Optimize queries with multiple filters:
-- `idx_reviews_company_likes` - Reviews by company, sorted by popularity
-- `idx_reviews_company_created` - Reviews by company, sorted by date
-- `idx_reviews_workstyle_likes` - Filter by remote/hybrid/onsite
-- `idx_reviews_role_likes` - Filter by specific role
-
-### **Covering Indexes**
-Include all needed columns to avoid table lookups:
-- `idx_review_likes_user_review` - Fast like status checks
-
-### **Full-Text Search Indexes (GIN)**
-Lightning-fast text search:
-- `idx_companies_name_gin` - Search company names
-- `idx_companies_industry_gin` - Search industries
-- `idx_reviews_technologies_gin` - Search tech stacks
-
-### **Partial Indexes**
-Smaller, faster indexes for specific conditions:
-- `idx_reviews_wage_hourly_partial` - Only index paid internships
-- `idx_reviews_housing_partial` - Only index with housing
-
----
-
-## 🛠️ **Database Triggers & Functions**
-
-### **Auto-Update Timestamps**
+### Weekly
 ```sql
-update_updated_at_column()
-```
-Automatically updates `updated_at` field on record changes.
-
-### **Auto-Update Like Counts**
-```sql
-update_review_like_count()
-```
-Automatically increments/decrements `like_count` when users like/unlike reviews.
-
----
-
-## 📈 **Maintenance & Monitoring**
-
-### **Weekly Maintenance**
-```sql
--- Update table statistics for optimal query planning
+-- Update query planner statistics
 ANALYZE companies;
+ANALYZE roles;
 ANALYZE reviews;
 ANALYZE review_likes;
 ANALYZE saved_companies;
 ```
 
-### **Monitor Index Usage**
+### As Needed
 ```sql
--- Check which indexes are being used
-SELECT schemaname, tablename, indexname, idx_scan, idx_tup_read
-FROM pg_stat_user_indexes
-WHERE schemaname = 'public'
-ORDER BY idx_scan DESC;
+-- Fix incorrect like counts (if needed)
+UPDATE reviews r
+SET like_count = (
+  SELECT COUNT(*) FROM review_likes WHERE review_id = r.id
+);
 ```
 
-### **Verify Query Performance**
+---
+
+## Recommendations for Future
+
+### High Priority
+1. **Add review status field** - Enable drafts, moderation, flagging
+2. **Implement soft deletes** - Retain data for analytics
+3. **Add audit logging** - Track changes to critical data
+
+### Medium Priority
+4. **Company statistics caching** - Pre-calculate review counts, averages
+5. **User profiles table** - Email verification, university, graduation year
+6. **Rate limiting** - Prevent spam and abuse
+
+### Low Priority
+7. **Table partitioning** - For reviews table when it grows large (1M+ rows)
+8. **Materialized views** - For complex analytics queries
+9. **Vector embeddings** - For semantic search and recommendations
+
+---
+
+## Troubleshooting
+
+### Query Performance Issues
 ```sql
--- Test a query with EXPLAIN ANALYZE
+-- Check if indexes are being used
 EXPLAIN ANALYZE
 SELECT * FROM reviews
-WHERE company_id = 'some-uuid'
-ORDER BY like_count DESC
-LIMIT 20;
+WHERE company_id = 'uuid'
+ORDER BY like_count DESC;
 ```
-
 Should show: `Index Scan using idx_reviews_company_likes`
 
----
+### RLS Policy Errors
+- Verify user is authenticated: `SELECT auth.uid();`
+- Check policy matches your use case
+- Test with Supabase SQL Editor in authenticated session
 
-## 🔧 **Optimization Tips**
-
-### **1. Select Specific Columns**
-```sql
--- ❌ BAD: Fetches all columns
-SELECT * FROM reviews;
-
--- ✅ GOOD: Only fetch what you need
-SELECT id, company_id, best, hardest, like_count FROM reviews;
-```
-
-### **2. Use Pagination**
-```sql
--- Always limit results
-SELECT * FROM reviews
-LIMIT 20 OFFSET 0;
-```
-
-### **3. Parallel Queries**
-```typescript
-// ✅ GOOD: Run independent queries in parallel
-const [reviews, companies, user] = await Promise.all([
-  supabase.from('reviews').select('*'),
-  supabase.from('companies').select('*'),
-  supabase.auth.getUser(),
-]);
-```
-
-### **4. Filter Early**
-```sql
--- Apply filters before joining tables
-SELECT r.*, c.name
-FROM reviews r
-JOIN companies c ON r.company_id = c.id
-WHERE r.company_id = 'uuid' -- Filter first!
-ORDER BY r.like_count DESC;
-```
+### Duplicate Key Errors
+- **reviews:** User already reviewed this role
+- **review_likes:** User already liked this review
+- **saved_companies:** User already saved this company
 
 ---
 
-## 🗂️ **Files in This Directory**
-
-| File | Purpose | When to Run |
-|------|---------|-------------|
-| `schema.sql` | Base schema with tables, basic indexes, RLS | First time setup |
-| `saved_companies.sql` | Saved companies table for bookmarks | After schema.sql |
-| `performance-indexes.sql` | Advanced performance indexes | After initial data load |
-| `DATABASE_README.md` | This documentation | Read first! |
-
----
-
-## ✅ **Post-Setup Checklist**
-
-After running all SQL scripts:
-
-- [ ] Verify all tables created: `companies`, `roles`, `reviews`, `review_likes`, `saved_companies`
-- [ ] Check RLS is enabled on all tables
-- [ ] Run `ANALYZE` on all tables
-- [ ] Test a review query with `EXPLAIN ANALYZE`
-- [ ] Verify indexes are being used (idx_scan > 0)
-- [ ] Test authentication flow (sign up, sign in, sign out)
-- [ ] Test review creation and like functionality
-- [ ] Test saved companies feature
-
----
-
-## 🆘 **Troubleshooting**
-
-### **Query is slow**
-1. Run `EXPLAIN ANALYZE` on the query
-2. Check if indexes are being used
-3. Verify `ANALYZE` has been run on tables
-4. Check if you're using `SELECT *` (fetch specific columns instead)
-
-### **RLS policy errors**
-1. Check user is authenticated: `SELECT auth.uid();`
-2. Verify RLS policy matches your use case
-3. Test with Supabase SQL Editor (authenticated session)
-
-### **Duplicate key errors**
-- Review per role: User already reviewed this role
-- Like: User already liked this review
-- Saved company: User already saved this company
-
----
-
-## 📚 **Additional Resources**
-
-- [Supabase Database Documentation](https://supabase.com/docs/guides/database)
-- [PostgreSQL Index Types](https://www.postgresql.org/docs/current/indexes-types.html)
-- [Row Level Security Guide](https://supabase.com/docs/guides/auth/row-level-security)
-- [Query Performance Tips](https://supabase.com/docs/guides/database/query-performance)
-
----
-
-**Last Updated:** December 6, 2025
-**Optimizations Applied:** ✅ Complete
+**Last Updated:** December 15, 2025
+**Status:** Production Ready

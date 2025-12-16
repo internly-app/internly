@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { reviewUpdateSchema } from "@/lib/validations/schemas";
+import { stripHTML } from "@/lib/security/xss-protection";
 
 /**
  * GET /api/reviews/[id]
@@ -83,11 +84,22 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = reviewUpdateSchema.parse(body);
 
+    // Sanitize all text fields to prevent XSS attacks
+    const sanitizedData: Record<string, any> = {};
+    for (const [key, value] of Object.entries(validatedData)) {
+      // Sanitize string fields (excluding IDs and numeric fields)
+      if (typeof value === 'string' && !key.includes('_id') && !key.includes('count')) {
+        sanitizedData[key] = stripHTML(value);
+      } else {
+        sanitizedData[key] = value;
+      }
+    }
+
     // Update the review
     const { data: updatedReview, error: updateError } = await supabase
       .from("reviews")
       .update({
-        ...validatedData,
+        ...sanitizedData,
         updated_at: new Date().toISOString(),
       })
       .eq("id", reviewId)

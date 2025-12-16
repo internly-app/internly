@@ -9,6 +9,7 @@ import {
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
 import { fetchLogoFromLogoDev } from "@/lib/utils/logo-fetcher";
+import { stripHTML, sanitizeURL } from "@/lib/security/xss-protection";
 
 // Logo fetching: Try server-side first (non-blocking), fallback to client-side
 // Server-side fetching improves logo success rate and reduces client-side API calls
@@ -37,9 +38,14 @@ export async function POST(request: NextRequest) {
     const rateLimit = checkRateLimit(identifier, RATE_LIMITS.CREATE_COMPANY);
 
     if (!rateLimit.allowed) {
+      const errorMessage = rateLimit.blocked
+        ? "Your account has been temporarily blocked due to repeated rate limit violations. Please try again later."
+        : "Too many requests. Please try again later.";
+
       return NextResponse.json(
         {
-          error: "Too many requests. Please try again later.",
+          error: errorMessage,
+          blocked: rateLimit.blocked || false,
           retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
         },
         {
@@ -87,13 +93,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(existingCompany, { status: 200 });
     }
 
+    // Sanitize company data to prevent XSS attacks
+    const sanitizedData = {
+      name: stripHTML(validatedData.name),
+      slug: stripHTML(validatedData.slug),
+      website: validatedData.website ? sanitizeURL(validatedData.website) : null,
+      industry: validatedData.industry ? stripHTML(validatedData.industry) : null,
+    };
+
     // Try to fetch logo from Logo.dev API (non-blocking, fails gracefully)
     // This improves logo success rate by storing logo_url in database
     let logoUrl: string | null = null;
     const logoDevApiKey = process.env.LOGO_DEV_API_KEY || process.env.NEXT_PUBLIC_LOGO_DEV_API_KEY;
-    if (logoDevApiKey && validatedData.name) {
+    if (logoDevApiKey && sanitizedData.name) {
       try {
-        logoUrl = await fetchLogoFromLogoDev(validatedData.name, logoDevApiKey);
+        logoUrl = await fetchLogoFromLogoDev(sanitizedData.name, logoDevApiKey);
       } catch (error) {
         // Fail silently - logo fetching is optional
         // Client-side CompanyLogo component will handle fallback
@@ -102,8 +116,8 @@ export async function POST(request: NextRequest) {
 
     // Create new company with logo_url if available
     const companyData = {
-      ...validatedData,
-      ...(logoUrl && { logo_url: logoUrl }),
+      ...sanitizedData,
+      ...(logoUrl && { logo_url: sanitizeURL(logoUrl) }),
     };
 
     const { data: newCompany, error: insertError } = await supabase

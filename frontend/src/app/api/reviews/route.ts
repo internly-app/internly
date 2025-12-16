@@ -12,6 +12,7 @@ import {
   getIpAddress,
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
+import { stripHTML } from "@/lib/security/xss-protection";
 
 /**
  * POST /api/reviews
@@ -37,9 +38,14 @@ export async function POST(request: NextRequest) {
     const rateLimit = checkRateLimit(identifier, RATE_LIMITS.CREATE_REVIEW);
 
     if (!rateLimit.allowed) {
+      const errorMessage = rateLimit.blocked
+        ? "Your account has been temporarily blocked due to repeated rate limit violations. Please try again later."
+        : "Too many requests. Please try again later.";
+
       return NextResponse.json(
         {
-          error: "Too many requests. Please try again later.",
+          error: errorMessage,
+          blocked: rateLimit.blocked || false,
           retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
         },
         {
@@ -58,11 +64,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = reviewCreateSchema.parse(body);
 
+    // Sanitize all text fields to prevent XSS attacks
+    const sanitizedData = {
+      ...validatedData,
+      location: stripHTML(validatedData.location),
+      term: stripHTML(validatedData.term),
+      team_name: validatedData.team_name ? stripHTML(validatedData.team_name) : null,
+      technologies: validatedData.technologies ? stripHTML(validatedData.technologies) : null,
+      hardest: stripHTML(validatedData.hardest),
+      best: stripHTML(validatedData.best),
+      advice: validatedData.advice ? stripHTML(validatedData.advice) : null,
+      perks: validatedData.perks ? stripHTML(validatedData.perks) : null,
+      interview_rounds_description: stripHTML(validatedData.interview_rounds_description),
+      interview_tips: validatedData.interview_tips ? stripHTML(validatedData.interview_tips) : null,
+    };
+
     // Insert review
     const { data: review, error: insertError } = await supabase
       .from("reviews")
       .insert({
-        ...validatedData,
+        ...sanitizedData,
         user_id: user.id,
       })
       .select(
