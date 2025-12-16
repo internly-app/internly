@@ -8,10 +8,11 @@ import {
   getIpAddress,
   RATE_LIMITS,
 } from "@/lib/security/rate-limit";
-import { fetchLogoFromLogoDev } from "@/lib/utils/logo-fetcher";
+import { fetchLogoFromLogoKit } from "@/lib/utils/logo-fetcher";
 import { stripHTML, sanitizeURL } from "@/lib/security/xss-protection";
 
 // Logo fetching: Try server-side first (non-blocking), fallback to client-side
+// LogoKit API: Free tier with 5K requests/day, millions of logos, no API key needed
 // Server-side fetching improves logo success rate and reduces client-side API calls
 
 /**
@@ -101,13 +102,13 @@ export async function POST(request: NextRequest) {
       industry: validatedData.industry ? stripHTML(validatedData.industry) : null,
     };
 
-    // Try to fetch logo from Logo.dev API (non-blocking, fails gracefully)
+    // Try to fetch logo from LogoKit API (non-blocking, fails gracefully)
     // This improves logo success rate by storing logo_url in database
+    // LogoKit: No API key needed, 5K free requests/day
     let logoUrl: string | null = null;
-    const logoDevApiKey = process.env.LOGO_DEV_API_KEY || process.env.NEXT_PUBLIC_LOGO_DEV_API_KEY;
-    if (logoDevApiKey && sanitizedData.name) {
+    if (sanitizedData.name) {
       try {
-        logoUrl = await fetchLogoFromLogoDev(sanitizedData.name, logoDevApiKey);
+        logoUrl = await fetchLogoFromLogoKit(sanitizedData.name);
       } catch (error) {
         // Fail silently - logo fetching is optional
         // Client-side CompanyLogo component will handle fallback

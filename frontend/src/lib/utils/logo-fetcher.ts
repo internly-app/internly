@@ -1,6 +1,12 @@
 /**
- * Utility functions for fetching company logos from Logo.dev API
+ * Utility functions for fetching company logos from LogoKit API
  * Used server-side to populate logo_url when companies are created
+ *
+ * LogoKit API: https://logokit.com/company-logo-api
+ * - Free tier: 5,000 requests/day (no API key required)
+ * - Coverage: Millions of company logos worldwide
+ * - Performance: Sub-100ms globally via CDN
+ * - URL format: https://img.logokit.com/{domain}
  */
 
 // Common domain mappings for companies - matches CompanyLogo component
@@ -65,21 +71,19 @@ function getDomainFromCompanyName(name: string): string {
 }
 
 /**
- * Fetch logo URL from Logo.dev API
+ * Fetch logo URL from LogoKit API
  * Returns the logo URL if successful, null otherwise
  * Non-blocking: fails gracefully if API is slow or unavailable
+ *
+ * @param companyName - Company name (e.g., "Nooks", "Google")
+ * @returns Logo URL or null if not found
  */
-export async function fetchLogoFromLogoDev(
-  companyName: string,
-  apiKey?: string
+export async function fetchLogoFromLogoKit(
+  companyName: string
 ): Promise<string | null> {
-  if (!apiKey) {
-    return null;
-  }
-
   try {
     const domain = getDomainFromCompanyName(companyName);
-    const logoUrl = `https://img.logo.dev/${domain}?token=${apiKey}`;
+    const logoUrl = `https://img.logokit.com/${domain}`;
 
     // Fetch with timeout (3 seconds max)
     const controller = new AbortController();
@@ -99,13 +103,7 @@ export async function fetchLogoFromLogoDev(
       }
     } catch (error) {
       clearTimeout(timeoutId);
-      // If HEAD fails, try GET to verify
-      const getResponse = await fetch(logoUrl, {
-        signal: controller.signal,
-      });
-      if (getResponse.ok) {
-        return logoUrl;
-      }
+      // Silently fail - logo fetching is optional
     }
 
     return null;
@@ -114,5 +112,16 @@ export async function fetchLogoFromLogoDev(
     // Client-side fallback will handle it
     return null;
   }
+}
+
+/**
+ * Legacy function name for backwards compatibility
+ * @deprecated Use fetchLogoFromLogoKit instead
+ */
+export async function fetchLogoFromLogoDev(
+  companyName: string,
+  apiKey?: string
+): Promise<string | null> {
+  return fetchLogoFromLogoKit(companyName);
 }
 

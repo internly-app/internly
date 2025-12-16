@@ -50,10 +50,11 @@ const DOMAIN_MAP: Record<string, string> = {
 /**
  * CompanyLogo component that displays company logos with smart fallbacks:
  * 1. Uses logo_url from database if available
- * 2. Falls back to Logo.dev API (free tier available)
+ * 2. Falls back to LogoKit API (5K free requests/day, no API key needed)
  * 3. Falls back to company initial in a circle
  *
  * Uses Next.js Image for optimization (lazy loading, WebP conversion, etc.)
+ * LogoKit API: https://logokit.com/company-logo-api
  */
 export function CompanyLogo({
   companyName,
@@ -62,11 +63,11 @@ export function CompanyLogo({
   className = "",
 }: CompanyLogoProps) {
   const [imageError, setImageError] = useState(false);
-  const [logoDevError, setLogoDevError] = useState(false);
-  const [logoDevLoading, setLogoDevLoading] = useState(true);
+  const [logoKitError, setLogoKitError] = useState(false);
+  const [logoKitLoading, setLogoKitLoading] = useState(true);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  // Generate domain from company name for Logo.dev API
+  // Generate domain from company name for LogoKit API
   const getDomain = (name: string): string => {
     if (DOMAIN_MAP[name]) {
       return DOMAIN_MAP[name];
@@ -87,8 +88,7 @@ export function CompanyLogo({
   };
 
   const domain = getDomain(companyName);
-  const logoDevApiKey = process.env.NEXT_PUBLIC_LOGO_DEV_API_KEY;
-  const logoDevUrl = `https://img.logo.dev/${domain}?token=${logoDevApiKey}`;
+  const logoKitUrl = `https://img.logokit.com/${domain}`;
   const initial = companyName[0]?.toUpperCase() || "?";
 
   // Validate logoUrl - must be a non-empty string that looks like a URL
@@ -106,41 +106,41 @@ export function CompanyLogo({
     // Only reset if props actually changed (not just re-render)
     if (prev.companyName !== companyName || prev.logoUrl !== logoUrl) {
       setImageError(false);
-      setLogoDevError(false);
-      setLogoDevLoading(true);
+      setLogoKitError(false);
+      setLogoKitLoading(true);
       prevPropsRef.current = { companyName, logoUrl };
     }
   }, [companyName, logoUrl]);
 
-  // Add timeout for Logo.dev loading - if it takes too long, show initial
+  // Add timeout for LogoKit loading - if it takes too long, show initial
   // Increased timeout to account for lazy loading and network delays when many logos load at once
   useEffect(() => {
-    if (!isValidLogoUrl && !imageError && !logoDevError && logoDevLoading) {
+    if (!isValidLogoUrl && !imageError && !logoKitError && logoKitLoading) {
       // Give browser time to start loading (lazy loading can delay start)
       // Also accounts for network congestion when many logos load simultaneously on page refresh
       const timeout = setTimeout(() => {
         // Check if image is still loading (not loaded and not errored)
         const img = imgRef.current;
         // Only timeout if: loading state is still true AND (no img element OR img hasn't completed loading)
-        const isStillLoading = logoDevLoading && (!img || (!img.complete && img.naturalWidth === 0));
+        const isStillLoading = logoKitLoading && (!img || (!img.complete && img.naturalWidth === 0));
 
         if (isStillLoading) {
           // Only log timeout warnings in development
           if (process.env.NODE_ENV === 'development') {
-            console.warn(`Logo.dev logo timeout for ${companyName} (domain: ${domain})`);
+            console.warn(`LogoKit logo timeout for ${companyName} (domain: ${domain})`);
           }
-          setLogoDevError(true);
-          setLogoDevLoading(false);
+          setLogoKitError(true);
+          setLogoKitLoading(false);
         }
       }, 3500); // 3.5 second timeout - accounts for lazy loading delay + network delays when many logos load at once
 
       return () => clearTimeout(timeout);
     }
-  }, [companyName, domain, isValidLogoUrl, imageError, logoDevError, logoDevLoading]);
+  }, [companyName, domain, isValidLogoUrl, imageError, logoKitError, logoKitLoading]);
 
-  // Priority: logo_url > Logo.dev API > Initial fallback
-  const shouldUseLogoDev = !isValidLogoUrl || imageError;
-  const shouldShowInitial = shouldUseLogoDev && logoDevError;
+  // Priority: logo_url > LogoKit API > Initial fallback
+  const shouldUseLogoKit = !isValidLogoUrl || imageError;
+  const shouldShowInitial = shouldUseLogoKit && logoKitError;
 
   // Fallback: show initial letter (clean, consistent fallback state)
   if (shouldShowInitial) {
@@ -156,9 +156,9 @@ export function CompanyLogo({
     );
   }
 
-  // Use regular img tag for Logo.dev URLs and external HTTP URLs (more reliable)
+  // Use regular img tag for LogoKit URLs and external HTTP URLs (more reliable)
   // Use Next.js Image only for local paths (optimized)
-  const isUsingLogoDev = !isValidLogoUrl || imageError;
+  const isUsingLogoKit = !isValidLogoUrl || imageError;
   const isExternalUrl = isValidLogoUrl && logoUrl.startsWith('http');
 
   return (
@@ -166,11 +166,11 @@ export function CompanyLogo({
       className={`relative rounded-lg overflow-hidden bg-muted flex-shrink-0 ${className}`}
       style={{ width: size, height: size, minWidth: size, minHeight: size }}
     >
-      {isUsingLogoDev ? (
-        // Use regular img tag for Logo.dev API (more reliable, no optimization needed)
+      {isUsingLogoKit ? (
+        // Use regular img tag for LogoKit API (more reliable, no optimization needed)
         <img
           ref={imgRef}
-          src={logoDevUrl}
+          src={logoKitUrl}
           alt={`${companyName} logo`}
           width={size}
           height={size}
@@ -178,16 +178,16 @@ export function CompanyLogo({
           onError={(e) => {
             // Only log in development to avoid console spam
             if (process.env.NODE_ENV === 'development') {
-              console.warn(`Logo.dev logo failed for ${companyName} (${domain}):`, logoDevUrl);
+              console.warn(`LogoKit logo failed for ${companyName} (${domain}):`, logoKitUrl);
             }
-            setLogoDevError(true);
-            setLogoDevLoading(false);
+            setLogoKitError(true);
+            setLogoKitLoading(false);
           }}
           onLoad={() => {
             // Successfully loaded - clear any pending timeout
-            setLogoDevLoading(false);
-            if (logoDevError) {
-              setLogoDevError(false);
+            setLogoKitLoading(false);
+            if (logoKitError) {
+              setLogoKitError(false);
             }
           }}
           loading="lazy"
