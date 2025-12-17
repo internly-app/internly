@@ -14,24 +14,26 @@ export function StatsSection({ totalReviews, totalCompanies, mostReviewedCount }
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [currentAnimatingIndex, setCurrentAnimatingIndex] = useState(-1);
 
   useEffect(() => {
     if (isInView && !hasAnimated) {
       setHasAnimated(true);
+      // Start animating the first stat immediately
+      setCurrentAnimatingIndex(0);
     }
   }, [isInView, hasAnimated]);
 
   const stats = [
     { value: totalReviews, label: "Reviews", delay: 0 },
     { value: totalCompanies, label: "Companies", delay: 0.1 },
-    { value: mostReviewedCount, label: "Most Reviewed", delay: 0.2 },
-    { value: 100, label: "Student Written", suffix: "%", delay: 0.3 },
+    { value: 100, label: "Student Written", suffix: "%", delay: 0.2 },
   ];
 
   return (
     <section className="py-16 px-6 bg-background">
       <div className="max-w-6xl mx-auto">
-        <div ref={ref} className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div ref={ref} className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -45,8 +47,19 @@ export function StatsSection({ totalReviews, totalCompanies, mostReviewedCount }
               className="text-center"
             >
               <div className="text-3xl md:text-4xl font-bold mb-2 text-primary">
-                {hasAnimated ? (
-                  <CountUpAnimation target={stat.value} suffix={stat.suffix} />
+                {hasAnimated && currentAnimatingIndex >= index ? (
+                  <CountUpAnimation 
+                    target={stat.value} 
+                    suffix={stat.suffix}
+                    onComplete={() => {
+                      // Start next animation when current completes
+                      if (index < stats.length - 1) {
+                        setTimeout(() => {
+                          setCurrentAnimatingIndex(index + 1);
+                        }, 100);
+                      }
+                    }}
+                  />
                 ) : (
                   "0"
                 )}
@@ -62,20 +75,34 @@ export function StatsSection({ totalReviews, totalCompanies, mostReviewedCount }
   );
 }
 
-function CountUpAnimation({ target, suffix }: { target: number; suffix?: string }) {
+function CountUpAnimation({ 
+  target, 
+  suffix, 
+  onComplete 
+}: { 
+  target: number; 
+  suffix?: string;
+  onComplete?: () => void;
+}) {
   const [count, setCount] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const hasCompletedRef = useRef(false);
 
   useEffect(() => {
     if (target === 0) {
       setCount(0);
+      if (onComplete && !hasCompletedRef.current) {
+        hasCompletedRef.current = true;
+        onComplete();
+      }
       return;
     }
 
     const duration = 1500; // 1.5 seconds
     const startTime = performance.now();
     startTimeRef.current = startTime;
+    hasCompletedRef.current = false;
 
     const animate = (currentTime: number) => {
       if (!startTimeRef.current) return;
@@ -94,6 +121,10 @@ function CountUpAnimation({ target, suffix }: { target: number; suffix?: string 
       } else {
         setCount(target);
         startTimeRef.current = null;
+        if (onComplete && !hasCompletedRef.current) {
+          hasCompletedRef.current = true;
+          onComplete();
+        }
       }
     };
 
@@ -105,7 +136,7 @@ function CountUpAnimation({ target, suffix }: { target: number; suffix?: string 
       }
       startTimeRef.current = null;
     };
-  }, [target]);
+  }, [target, onComplete]);
 
   return (
     <>
