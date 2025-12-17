@@ -147,9 +147,9 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{
                       boxShadow: [
-                        "0 0 16px rgba(156, 163, 175, 0.35), 0 0 32px rgba(156, 163, 175, 0.15)",
-                        "0 0 24px rgba(156, 163, 175, 0.5), 0 0 40px rgba(156, 163, 175, 0.25)",
-                        "0 0 16px rgba(156, 163, 175, 0.35), 0 0 32px rgba(156, 163, 175, 0.15)",
+                        "0 0 12px rgba(156, 163, 175, 0.2), 0 0 24px rgba(156, 163, 175, 0.1)",
+                        "0 0 16px rgba(156, 163, 175, 0.3), 0 0 32px rgba(156, 163, 175, 0.15)",
+                        "0 0 12px rgba(156, 163, 175, 0.2), 0 0 24px rgba(156, 163, 175, 0.1)",
                       ],
                     }}
                     transition={{
@@ -157,7 +157,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px]"
+                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-gray-400/40 relative"
                     style={{
                       transform: "scale(0.98) rotate(-2deg) translateZ(0)",
                       filter: "blur(0.2px)",
@@ -165,7 +165,19 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       height: "220px",
                     }}
                   >
-                    <div className="w-full h-full pointer-events-none">
+                    {/* Silver Shine Effect */}
+                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        style={{
+                          width: "50%",
+                          height: "200%",
+                          animation: "shine 3s ease-in-out infinite",
+                          animationDelay: "0.5s",
+                        }}
+                      />
+                    </div>
+                    <div className="w-full h-full pointer-events-none relative z-0">
                       <ReviewCard review={cardData.left} compact={true} />
                     </div>
                   </motion.div>
@@ -200,9 +212,9 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{
                       boxShadow: [
-                        "0 0 24px rgba(234, 179, 8, 0.4), 0 0 48px rgba(234, 179, 8, 0.2)",
-                        "0 0 32px rgba(234, 179, 8, 0.55), 0 0 60px rgba(234, 179, 8, 0.3)",
-                        "0 0 24px rgba(234, 179, 8, 0.4), 0 0 48px rgba(234, 179, 8, 0.2)",
+                        "0 0 20px rgba(234, 179, 8, 0.3), 0 0 40px rgba(234, 179, 8, 0.15)",
+                        "0 0 28px rgba(234, 179, 8, 0.45), 0 0 56px rgba(234, 179, 8, 0.25)",
+                        "0 0 20px rgba(234, 179, 8, 0.3), 0 0 40px rgba(234, 179, 8, 0.15)",
                       ],
                     }}
                     transition={{
@@ -210,7 +222,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="rounded-xl overflow-hidden w-[380px] md:w-[420px] lg:w-[440px]"
+                    className="rounded-xl overflow-hidden w-[380px] md:w-[420px] lg:w-[440px] border-2 border-yellow-400/50 relative"
                     style={{
                       transform: "scale(1.05) translateZ(0)",
                       backfaceVisibility: "hidden",
@@ -218,7 +230,19 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       height: "240px",
                     }}
                   >
-                    <div className="w-full h-full pointer-events-none">
+                    {/* Gold Shine Effect */}
+                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent"
+                        style={{
+                          width: "50%",
+                          height: "200%",
+                          animation: "shine 3s ease-in-out infinite",
+                          animationDelay: "0s",
+                        }}
+                      />
+                    </div>
+                    <div className="w-full h-full pointer-events-none relative z-0">
                       <ReviewCard review={cardData.center} compact={true} />
                     </div>
                   </motion.div>
@@ -247,9 +271,9 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{
                       boxShadow: [
-                        "0 0 16px rgba(217, 119, 6, 0.35), 0 0 32px rgba(217, 119, 6, 0.15)",
-                        "0 0 24px rgba(217, 119, 6, 0.5), 0 0 40px rgba(217, 119, 6, 0.25)",
-                        "0 0 16px rgba(217, 119, 6, 0.35), 0 0 32px rgba(217, 119, 6, 0.15)",
+                        "0 0 12px rgba(217, 119, 6, 0.2), 0 0 24px rgba(217, 119, 6, 0.1)",
+                        "0 0 16px rgba(217, 119, 6, 0.3), 0 0 32px rgba(217, 119, 6, 0.15)",
+                        "0 0 12px rgba(217, 119, 6, 0.2), 0 0 24px rgba(217, 119, 6, 0.1)",
                       ],
                     }}
                     transition={{
@@ -257,7 +281,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px]"
+                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-amber-600/40 relative"
                     style={{
                       transform: "scale(0.98) rotate(2deg) translateZ(0)",
                       filter: "blur(0.2px)",
@@ -265,7 +289,19 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       height: "220px",
                     }}
                   >
-                    <div className="w-full h-full pointer-events-none">
+                    {/* Bronze Shine Effect */}
+                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/25 to-transparent"
+                        style={{
+                          width: "50%",
+                          height: "200%",
+                          animation: "shine 3s ease-in-out infinite",
+                          animationDelay: "1s",
+                        }}
+                      />
+                    </div>
+                    <div className="w-full h-full pointer-events-none relative z-0">
                       <ReviewCard review={cardData.right} compact={true} />
                     </div>
                   </motion.div>
