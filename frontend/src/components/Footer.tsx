@@ -5,9 +5,9 @@ import { Linkedin, Instagram } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="py-8 px-6 bg-background border-t border-border">
+    <footer className="py-6 px-4 sm:px-6 bg-background border-t border-border">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-3">
           {/* Social icons with tooltip showing whose account it is */}
           <div className="flex gap-3">
             <div className="relative group">

@@ -66,9 +66,7 @@ export default async function Home() {
     <main className="min-h-screen flex flex-col">
       <Navigation animate={true} />
       <HeroSection reviews={heroReviews} />
-
       <LandingStats />
-
       <Footer />
     </main>
   );
