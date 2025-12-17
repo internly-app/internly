@@ -113,14 +113,20 @@
 
 @keyframes shine {
   0% {
-    transform: translateX(-150%) translateY(-150%) rotate(45deg);
+    transform: translateX(-200%) translateY(-200%) rotate(45deg);
     opacity: 0;
   }
+  20% {
+    opacity: 0.15;
+  }
   50% {
-    opacity: 1;
+    opacity: 0.25;
+  }
+  80% {
+    opacity: 0.15;
   }
   100% {
-    transform: translateX(150%) translateY(150%) rotate(45deg);
+    transform: translateX(200%) translateY(200%) rotate(45deg);
     opacity: 0;
   }
 }

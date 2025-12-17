@@ -147,13 +147,13 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{
                       boxShadow: [
-                        "0 0 12px rgba(156, 163, 175, 0.2), 0 0 24px rgba(156, 163, 175, 0.1)",
-                        "0 0 16px rgba(156, 163, 175, 0.3), 0 0 32px rgba(156, 163, 175, 0.15)",
-                        "0 0 12px rgba(156, 163, 175, 0.2), 0 0 24px rgba(156, 163, 175, 0.1)",
+                        "0 0 8px rgba(156, 163, 175, 0.15), 0 0 16px rgba(156, 163, 175, 0.08)",
+                        "0 0 12px rgba(156, 163, 175, 0.2), 0 0 24px rgba(156, 163, 175, 0.12)",
+                        "0 0 8px rgba(156, 163, 175, 0.15), 0 0 16px rgba(156, 163, 175, 0.08)",
                       ],
                     }}
                     transition={{
-                      duration: 4,
+                      duration: 3,
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
@@ -168,11 +168,11 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Silver Shine Effect */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
                       <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent"
                         style={{
-                          width: "200%",
-                          height: "200%",
-                          animation: "shine 4s ease-in-out 0.5s infinite",
+                          width: "300%",
+                          height: "300%",
+                          animation: "shine 5s ease-in-out 0.5s infinite",
                           transformOrigin: "center",
                         }}
                       />
@@ -212,13 +212,13 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{
                       boxShadow: [
-                        "0 0 20px rgba(234, 179, 8, 0.3), 0 0 40px rgba(234, 179, 8, 0.15)",
-                        "0 0 28px rgba(234, 179, 8, 0.45), 0 0 56px rgba(234, 179, 8, 0.25)",
-                        "0 0 20px rgba(234, 179, 8, 0.3), 0 0 40px rgba(234, 179, 8, 0.15)",
+                        "0 0 10px rgba(234, 179, 8, 0.2), 0 0 20px rgba(234, 179, 8, 0.1)",
+                        "0 0 16px rgba(234, 179, 8, 0.3), 0 0 32px rgba(234, 179, 8, 0.15)",
+                        "0 0 10px rgba(234, 179, 8, 0.2), 0 0 20px rgba(234, 179, 8, 0.1)",
                       ],
                     }}
                     transition={{
-                      duration: 4,
+                      duration: 3,
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
@@ -233,11 +233,11 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Gold Shine Effect */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
                       <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/18 to-transparent"
                         style={{
-                          width: "200%",
-                          height: "200%",
-                          animation: "shine 4s ease-in-out 0s infinite",
+                          width: "300%",
+                          height: "300%",
+                          animation: "shine 5s ease-in-out 0s infinite",
                           transformOrigin: "center",
                         }}
                       />
@@ -271,13 +271,13 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{
                       boxShadow: [
-                        "0 0 12px rgba(217, 119, 6, 0.2), 0 0 24px rgba(217, 119, 6, 0.1)",
-                        "0 0 16px rgba(217, 119, 6, 0.3), 0 0 32px rgba(217, 119, 6, 0.15)",
-                        "0 0 12px rgba(217, 119, 6, 0.2), 0 0 24px rgba(217, 119, 6, 0.1)",
+                        "0 0 8px rgba(217, 119, 6, 0.15), 0 0 16px rgba(217, 119, 6, 0.08)",
+                        "0 0 12px rgba(217, 119, 6, 0.2), 0 0 24px rgba(217, 119, 6, 0.12)",
+                        "0 0 8px rgba(217, 119, 6, 0.15), 0 0 16px rgba(217, 119, 6, 0.08)",
                       ],
                     }}
                     transition={{
-                      duration: 4,
+                      duration: 3,
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
@@ -292,11 +292,11 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Bronze Shine Effect */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
                       <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/25 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/15 to-transparent"
                         style={{
-                          width: "200%",
-                          height: "200%",
-                          animation: "shine 4s ease-in-out 1s infinite",
+                          width: "300%",
+                          height: "300%",
+                          animation: "shine 5s ease-in-out 1s infinite",
                           transformOrigin: "center",
                         }}
                       />
