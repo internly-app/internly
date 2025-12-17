@@ -169,11 +169,11 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Silver Shine Effect - GPU optimized */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
                       <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/22 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/26 to-transparent"
                         style={{
                           width: "300%",
                           height: "300%",
-                          animation: "shine 5s ease-in-out 0.5s infinite",
+                          animation: "shine 5s ease-in-out 1.7s infinite",
                           transformOrigin: "center",
                           willChange: "transform",
                         }}
@@ -236,7 +236,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Gold Shine Effect - GPU optimized */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
                       <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/25 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/28 to-transparent"
                         style={{
                           width: "300%",
                           height: "300%",
@@ -297,11 +297,11 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Bronze Shine Effect - GPU optimized */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
                       <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/22 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/26 to-transparent"
                         style={{
                           width: "300%",
                           height: "300%",
-                          animation: "shine 5s ease-in-out 1s infinite",
+                          animation: "shine 5s ease-in-out 3.4s infinite",
                           transformOrigin: "center",
                           willChange: "transform",
                         }}
