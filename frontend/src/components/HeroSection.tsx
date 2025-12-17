@@ -172,8 +172,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         style={{
                           width: "200%",
                           height: "200%",
-                          animation: "shine 4s ease-in-out infinite",
-                          animationDelay: "0.5s",
+                          animation: "shine 4s ease-in-out 0.5s infinite",
                           transformOrigin: "center",
                         }}
                       />
@@ -238,8 +237,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         style={{
                           width: "200%",
                           height: "200%",
-                          animation: "shine 4s ease-in-out infinite",
-                          animationDelay: "0s",
+                          animation: "shine 4s ease-in-out 0s infinite",
                           transformOrigin: "center",
                         }}
                       />
@@ -298,8 +296,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         style={{
                           width: "200%",
                           height: "200%",
-                          animation: "shine 4s ease-in-out infinite",
-                          animationDelay: "1s",
+                          animation: "shine 4s ease-in-out 1s infinite",
                           transformOrigin: "center",
                         }}
                       />
