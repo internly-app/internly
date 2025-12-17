@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Award, Medal } from "lucide-react";
+import { ArrowRight, Trophy, Medal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import ReviewCard from "@/components/ReviewCard";
@@ -194,7 +194,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                 >
                   {/* Gold Badge - Modern Design */}
                   <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-10 h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 translate-x-1/2 -translate-y-1/2">
-                    <Award className="size-5 fill-current" />
+                    <Trophy className="size-5 fill-current" />
                   </div>
                   
                   <motion.div
