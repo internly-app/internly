@@ -193,7 +193,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   }}
                 >
                   {/* Gold Badge - Modern Design */}
-                  <div className="absolute -top-3 -right-3 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-10 h-10 flex items-center justify-center shadow-xl border border-yellow-300/50">
+                  <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-10 h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 translate-x-1/2 -translate-y-1/2">
                     <Trophy className="size-5 fill-current" />
                   </div>
                   
