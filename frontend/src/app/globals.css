@@ -111,6 +111,26 @@
   }
 }
 
+@keyframes shine {
+  0% {
+    transform: translateX(-200%) translateY(-200%) rotate(45deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.25;
+  }
+  80% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateX(200%) translateY(200%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
 .animate-gradient-shift {
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;

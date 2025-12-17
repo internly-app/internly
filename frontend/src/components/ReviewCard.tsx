@@ -186,7 +186,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
   return (
     <>
       <Card
-        className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500"
+        className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500 h-full flex flex-col overflow-hidden"
         onClick={toggleExpanded}
         role="button"
         tabIndex={0}
@@ -199,7 +199,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           }
         }}
       >
-        <CardHeader className="pb-3 px-4">
+        <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* Company Logo */}
@@ -222,11 +222,11 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
 
             {/* Top Right: Date, Like & Delete buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(review.created_at)}</span>
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer group ${
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer group flex-shrink-0 ${
                   likeData.hasLiked 
                     ? "text-red-500 hover:bg-red-500/10" 
                     : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
@@ -243,18 +243,18 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="transition-all duration-200"
+                  className="transition-all duration-200 flex-shrink-0"
                   aria-hidden="true"
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
-                <span className="text-sm font-medium">{likeData.likeCount}</span>
+                <span className="text-sm font-medium whitespace-nowrap">{likeData.likeCount}</span>
               </button>
               {showEditButton && (
                 <Link
                   href={`/write-review?edit=${review.id}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-zinc-700/50 transition-all cursor-pointer"
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-zinc-700/50 transition-all cursor-pointer flex-shrink-0"
                   aria-label="Edit this review"
                 >
                   <Pencil className="size-4" aria-hidden="true" />
@@ -264,7 +264,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 <button
                   onClick={handleDeleteClick}
                   disabled={isDeleting}
-                  className={`p-1.5 rounded-md transition-all disabled:opacity-50 cursor-pointer ${
+                  className={`p-1.5 rounded-md transition-all disabled:opacity-50 cursor-pointer flex-shrink-0 ${
                     isDeleting 
                       ? "text-red-500 bg-red-500/10" 
                       : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
@@ -275,25 +275,25 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 </button>
               )}
             </div>
-      </div>
+          </div>
 
           {/* Key Info Badges */}
-          <div className="flex flex-wrap items-center gap-2 mt-3">
+          <div className="flex flex-wrap items-center gap-2 mt-3 overflow-hidden">
             {review.work_style && (
             <Badge
               variant="outline"
-                className={`text-xs ${workStyleBadge[review.work_style] || ""}`}
+                className={`text-xs flex-shrink-0 ${workStyleBadge[review.work_style] || ""}`}
         >
                 {review.work_style.charAt(0).toUpperCase() + review.work_style.slice(1)}
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs">{review.location}</Badge>
+            <Badge variant="outline" className="text-xs flex-shrink-0">{review.location}</Badge>
             {review.duration_months && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs flex-shrink-0">
                 {review.duration_months} {review.duration_months === 1 ? "mo" : "mos"}
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs flex-shrink-0">
               {review.term}
             </Badge>
           </div>
@@ -301,14 +301,14 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
 
         {/* Preview text - only show when collapsed */}
         {!isExpanded && (
-          <CardContent className="pt-0 pb-3 px-4">
-          <p className="text-sm text-muted-foreground line-clamp-2">
-              {truncateText(stripHTML(review.best), 150)}
+          <CardContent className="pt-0 pb-3 flex-shrink-0 min-h-0">
+          <p className="text-sm text-muted-foreground line-clamp-2 break-words overflow-hidden">
+              {stripHTML(review.best)}
           </p>
         </CardContent>
         )}
 
-        <CardFooter className="flex items-center justify-end pt-0 pb-3 px-4">
+        <CardFooter className="flex items-center justify-end pt-0 pb-3 flex-shrink-0 mt-auto">
           {/* Expand/Collapse indicator */}
           <div className="text-muted-foreground" aria-hidden="true">
             {isExpanded ? (

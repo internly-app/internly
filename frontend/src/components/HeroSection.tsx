@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Trophy, Medal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import ReviewCard from "@/components/ReviewCard";
@@ -11,151 +11,44 @@ import type { ReviewWithDetails } from "@/lib/types/database";
 
 const ROTATING_WORDS = [
   "Real experiences",
-  "Honest reviews", 
+  "Honest reviews",
   "Student insights",
   "Career guidance",
 ];
 
-const mockReviews: ReviewWithDetails[] = [
-  {
-    id: "1",
-    user_id: "user1",
-    company_id: "microsoft",
-    role_id: "pm-intern",
-    company: {
-      id: "microsoft",
-      name: "Microsoft",
-      slug: "microsoft",
-      logo_url: null,
-      website: "https://google.com",
-      industry: "Technology",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    role: {
-      id: "pm-intern",
-      title: "Product Manager Intern",
-      slug: "product-manager-intern",
-      company_id: "microsoft",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    term: "Summer 2024",
-    location: "Mountain View, CA",
-    work_style: "hybrid" as const,
-    duration_months: 3,
-    team_name: "Cloud Infrastructure",
-    best: "The mentorship and learning opportunities were unparalleled. Access to cutting-edge technology and the ability to work on projects with global impact.",
-    hardest: "The pace was intense and the codebase was massive. It took time to understand the complex systems and development workflows.",
-    advice: "Come prepared to learn quickly and don't be afraid to ask questions. Take advantage of all the learning resources and networking opportunities.",
-    interview_round_count: 3,
-    interview_rounds_description: "Phone screen, two technical interviews, and team matching",
-    interview_tips: "Practice data structures and algorithms. Be ready to think out loud and explain your approach clearly.",
-    wage_hourly: 58,
-    wage_currency: "USD",
-    housing_stipend_provided: true,
-    housing_stipend: 7000,
-    perks: "Free meals, gym, transportation, wellness programs",
-    technologies: "Go, Python, Kubernetes, GCP, React",
-    like_count: 42,
-    user_has_liked: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "2",
-    user_id: "user2",
-    company_id: "openai",
-    role_id: "swe-intern",
-    company: {
-      id: "openai",
-      name: "OpenAI",
-      slug: "openai",
-      logo_url: null,
-      website: "https://ramp.com",
-      industry: "Fintech",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    role: {
-      id: "swe-intern",
-      title: "Software Engineering Intern",
-      slug: "software-engineering-intern",
-      company_id: "openai",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    term: "Fall 2024",
-    location: "New York, NY",
-    work_style: "onsite" as const,
-    duration_months: 4,
-    team_name: "Growth",
-    best: "The level of responsibility and autonomy given to interns. I led a major feature from conception to launch.",
-    hardest: "The fast pace and high expectations. You need to be self-directed and comfortable with ambiguity.",
-    advice: "Be proactive and take ownership. The team respects initiative and you'll learn exponentially more by diving in.",
-    interview_round_count: 4,
-    interview_rounds_description: "Recruiter screen, PM case study, cross-functional interview, final round with leadership",
-    interview_tips: "Prepare product case studies and be ready to think strategically about growth and user experience.",
-    wage_hourly: 50,
-    wage_currency: "USD",
-    housing_stipend_provided: true,
-    housing_stipend: 2500,
-    perks: "Lunch stipend, learning budget, team events",
-    technologies: "Figma, Amplitude, SQL, Python",
-    like_count: 38,
-    user_has_liked: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "3",
-    user_id: "user3",
-    company_id: "rootly",
-    role_id: "pe-intern",
-    company: {
-      id: "rootly",
-      name: "Rootly AI",
-      slug: "rootly-ai",
-      logo_url: "/logos/rootly.svg",
-      website: "https://rootly.com",
-      industry: "AI/SaaS",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    role: {
-      id: "pe-intern",
-      title: "Product Engineering Intern",
-      slug: "product-engineering-intern",
-      company_id: "rootly",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    term: "Fall 2025",
-    location: "San Francisco, CA",
-    work_style: "remote" as const,
-    duration_months: 3,
-    team_name: "AI Research",
-    best: "Direct access to founders and ability to shape the product. Working with state-of-the-art AI models and research.",
-    hardest: "Less structured than bigger companies. Need to be comfortable with uncertainty and changing priorities.",
-    advice: "Be ready to wear multiple hats and learn quickly. Great opportunity if you want to experience startup life.",
-    interview_round_count: 3,
-    interview_rounds_description: "Technical screen, ML system design, culture fit with founders",
-    interview_tips: "Show passion for AI and incident management. Be ready to discuss ML system design and practical applications.",
-    wage_hourly: 45,
-    wage_currency: "USD",
-    housing_stipend_provided: false,
-    housing_stipend: null,
-    perks: "Flexible hours, conference budget, equity",
-    technologies: "Python, TensorFlow, AWS, Docker, PostgreSQL",
-    like_count: 31,
-    user_has_liked: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
+interface HeroSectionProps {
+  reviews: ReviewWithDetails[];
+}
 
-export default function HeroSection() {
+export default function HeroSection({ reviews }: HeroSectionProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+  // Memoize card data to prevent unnecessary re-renders
+  const cardData = useMemo(() => {
+    if (reviews.length === 0) return { left: null, center: null, right: null };
+    
+    if (reviews.length >= 3) {
+      return {
+        left: reviews[0],   // 2nd most liked
+        center: reviews[1], // Most liked
+        right: reviews[2],  // 3rd most liked
+      };
+    }
+    
+    if (reviews.length === 2) {
+      return {
+        left: reviews[0],   // 2nd most liked
+        center: reviews[1], // Most liked
+        right: null,
+      };
+    }
+    
+    return {
+      left: null,
+      center: reviews[0], // Only review
+      right: null,
+    };
+  }, [reviews]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -167,7 +60,7 @@ export default function HeroSection() {
 
   return (
     <AuroraBackground className="min-h-screen">
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 md:pt-48 pb-20">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-16 md:pb-24">
         {/* Hero Title - Fade from top */}
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
@@ -225,145 +118,212 @@ export default function HeroSection() {
         </motion.div>
 
         {/* Review Cards Section - Fade from bottom */}
-        <div className="relative">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-            className="flex justify-center items-end gap-4 lg:gap-0"
-          >
-            {/* Left Card - Google */}
+        {reviews.length > 0 && (
+          <div className="relative">
             <motion.div
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="hidden lg:block -mr-20 z-10"
-              style={{
-                willChange: "transform",
-                backfaceVisibility: "hidden",
-                transform: "translateZ(0)",
-              }}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
+              className="flex justify-center items-end gap-5 lg:gap-8"
             >
-              <div 
-                className="opacity-80 rounded-xl"
-                style={{
-                  transform: "scale(0.9) rotate(-4deg) translateZ(0)",
-                  filter: "blur(0.5px)",
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden rounded-xl">
-                  <ReviewCard review={mockReviews[0]} compact={true} />
-                </div>
-              </div>
+              {/* Left Card - 2nd Place (Silver) */}
+              {cardData.left && (
+                <motion.div
+                  animate={{
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="hidden lg:block z-10 relative"
+                  style={{
+                    willChange: "transform",
+                    backfaceVisibility: "hidden",
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  <motion.div
+                    animate={{
+                      boxShadow: [
+                        "0 0 8px rgba(156, 163, 175, 0.15), 0 0 16px rgba(156, 163, 175, 0.08)",
+                        "0 0 12px rgba(156, 163, 175, 0.2), 0 0 24px rgba(156, 163, 175, 0.12)",
+                        "0 0 8px rgba(156, 163, 175, 0.15), 0 0 16px rgba(156, 163, 175, 0.08)",
+                      ],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: [0.4, 0, 0.6, 1],
+                    }}
+                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-gray-400/40 relative"
+                    style={{
+                      transform: "scale(0.98) rotate(-2deg) translateZ(0)",
+                      filter: "blur(0.2px)",
+                      backfaceVisibility: "hidden",
+                      height: "220px",
+                      willChange: "transform, box-shadow",
+                    }}
+                  >
+                    {/* Silver Shine Effect - GPU optimized */}
+                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
+                      <div 
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/22 to-transparent"
+                        style={{
+                          width: "300%",
+                          height: "300%",
+                          animation: "shine 5s ease-in-out 0.5s infinite",
+                          transformOrigin: "center",
+                          willChange: "transform",
+                        }}
+                      />
+                    </div>
+                    <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
+                      <ReviewCard review={cardData.left} compact={true} />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* Center Card - 1st Place (Gold) */}
+              {cardData.center && (
+                <motion.div
+                  animate={{
+                    y: [-20, -35, -20],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.5,
+                  }}
+                  className="z-20 relative -mt-10 lg:-mt-16"
+                  style={{
+                    willChange: "transform",
+                    backfaceVisibility: "hidden",
+                    perspective: 1000,
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  {/* Gold Badge - Modern Design */}
+                  <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-10 h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 translate-x-1/2 -translate-y-1/2">
+                    <Trophy className="size-5 fill-current" />
+                  </div>
+                  
+                  <motion.div
+                    animate={{
+                      boxShadow: [
+                        "0 0 10px rgba(234, 179, 8, 0.2), 0 0 20px rgba(234, 179, 8, 0.1)",
+                        "0 0 16px rgba(234, 179, 8, 0.3), 0 0 32px rgba(234, 179, 8, 0.15)",
+                        "0 0 10px rgba(234, 179, 8, 0.2), 0 0 20px rgba(234, 179, 8, 0.1)",
+                      ],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: [0.4, 0, 0.6, 1],
+                    }}
+                    className="rounded-xl overflow-hidden w-[380px] md:w-[420px] lg:w-[440px] border-2 border-yellow-400/50 relative"
+                    style={{
+                      transform: "scale(1.05) translateZ(0)",
+                      backfaceVisibility: "hidden",
+                      WebkitFontSmoothing: "antialiased",
+                      height: "240px",
+                      willChange: "transform, box-shadow",
+                    }}
+                  >
+                    {/* Gold Shine Effect - GPU optimized */}
+                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
+                      <div 
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/25 to-transparent"
+                        style={{
+                          width: "300%",
+                          height: "300%",
+                          animation: "shine 5s ease-in-out 0s infinite",
+                          transformOrigin: "center",
+                          willChange: "transform",
+                        }}
+                      />
+                    </div>
+                    <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
+                      <ReviewCard review={cardData.center} compact={true} />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* Right Card - 3rd Place (Bronze) */}
+              {cardData.right && (
+                <motion.div
+                  animate={{
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 1,
+                  }}
+                  className="hidden lg:block z-10 relative"
+                  style={{
+                    willChange: "transform",
+                    backfaceVisibility: "hidden",
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  <motion.div
+                    animate={{
+                      boxShadow: [
+                        "0 0 8px rgba(217, 119, 6, 0.15), 0 0 16px rgba(217, 119, 6, 0.08)",
+                        "0 0 12px rgba(217, 119, 6, 0.2), 0 0 24px rgba(217, 119, 6, 0.12)",
+                        "0 0 8px rgba(217, 119, 6, 0.15), 0 0 16px rgba(217, 119, 6, 0.08)",
+                      ],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: [0.4, 0, 0.6, 1],
+                    }}
+                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-amber-600/40 relative"
+                    style={{
+                      transform: "scale(0.98) rotate(2deg) translateZ(0)",
+                      filter: "blur(0.2px)",
+                      backfaceVisibility: "hidden",
+                      height: "220px",
+                      willChange: "transform, box-shadow",
+                    }}
+                  >
+                    {/* Bronze Shine Effect - GPU optimized */}
+                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
+                      <div 
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/22 to-transparent"
+                        style={{
+                          width: "300%",
+                          height: "300%",
+                          animation: "shine 5s ease-in-out 1s infinite",
+                          transformOrigin: "center",
+                          willChange: "transform",
+                        }}
+                      />
+                    </div>
+                    <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
+                      <ReviewCard review={cardData.right} compact={true} />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
             </motion.div>
 
-            {/* Center Card - Ramp (Larger and in front) */}
+            {/* Visual hint that cards continue below */}
             <motion.div
-              animate={{
-                y: [0, -15, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5,
-              }}
-              className="z-20"
-              style={{
-                willChange: "transform",
-                backfaceVisibility: "hidden",
-                perspective: 1000,
-                transform: "translateZ(0)",
-              }}
-            >
-              <div 
-                className="shadow-2xl rounded-xl"
-                style={{
-                  transform: "scale(1.05) translateZ(0)",
-                  backfaceVisibility: "hidden",
-                  WebkitFontSmoothing: "antialiased",
-                }}
-              >
-                <div className="w-[400px] md:w-[420px] h-[280px] md:h-[300px] pointer-events-none overflow-hidden rounded-xl">
-                  <ReviewCard review={mockReviews[1]} compact={true} />
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right Card - Rootly AI */}
-            <motion.div
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              }}
-              className="hidden lg:block -ml-20 z-10"
-              style={{
-                willChange: "transform",
-                backfaceVisibility: "hidden",
-                transform: "translateZ(0)",
-              }}
-            >
-              <div 
-                className="opacity-80 rounded-xl"
-                style={{
-                  transform: "scale(0.9) rotate(4deg) translateZ(0)",
-                  filter: "blur(0.5px)",
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                <div className="w-[400px] h-[280px] pointer-events-none overflow-hidden rounded-xl">
-                  <ReviewCard review={mockReviews[2]} compact={true} />
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Visual hint that cards continue below */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            transition={{ duration: 1, delay: 1.2 }}
-            className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"
-          />
-
-        </div>
-        
-        {/* Scroll indicator - positioned at bottom of viewport */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
-          >
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-          </motion.div>
-        </motion.div>
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              transition={{ duration: 1, delay: 1.2 }}
+              className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"
+            />
+          </div>
+        )}
       </div>
     </AuroraBackground>
   );
