@@ -186,7 +186,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
   return (
     <>
       <Card
-        className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500"
+        className="transition-all duration-200 cursor-pointer hover:shadow-md hover:border-zinc-500 h-full flex flex-col"
         onClick={toggleExpanded}
         role="button"
         tabIndex={0}
@@ -199,7 +199,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
           }
         }}
       >
-        <CardHeader className="pb-3 px-4">
+        <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* Company Logo */}
@@ -275,7 +275,7 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
                 </button>
               )}
             </div>
-      </div>
+          </div>
 
           {/* Key Info Badges */}
           <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -301,14 +301,14 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
 
         {/* Preview text - only show when collapsed */}
         {!isExpanded && (
-          <CardContent className="pt-0 pb-3 px-4">
+          <CardContent className="pt-0 pb-3">
           <p className="text-sm text-muted-foreground line-clamp-2">
               {truncateText(stripHTML(review.best), 150)}
           </p>
         </CardContent>
         )}
 
-        <CardFooter className="flex items-center justify-end pt-0 pb-3 px-4">
+        <CardFooter className="flex items-center justify-end pt-0 pb-3">
           {/* Expand/Collapse indicator */}
           <div className="text-muted-foreground" aria-hidden="true">
             {isExpanded ? (

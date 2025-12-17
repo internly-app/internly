@@ -3,9 +3,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import CompanyCard from "@/components/CompanyCard";
-import { ReviewCardLink } from "@/components/ReviewCardLink";
 import { StatsSection } from "@/components/StatsSection";
-import type { CompanyWithStats, ReviewWithDetails } from "@/lib/types/database";
+import type { CompanyWithStats } from "@/lib/types/database";
 
 export default async function LandingStats() {
   let supabaseAdmin;
@@ -16,25 +15,14 @@ export default async function LandingStats() {
   }
 
   // Fetch all data in parallel
-  const [companiesResult, reviewsResult, allReviewsResult] = await Promise.all([
+  const [companiesResult, allReviewsResult] = await Promise.all([
     // All companies
     supabaseAdmin.from("companies").select("*").order("name"),
-    // Most liked 3 reviews
-    supabaseAdmin
-      .from("reviews")
-      .select(`
-        *,
-        company:companies(*),
-        role:roles(*)
-      `)
-      .order("like_count", { ascending: false })
-      .limit(3),
     // All reviews for counting
     supabaseAdmin.from("reviews").select("company_id"),
   ]);
 
   const { data: companies } = companiesResult;
-  const { data: reviews } = reviewsResult;
   const { data: allReviews } = allReviewsResult;
 
   if (!companies || companies.length === 0 || !allReviews) {
@@ -82,11 +70,6 @@ export default async function LandingStats() {
     .sort((a, b) => b.review_count - a.review_count)
     .slice(0, 6);
 
-  const reviewsWithDetails: ReviewWithDetails[] = (reviews || []).map((r) => ({
-    ...r,
-    user_has_liked: false,
-  }));
-
   const mostReviewedCount = companiesWithStats.length > 0 ? companiesWithStats[0].review_count : 0;
 
   return (
@@ -127,45 +110,6 @@ export default async function LandingStats() {
               <Button asChild variant="outline" className="gap-2">
                 <Link href="/companies">
                   View All Companies
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Most Liked Reviews */}
-      {reviewsWithDetails.length > 0 && (
-        <section className="py-16 px-6 bg-background">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-semibold mb-2">
-                  Most Liked Reviews
-                </h2>
-                <p className="text-muted-foreground">
-                  Reviews that students found most helpful
-                </p>
-              </div>
-              <Button asChild variant="outline" className="hidden sm:flex gap-2">
-                <Link href="/reviews?sort=likes">
-                  View All
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {reviewsWithDetails.map((review) => (
-                <div key={review.id} className="h-full">
-                  <ReviewCardLink review={review} />
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 text-center sm:hidden">
-              <Button asChild variant="outline" className="gap-2">
-                <Link href="/reviews?sort=likes">
-                  View All Reviews
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
