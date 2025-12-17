@@ -168,12 +168,13 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Silver Shine Effect */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
                       <div 
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
                         style={{
-                          width: "50%",
+                          width: "200%",
                           height: "200%",
-                          animation: "shine 3s ease-in-out infinite",
+                          animation: "shine 4s ease-in-out infinite",
                           animationDelay: "0.5s",
+                          transformOrigin: "center",
                         }}
                       />
                     </div>
@@ -233,12 +234,13 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Gold Shine Effect */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
                       <div 
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent"
                         style={{
-                          width: "50%",
+                          width: "200%",
                           height: "200%",
-                          animation: "shine 3s ease-in-out infinite",
+                          animation: "shine 4s ease-in-out infinite",
                           animationDelay: "0s",
+                          transformOrigin: "center",
                         }}
                       />
                     </div>
@@ -292,12 +294,13 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Bronze Shine Effect */}
                     <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
                       <div 
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/25 to-transparent"
+                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/25 to-transparent"
                         style={{
-                          width: "50%",
+                          width: "200%",
                           height: "200%",
-                          animation: "shine 3s ease-in-out infinite",
+                          animation: "shine 4s ease-in-out infinite",
                           animationDelay: "1s",
+                          transformOrigin: "center",
                         }}
                       />
                     </div>
