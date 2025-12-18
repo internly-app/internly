@@ -93,12 +93,12 @@ export default function Navigation({ animate = false }: NavigationProps) {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-[100rem] mx-auto px-4 lg:px-8 py-4">
-        <div className="flex items-center justify-between">
+      <div className="max-w-[100rem] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 w-full">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
           {/* Logo - Left Side */}
           <Link
             href="/"
-            className="text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-opacity duration-200 mr-8"
+            className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
             aria-label="Internly - Go to homepage"
           >
             Internly
@@ -130,23 +130,25 @@ export default function Navigation({ animate = false }: NavigationProps) {
           </div>
 
           {/* Right Side - Write Review, Profile */}
-          <div className="flex items-center gap-3 ml-auto">
+          <div className="flex items-center gap-2 sm:gap-3 ml-auto flex-shrink-0 min-w-0">
             {/* Show skeleton while auth is loading to prevent flash */}
             {authLoading ? (
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-32 rounded-md bg-muted animate-pulse" />
-                <div className="h-9 w-24 rounded-full bg-muted animate-pulse" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-8 sm:h-9 w-20 sm:w-32 rounded-md bg-muted animate-pulse" />
+                <div className="h-8 sm:h-9 w-8 sm:w-24 rounded-full bg-muted animate-pulse" />
               </div>
             ) : user ? (
               <>
                 {/* Write Review Button */}
                 <Button
                   asChild
-                  className="gap-2 group"
+                  size="sm"
+                  className="gap-1 sm:gap-2 group text-xs sm:text-sm px-2 sm:px-4"
                 >
                   <Link href="/write-review">
-                    Write a Review
-                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    <span className="hidden sm:inline">Write a Review</span>
+                    <span className="sm:hidden">Write</span>
+                    <ArrowRight className="size-3 sm:size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                 </Button>
 
@@ -154,13 +156,13 @@ export default function Navigation({ animate = false }: NavigationProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button 
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer !outline-none border border-transparent hover:border-zinc-700 data-[state=open]:border-zinc-700"
+                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer !outline-none border border-transparent hover:border-zinc-700 data-[state=open]:border-zinc-700 flex-shrink-0"
                       aria-label={`User menu for ${userName.full}`}
                     >
-                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold" aria-hidden="true">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold flex-shrink-0" aria-hidden="true">
                         {userName.initials}
                       </div>
-                      <span className="text-sm font-medium text-foreground hidden sm:block">
+                      <span className="text-xs sm:text-sm font-medium text-foreground hidden sm:block">
                         {userName.full}
                       </span>
                       <svg
@@ -235,17 +237,20 @@ export default function Navigation({ animate = false }: NavigationProps) {
               <>
                 <Button
                   asChild
-                  className="gap-2 group"
+                  size="sm"
+                  className="gap-1 sm:gap-2 group text-xs sm:text-sm px-2 sm:px-4"
                 >
                   <Link href="/signin?redirect=/write-review">
-                    Write Review
-                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    <span className="hidden sm:inline">Write Review</span>
+                    <span className="sm:hidden">Write</span>
+                    <ArrowRight className="size-3 sm:size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                 </Button>
                 <Button
                   variant="outline"
                   asChild
-                  className="hidden sm:inline-flex text-sm font-medium"
+                  size="sm"
+                  className="hidden sm:inline-flex text-xs sm:text-sm font-medium px-3 sm:px-4"
                 >
                   <Link href="/signin">Sign In</Link>
                 </Button>

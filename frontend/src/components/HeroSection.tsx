@@ -59,14 +59,14 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
   }, []);
 
   return (
-    <AuroraBackground className="min-h-screen">
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-16 md:pb-24">
+    <AuroraBackground className="min-h-screen overflow-x-hidden">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-24">
         {/* Hero Title - Fade from top */}
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-center mb-6 md:mb-8"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-normal text-center mb-4 sm:mb-6 md:mb-8 px-2"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
           <div className="h-[1.2em] overflow-visible">
@@ -91,7 +91,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="text-base sm:text-lg md:text-xl text-center text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-12"
+          className="text-sm sm:text-base md:text-lg lg:text-xl text-center text-muted-foreground max-w-2xl mx-auto mb-6 sm:mb-8 md:mb-12 px-4"
         >
           Discover what it&apos;s really like to intern at top companies. Read authentic reviews from students who&apos;ve been there.
         </motion.p>
@@ -101,7 +101,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row gap-4 justify-center mb-16 md:mb-20 lg:mb-24"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16 md:mb-20 lg:mb-24 px-4"
         >
           <Button asChild size="lg" variant="outline" className="gap-2 group">
             <Link href="/reviews">
@@ -119,12 +119,12 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
 
         {/* Review Cards Section - Fade from bottom */}
         {reviews.length > 0 && (
-          <div className="relative">
+          <div className="relative w-full overflow-x-hidden">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-              className="flex flex-col sm:flex-row justify-center items-center sm:items-end gap-4 sm:gap-5 lg:gap-8"
+              className="flex flex-col sm:flex-row justify-center items-center sm:items-end gap-3 sm:gap-4 md:gap-5 lg:gap-8 px-2 w-full"
             >
               {/* Left Card - 2nd Place (Silver) */}
               {cardData.left && (
@@ -157,7 +157,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="opacity-90 rounded-xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] lg:max-w-[380px] border-2 border-gray-400/40 relative"
+                    className="opacity-90 rounded-xl overflow-hidden w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] border-2 border-gray-400/40 relative"
                     style={{
                       transform: "scale(0.98) rotate(-2deg) translateZ(0)",
                       filter: "blur(0.2px)",
@@ -224,7 +224,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="rounded-xl overflow-hidden w-full max-w-[340px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[440px] border-2 border-yellow-400/50 relative"
+                    className="rounded-xl overflow-hidden w-full max-w-[300px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[440px] border-2 border-yellow-400/50 relative"
                     style={{
                       transform: "scale(1.05) translateZ(0)",
                       backfaceVisibility: "hidden",
@@ -285,7 +285,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="opacity-90 rounded-xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] lg:max-w-[380px] border-2 border-amber-600/40 relative"
+                    className="opacity-90 rounded-xl overflow-hidden w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] border-2 border-amber-600/40 relative"
                     style={{
                       transform: "scale(0.98) rotate(2deg) translateZ(0)",
                       filter: "blur(0.2px)",
