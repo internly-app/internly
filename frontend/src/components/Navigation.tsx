@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,13 @@ interface NavigationProps {
 export default function Navigation({ animate = false }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const { user, loading: authLoading, signOut } = useAuth();
+
+  // Ensure we're mounted before rendering portal (SSR safety)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -293,28 +300,29 @@ export default function Navigation({ animate = false }: NavigationProps) {
         </div>
       </div>
 
-      {/* Mobile Side Navigation Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
-              onClick={closeMobileMenu}
-            />
-            
-            {/* Side Menu - Opens from Right */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
-              className="fixed top-0 right-0 bottom-0 w-64 bg-background border-l border-zinc-800 z-50 md:hidden overflow-y-auto"
-            >
+      {/* Mobile Side Navigation Menu - Rendered via portal to avoid clipping */}
+      {isMounted && createPortal(
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 bg-black/50 z-[100] md:hidden"
+                onClick={closeMobileMenu}
+              />
+              
+              {/* Side Menu - Opens from Right */}
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+                className="fixed top-0 right-0 bottom-0 w-64 bg-background border-l border-zinc-800 z-[101] md:hidden overflow-y-auto"
+              >
               <div className="flex flex-col h-full">
                 {/* Menu Header */}
                 <div className="flex items-center justify-between p-4 border-b border-zinc-800">
@@ -440,7 +448,9 @@ export default function Navigation({ animate = false }: NavigationProps) {
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </motion.nav>
   );
 }
