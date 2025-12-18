@@ -60,7 +60,6 @@ function getDOMPurify() {
   // Dynamically import dompurify only in browser
   // Use Function constructor to prevent Next.js static analysis
   try {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const requireFunc = new Function('moduleName', 'return require(moduleName)');
     const dompurifyModule = requireFunc('dompurify');
     DOMPurifyInstance = dompurifyModule;

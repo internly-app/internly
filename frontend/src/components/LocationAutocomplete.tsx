@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
-import { cn } from "@/lib/utils";
 
 const COMMON_LOCATIONS = [
   "Remote",

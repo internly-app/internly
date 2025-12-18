@@ -81,6 +81,7 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
     };
 
     fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     query.company_id,
     query.role_id,

@@ -85,7 +85,7 @@ export async function PATCH(
     const validatedData = reviewUpdateSchema.parse(body);
 
     // Sanitize all text fields to prevent XSS attacks
-    const sanitizedData: Record<string, any> = {};
+    const sanitizedData: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(validatedData)) {
       // Sanitize string fields (excluding IDs and numeric fields)
       if (typeof value === 'string' && !key.includes('_id') && !key.includes('count')) {
