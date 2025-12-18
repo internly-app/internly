@@ -105,16 +105,28 @@ export default function Navigation({ animate = false }: NavigationProps) {
   return (
     <motion.nav
       initial={animate ? { y: -100, opacity: 0 } : false}
-      animate={animate ? { y: 0, opacity: 1 } : undefined}
-      transition={animate ? {
-        duration: 1.6,
-        ease: [0.4, 0, 0.2, 1],
-        delay: 0,
-      } : undefined}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      animate={
+        animate
+          ? { y: 0, opacity: 1 }
+          : undefined
+      }
+      transition={
+        animate
+          ? {
+              duration: 1.6,
+              ease: [0.4, 0, 0.2, 1],
+              delay: 0,
+            }
+          : undefined
+      }
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
         isScrolled
           ? "bg-background/95 backdrop-blur-sm"
           : "bg-transparent"
+      } ${
+        isMobileMenuOpen
+          ? "md:translate-y-0 md:opacity-100 -translate-y-full opacity-0"
+          : "translate-y-0 opacity-100"
       }`}
     >
       <div className="max-w-[100rem] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 w-full">
