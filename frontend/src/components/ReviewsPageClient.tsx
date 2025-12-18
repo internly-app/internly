@@ -13,7 +13,7 @@ import { CustomSelect } from "@/components/CustomSelect";
 import { Search, X, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { sanitizeText } from "@/lib/security/content-filter";
 import { useDebounce } from "@/hooks/useDebounce";
-import { fuzzyMatch, fuzzyMatchMultiple } from "@/lib/utils/fuzzy-match";
+import { fuzzyMatchMultiple } from "@/lib/utils/fuzzy-match";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
 const REVIEWS_PER_PAGE = 15;

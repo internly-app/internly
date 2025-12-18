@@ -17,7 +17,7 @@ export default async function LandingStats() {
   let supabaseAdmin;
   try {
     supabaseAdmin = createServiceRoleClient();
-  } catch (error) {
+  } catch {
     return null;
   }
 
