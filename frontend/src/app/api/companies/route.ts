@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     if (sanitizedData.name) {
       try {
         logoUrl = await fetchLogoFromLogoKit(sanitizedData.name);
-      } catch (error) {
+      } catch {
         // Fail silently - logo fetching is optional
         // Client-side CompanyLogo component will handle fallback
       }

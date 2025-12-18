@@ -206,6 +206,7 @@ export default function ProfilePage() {
     return () => {
       isCancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, authLoading]);
 
   const handleUnsave = (companyId: string, saved: boolean) => {

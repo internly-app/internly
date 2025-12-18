@@ -200,7 +200,7 @@ export function CompanyLogo({
           width={size}
           height={size}
           className="w-full h-full object-contain p-[10%]"
-          onError={(e) => {
+          onError={() => {
             // Check if we have more domain variations to try
             if (domainVariationIndex < domainVariations.length - 1) {
               // Try next domain variation

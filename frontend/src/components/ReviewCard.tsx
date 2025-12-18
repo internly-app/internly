@@ -168,7 +168,6 @@ export default function ReviewCard({ review, compact = false, onDelete, showEdit
     setShowDeleteModal(false);
   };
 
-
   const workStyleBadge = {
     onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40",
     hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40",

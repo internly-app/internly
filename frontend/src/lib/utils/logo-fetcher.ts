@@ -99,7 +99,7 @@ export async function fetchLogoFromLogoKit(
     // Return the URL directly - LogoKit blocks server-side verification
     // The browser will validate when the <img> tag loads
     return logoUrl;
-  } catch (error) {
+  } catch {
     // Fail silently - logo fetching is optional
     // Client-side fallback will handle it
     return null;
@@ -111,8 +111,7 @@ export async function fetchLogoFromLogoKit(
  * @deprecated Use fetchLogoFromLogoKit instead
  */
 export async function fetchLogoFromLogoDev(
-  companyName: string,
-  apiKey?: string
+  companyName: string
 ): Promise<string | null> {
   return fetchLogoFromLogoKit(companyName);
 }
