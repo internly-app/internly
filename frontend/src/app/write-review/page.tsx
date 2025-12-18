@@ -330,8 +330,8 @@ export default function WriteReviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-24 px-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-background py-16 sm:py-20 md:py-24 px-4 sm:px-6">
+      <div className="max-w-3xl mx-auto w-full">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -362,10 +362,10 @@ export default function WriteReviewPage() {
             </svg>
             Back
           </button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
             {isEditMode ? "Edit Review" : "Write a Review"}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {isEditMode 
               ? `Editing your review for ${editingReview?.company?.name || "this company"}`
               : "Share your internship experience to help fellow students"
@@ -374,8 +374,8 @@ export default function WriteReviewPage() {
         </div>
 
         {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             {(isEditMode 
               ? [
                   { num: 2, label: "Experience" }, 

@@ -124,7 +124,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-              className="flex justify-center items-end gap-5 lg:gap-8"
+              className="flex flex-col sm:flex-row justify-center items-center sm:items-end gap-4 sm:gap-5 lg:gap-8"
             >
               {/* Left Card - 2nd Place (Silver) */}
               {cardData.left && (
@@ -137,7 +137,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="hidden lg:block z-10 relative"
+                  className="z-10 relative w-full sm:w-auto"
                   style={{
                     willChange: "transform",
                     backfaceVisibility: "hidden",
@@ -157,7 +157,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-gray-400/40 relative"
+                    className="opacity-90 rounded-xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] lg:max-w-[380px] border-2 border-gray-400/40 relative"
                     style={{
                       transform: "scale(0.98) rotate(-2deg) translateZ(0)",
                       filter: "blur(0.2px)",
@@ -198,7 +198,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     ease: "easeInOut",
                     delay: 0.5,
                   }}
-                  className="z-20 relative -mt-10 lg:-mt-16"
+                  className="z-20 relative -mt-0 sm:-mt-10 lg:-mt-16 w-full sm:w-auto"
                   style={{
                     willChange: "transform",
                     backfaceVisibility: "hidden",
@@ -224,7 +224,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="rounded-xl overflow-hidden w-[380px] md:w-[420px] lg:w-[440px] border-2 border-yellow-400/50 relative"
+                    className="rounded-xl overflow-hidden w-full max-w-[340px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[440px] border-2 border-yellow-400/50 relative"
                     style={{
                       transform: "scale(1.05) translateZ(0)",
                       backfaceVisibility: "hidden",
@@ -265,7 +265,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     ease: "easeInOut",
                     delay: 1,
                   }}
-                  className="hidden lg:block z-10 relative"
+                  className="z-10 relative w-full sm:w-auto"
                   style={{
                     willChange: "transform",
                     backfaceVisibility: "hidden",
@@ -285,7 +285,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-amber-600/40 relative"
+                    className="opacity-90 rounded-xl overflow-hidden w-full max-w-[320px] sm:max-w-[340px] lg:max-w-[380px] border-2 border-amber-600/40 relative"
                     style={{
                       transform: "scale(0.98) rotate(2deg) translateZ(0)",
                       filter: "blur(0.2px)",
