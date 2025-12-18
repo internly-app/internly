@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto, Instrument_Serif } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
@@ -63,6 +64,7 @@ export default function RootLayout({
       </head>
       <body className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased overflow-x-hidden`}>
           <AuthProvider>{children}</AuthProvider>
+          <Analytics />
       </body>
     </html>
   );
