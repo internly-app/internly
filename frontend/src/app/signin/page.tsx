@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { useAuth } from "@/components/AuthProvider";
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
@@ -91,5 +91,27 @@ export default function SignInPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="h-11 bg-muted animate-pulse rounded-md" />
+                <div className="h-11 bg-muted animate-pulse rounded-md" />
+                <div className="h-11 bg-muted animate-pulse rounded-md" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }

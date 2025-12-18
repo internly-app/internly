@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import { TermSelect } from "@/components/TermSelect";
 import { cn } from "@/lib/utils";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
-export default function WriteReviewPage() {
+function WriteReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -875,5 +875,21 @@ export default function WriteReviewPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function WriteReviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+          <div className="w-full max-w-3xl">
+            <div className="h-96 bg-muted animate-pulse rounded-lg" />
+          </div>
+        </div>
+      }
+    >
+      <WriteReviewContent />
+    </Suspense>
   );
 }
