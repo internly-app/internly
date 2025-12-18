@@ -216,6 +216,23 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
 
       {/* Email/Password Form */}
       <form onSubmit={handleEmailAuth} className="space-y-4">
+        {mode === "sign-up" && (
+          <div className="space-y-2">
+            <label htmlFor="firstName" className="text-sm font-medium">
+              First name
+            </label>
+            <Input
+              id="firstName"
+              type="text"
+              placeholder="John"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+              disabled={formStatus === "loading" || googleLoading}
+            />
+          </div>
+        )}
+        
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium">
             Email address
@@ -232,38 +249,20 @@ export function AuthPanel({ redirectTo = "/", onSuccess }: AuthPanelProps) {
         </div>
         
         {mode === "sign-up" && (
-          <>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm font-medium">
-                  First name
-                </label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  placeholder="John"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                  disabled={formStatus === "loading" || googleLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm font-medium">
-                  Last name
-                </label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  placeholder="Doe"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  disabled={formStatus === "loading" || googleLoading}
-                />
-              </div>
-            </div>
-          </>
+          <div className="space-y-2">
+            <label htmlFor="lastName" className="text-sm font-medium">
+              Last name
+            </label>
+            <Input
+              id="lastName"
+              type="text"
+              placeholder="Doe"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+              disabled={formStatus === "loading" || googleLoading}
+            />
+          </div>
         )}
 
         <div className="space-y-2">
