@@ -20,9 +20,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Defer initial session check slightly to not block initial render
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Session error:", error);
+          // Clear potentially corrupted session data
+          try {
+            // Clear Supabase storage keys
+            if (typeof window !== 'undefined') {
+              const keys = Object.keys(localStorage);
+              keys.forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase')) {
+                  localStorage.removeItem(key);
+                }
+              });
+            }
+            await supabase.auth.signOut();
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
+        setUser(session?.user ?? null);
+      } catch (err) {
+        console.error("Auth initialization error:", err);
+        // Clear corrupted session data on error
+        try {
+          // Clear Supabase storage keys
+          if (typeof window !== 'undefined') {
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('sb-') || key.includes('supabase')) {
+                localStorage.removeItem(key);
+              }
+            });
+          }
+          await supabase.auth.signOut();
+        } catch {
+          // Ignore signOut errors
+        }
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     // Use setTimeout to defer this slightly and allow page to render first
@@ -32,11 +71,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+      try {
+        setUser(session?.user ?? null);
 
-      // Redirect to home on sign out
-      if (event === 'SIGNED_OUT') {
-        window.location.href = "/";
+        // Redirect to home on sign out
+        if (event === 'SIGNED_OUT') {
+          window.location.href = "/";
+        }
+      } catch (err) {
+        console.error("Auth state change error:", err);
+        // Clear corrupted session on error
+        setUser(null);
       }
     });
 
