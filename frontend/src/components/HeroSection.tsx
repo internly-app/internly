@@ -119,12 +119,12 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
 
         {/* Review Cards Section - Fade from bottom */}
         {reviews.length > 0 && (
-          <div className="relative">
+          <div className="relative w-full">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-              className="flex justify-center items-end gap-5 lg:gap-8"
+              className="flex flex-col sm:flex-row justify-center items-center sm:items-end gap-4 sm:gap-5 lg:gap-8"
             >
               {/* Left Card - 2nd Place (Silver) */}
               {cardData.left && (
@@ -137,7 +137,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="hidden lg:block z-10 relative"
+                  className="hidden sm:block z-10 relative"
                   style={{
                     willChange: "transform",
                     backfaceVisibility: "hidden",
@@ -190,7 +190,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
               {cardData.center && (
                 <motion.div
                   animate={{
-                    y: [-20, -35, -20],
+                    y: [0, -10, 0],
                   }}
                   transition={{
                     duration: 4,
@@ -198,7 +198,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     ease: "easeInOut",
                     delay: 0.5,
                   }}
-                  className="z-20 relative -mt-10 lg:-mt-16"
+                  className="z-20 relative sm:-mt-10 lg:-mt-16 w-full sm:w-auto max-w-[340px] sm:max-w-none mx-auto sm:mx-0"
                   style={{
                     willChange: "transform",
                     backfaceVisibility: "hidden",
@@ -224,9 +224,9 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       repeat: Infinity,
                       ease: [0.4, 0, 0.6, 1],
                     }}
-                    className="rounded-xl overflow-hidden w-[380px] md:w-[420px] lg:w-[440px] border-2 border-yellow-400/50 relative"
+                    className="rounded-xl overflow-hidden w-full max-w-[340px] sm:max-w-none sm:w-[380px] md:w-[420px] lg:w-[440px] sm:scale-105 border-2 border-yellow-400/50 relative"
                     style={{
-                      transform: "scale(1.05) translateZ(0)",
+                      transform: "translateZ(0)",
                       backfaceVisibility: "hidden",
                       WebkitFontSmoothing: "antialiased",
                       height: "240px",

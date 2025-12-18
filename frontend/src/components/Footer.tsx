@@ -15,7 +15,7 @@ export default function Footer() {
                 href="https://linkedin.com/in/tejas-thind" // Tejas LinkedIn
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="size-4" />
@@ -29,7 +29,7 @@ export default function Footer() {
                 href="https://instagram.com/tejastnd" // Tejas Instagram
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
                 aria-label="Instagram"
               >
                 <Instagram className="size-4" />
@@ -43,7 +43,7 @@ export default function Footer() {
                 href="https://twitter.com/tejasthind4" // Tejas X
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
                 aria-label="X (Twitter)"
               >
                 <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
@@ -60,7 +60,7 @@ export default function Footer() {
                 href="https://linkedin.com/in/srinikesh-singarapu" // Srinikesh LinkedIn
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="size-4" />
@@ -74,7 +74,7 @@ export default function Footer() {
                 href="https://twitter.com/SingarapuSrini" // Srinikesh X
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
                 aria-label="X (Twitter)"
               >
                 <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
@@ -97,7 +97,7 @@ export default function Footer() {
             Want to see a company added or noticed a bug?{" "}
             <a 
               href="mailto:tejas.st0544@gmail.com" 
-              className="text-foreground hover:text-primary transition-colors underline underline-offset-2"
+              className="text-foreground hover:text-primary transition-colors underline underline-offset-2 cursor-pointer"
             >
               Contact us
             </a>

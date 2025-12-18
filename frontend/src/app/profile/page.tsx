@@ -334,22 +334,26 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 mb-6 sm:mb-8 max-w-5xl mx-auto">
           <Button
             variant={activeTab === "reviews" ? "default" : "outline"}
             onClick={() => setActiveTab("reviews")}
-            className="gap-2"
+            className="gap-2 flex-1 sm:flex-initial"
           >
             <FileText className="size-4" />
-            My Reviews ({myReviews.length})
+            <span className="hidden sm:inline">My Reviews</span>
+            <span className="sm:hidden">Reviews</span>
+            <span className="ml-1">({myReviews.length})</span>
           </Button>
           <Button
             variant={activeTab === "saved" ? "default" : "outline"}
             onClick={() => setActiveTab("saved")}
-            className="gap-2"
+            className="gap-2 flex-1 sm:flex-initial"
           >
             <Bookmark className="size-4" />
-            Saved Companies ({savedCompanies.length})
+            <span className="hidden sm:inline">Saved Companies</span>
+            <span className="sm:hidden">Saved</span>
+            <span className="ml-1">({savedCompanies.length})</span>
           </Button>
         </div>
 

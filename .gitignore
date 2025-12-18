@@ -21,3 +21,15 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Documentation (local reference)
+CODEBASE_STATUS.md
+
+# Build artifacts
+.turbo
+*.tsbuildinfo
+.vercel
+
+# Testing
+coverage/
+.nyc_output/

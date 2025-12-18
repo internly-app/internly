@@ -61,7 +61,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased`}>
+      <body className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased overflow-x-hidden`}>
           <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
