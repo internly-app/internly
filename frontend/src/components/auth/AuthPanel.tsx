@@ -308,7 +308,7 @@ export function AuthPanel({
             setMessage(null);
           }}
           disabled={formStatus === "loading" || googleLoading}
-          className="text-primary hover:underline transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+          className="text-primary cursor-pointer hover:underline transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
         >
           {mode === "sign-in"
             ? "Don't have an account? Sign up"
