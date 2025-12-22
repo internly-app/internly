@@ -55,7 +55,10 @@ export function CustomSelect({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         // Reset search query to selected value when closing
         if (selectedOption && value !== "") {
@@ -73,7 +76,7 @@ export function CustomSelect({
   // Filter options based on search with fuzzy matching (if searchable)
   const filteredOptions = useMemo(() => {
     if (!searchable) return options;
-    
+
     if (!searchQuery.trim()) return options;
 
     const query = searchQuery.toLowerCase().trim();
@@ -82,14 +85,14 @@ export function CustomSelect({
         const lowerLabel = option.label.toLowerCase();
         const exactMatch = lowerLabel.includes(query);
         const fuzzyScore = fuzzyMatch(query, lowerLabel);
-        
+
         let score = 0;
         if (exactMatch) {
           score = 1.0;
         } else if (fuzzyScore > 0) {
           score = fuzzyScore;
         }
-        
+
         return { option, score };
       })
       .filter(({ score }) => score > 0)
@@ -181,7 +184,7 @@ export function CustomSelect({
         <Input
           ref={inputRef}
           id={id}
-          value={searchable ? searchQuery : (value ? displayValue : "")}
+          value={searchable ? searchQuery : value ? displayValue : ""}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={handleInputFocus}
           onClick={handleInputClick}
@@ -206,7 +209,7 @@ export function CustomSelect({
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md max-h-60 overflow-y-auto">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
               <button
@@ -214,9 +217,11 @@ export function CustomSelect({
                 type="button"
                 onClick={() => handleSelect(option.value)}
                 className={cn(
-                  "w-full px-3 py-2 text-left text-sm transition-colors duration-200 first:rounded-t-md last:rounded-b-md cursor-pointer",
-                  "hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none",
-                  option.value === value && "bg-muted/50"
+                  "w-full px-2 py-1.5 text-left text-sm outline-none transition-colors cursor-pointer rounded-sm",
+                  "focus:bg-accent focus:text-accent-foreground",
+                  "hover:bg-accent hover:text-accent-foreground",
+                  option.value === value &&
+                    "bg-accent/60 text-accent-foreground"
                 )}
               >
                 {option.label}
@@ -232,4 +237,3 @@ export function CustomSelect({
     </div>
   );
 }
-
