@@ -152,22 +152,22 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Pulsing glow layer - sits behind the card */}
                     <motion.div
                       animate={{
-                        opacity: [0.3, 0.6, 0.3],
+                        opacity: [0.15, 0.35, 0.15],
                       }}
                       transition={{
                         duration: 3,
                         repeat: Infinity,
                         ease: [0.4, 0, 0.6, 1],
                       }}
-                      className="absolute -inset-[3px] rounded-xl bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 blur-[2px]"
+                      className="absolute -inset-[4px] rounded-xl bg-gradient-to-r from-gray-400/80 via-gray-300/80 to-gray-400/80 blur-[4px]"
                       style={{ willChange: "opacity" }}
                     />
                     <motion.div
                       animate={{
                         borderColor: [
+                          "rgba(156, 163, 175, 0.3)",
                           "rgba(156, 163, 175, 0.5)",
-                          "rgba(156, 163, 175, 0.8)",
-                          "rgba(156, 163, 175, 0.5)",
+                          "rgba(156, 163, 175, 0.3)",
                         ],
                       }}
                       transition={{
@@ -236,22 +236,22 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Pulsing glow layer - sits behind the card */}
                     <motion.div
                       animate={{
-                        opacity: [0.4, 0.7, 0.4],
+                        opacity: [0.2, 0.4, 0.2],
                       }}
                       transition={{
                         duration: 3,
                         repeat: Infinity,
                         ease: [0.4, 0, 0.6, 1],
                       }}
-                      className="absolute -inset-[3px] rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 blur-[3px]"
+                      className="absolute -inset-[4px] rounded-xl bg-gradient-to-r from-yellow-500/70 via-yellow-400/70 to-yellow-500/70 blur-[5px]"
                       style={{ willChange: "opacity" }}
                     />
                     <motion.div
                       animate={{
                         borderColor: [
+                          "rgba(234, 179, 8, 0.35)",
                           "rgba(234, 179, 8, 0.6)",
-                          "rgba(234, 179, 8, 0.9)",
-                          "rgba(234, 179, 8, 0.6)",
+                          "rgba(234, 179, 8, 0.35)",
                         ],
                       }}
                       transition={{
@@ -317,22 +317,22 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     {/* Pulsing glow layer - sits behind the card */}
                     <motion.div
                       animate={{
-                        opacity: [0.3, 0.6, 0.3],
+                        opacity: [0.15, 0.35, 0.15],
                       }}
                       transition={{
                         duration: 3,
                         repeat: Infinity,
                         ease: [0.4, 0, 0.6, 1],
                       }}
-                      className="absolute -inset-[3px] rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 blur-[2px]"
+                      className="absolute -inset-[4px] rounded-xl bg-gradient-to-r from-amber-600/70 via-amber-500/70 to-amber-600/70 blur-[4px]"
                       style={{ willChange: "opacity" }}
                     />
                     <motion.div
                       animate={{
                         borderColor: [
+                          "rgba(217, 119, 6, 0.3)",
                           "rgba(217, 119, 6, 0.5)",
-                          "rgba(217, 119, 6, 0.8)",
-                          "rgba(217, 119, 6, 0.5)",
+                          "rgba(217, 119, 6, 0.3)",
                         ],
                       }}
                       transition={{
