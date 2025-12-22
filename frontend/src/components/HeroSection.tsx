@@ -181,7 +181,12 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                             width: "300%",
                             height: "300%",
                             animation: "shine 5s ease-in-out 1.7s infinite",
+                            animationFillMode: "both",
                             transformOrigin: "center",
+                            transform:
+                              "translateX(-200%) translateY(-200%) rotate(45deg)",
+                            opacity: 0,
+                            backfaceVisibility: "hidden",
                             willChange: "transform",
                           }}
                         />
@@ -252,7 +257,12 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                             width: "300%",
                             height: "300%",
                             animation: "shine 5s ease-in-out 0s infinite",
+                            animationFillMode: "both",
                             transformOrigin: "center",
+                            transform:
+                              "translateX(-200%) translateY(-200%) rotate(45deg)",
+                            opacity: 0,
+                            backfaceVisibility: "hidden",
                             willChange: "transform",
                           }}
                         />
@@ -320,7 +330,12 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                             width: "300%",
                             height: "300%",
                             animation: "shine 5s ease-in-out 3.4s infinite",
+                            animationFillMode: "both",
                             transformOrigin: "center",
+                            transform:
+                              "translateX(-200%) translateY(-200%) rotate(45deg)",
+                            opacity: 0,
+                            backfaceVisibility: "hidden",
                             willChange: "transform",
                           }}
                         />
