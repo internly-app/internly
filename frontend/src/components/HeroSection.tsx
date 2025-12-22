@@ -149,38 +149,25 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     className="relative w-[340px] lg:w-[380px]"
                     style={{ transform: "scale(0.98) rotate(-2deg)" }}
                   >
-                    {/* Pulsing glow layer - sits behind the card */}
+                    {/* Colored border ring with pulsing glow */}
                     <motion.div
                       animate={{
-                        opacity: [0.15, 0.35, 0.15],
+                        opacity: [0.4, 0.7, 0.4],
                       }}
                       transition={{
                         duration: 3,
                         repeat: Infinity,
                         ease: [0.4, 0, 0.6, 1],
                       }}
-                      className="absolute -inset-[4px] rounded-xl bg-gradient-to-r from-gray-400/80 via-gray-300/80 to-gray-400/80 blur-[4px]"
+                      className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400"
                       style={{ willChange: "opacity" }}
                     />
-                    <motion.div
-                      animate={{
-                        borderColor: [
-                          "rgba(156, 163, 175, 0.3)",
-                          "rgba(156, 163, 175, 0.5)",
-                          "rgba(156, 163, 175, 0.3)",
-                        ],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: [0.4, 0, 0.6, 1],
-                      }}
-                      className="opacity-90 rounded-xl overflow-hidden w-full border-2 relative bg-card"
+                    <div
+                      className="opacity-90 rounded-xl overflow-hidden w-full relative bg-card"
                       style={{
                         filter: "blur(0.2px)",
                         backfaceVisibility: "hidden",
                         height: "220px",
-                        willChange: "border-color",
                       }}
                     >
                       {/* Silver Shine Effect - GPU optimized */}
@@ -202,7 +189,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
                         <ReviewCard review={cardData.left} compact={true} />
                       </div>
-                    </motion.div>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -233,38 +220,25 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   </div>
 
                   <div className="relative w-full max-w-[340px] sm:max-w-none sm:w-[380px] md:w-[420px] lg:w-[440px] sm:scale-105">
-                    {/* Pulsing glow layer - sits behind the card */}
+                    {/* Colored border ring with pulsing glow */}
                     <motion.div
                       animate={{
-                        opacity: [0.2, 0.4, 0.2],
+                        opacity: [0.5, 0.8, 0.5],
                       }}
                       transition={{
                         duration: 3,
                         repeat: Infinity,
                         ease: [0.4, 0, 0.6, 1],
                       }}
-                      className="absolute -inset-[4px] rounded-xl bg-gradient-to-r from-yellow-500/70 via-yellow-400/70 to-yellow-500/70 blur-[5px]"
+                      className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"
                       style={{ willChange: "opacity" }}
                     />
-                    <motion.div
-                      animate={{
-                        borderColor: [
-                          "rgba(234, 179, 8, 0.35)",
-                          "rgba(234, 179, 8, 0.6)",
-                          "rgba(234, 179, 8, 0.35)",
-                        ],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: [0.4, 0, 0.6, 1],
-                      }}
-                      className="rounded-xl overflow-hidden w-full border-2 relative bg-card"
+                    <div
+                      className="rounded-xl overflow-hidden w-full relative bg-card"
                       style={{
                         backfaceVisibility: "hidden",
                         WebkitFontSmoothing: "antialiased",
                         height: "240px",
-                        willChange: "border-color",
                       }}
                     >
                       {/* Gold Shine Effect - GPU optimized */}
@@ -286,7 +260,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
                         <ReviewCard review={cardData.center} compact={true} />
                       </div>
-                    </motion.div>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -314,38 +288,25 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     className="relative w-[340px] lg:w-[380px]"
                     style={{ transform: "scale(0.98) rotate(2deg)" }}
                   >
-                    {/* Pulsing glow layer - sits behind the card */}
+                    {/* Colored border ring with pulsing glow */}
                     <motion.div
                       animate={{
-                        opacity: [0.15, 0.35, 0.15],
+                        opacity: [0.4, 0.7, 0.4],
                       }}
                       transition={{
                         duration: 3,
                         repeat: Infinity,
                         ease: [0.4, 0, 0.6, 1],
                       }}
-                      className="absolute -inset-[4px] rounded-xl bg-gradient-to-r from-amber-600/70 via-amber-500/70 to-amber-600/70 blur-[4px]"
+                      className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600"
                       style={{ willChange: "opacity" }}
                     />
-                    <motion.div
-                      animate={{
-                        borderColor: [
-                          "rgba(217, 119, 6, 0.3)",
-                          "rgba(217, 119, 6, 0.5)",
-                          "rgba(217, 119, 6, 0.3)",
-                        ],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: [0.4, 0, 0.6, 1],
-                      }}
-                      className="opacity-90 rounded-xl overflow-hidden w-full border-2 relative bg-card"
+                    <div
+                      className="opacity-90 rounded-xl overflow-hidden w-full relative bg-card"
                       style={{
                         filter: "blur(0.2px)",
                         backfaceVisibility: "hidden",
                         height: "220px",
-                        willChange: "border-color",
                       }}
                     >
                       {/* Bronze Shine Effect - GPU optimized */}
@@ -367,7 +328,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
                         <ReviewCard review={cardData.right} compact={true} />
                       </div>
-                    </motion.div>
+                    </div>
                   </div>
                 </motion.div>
               )}
