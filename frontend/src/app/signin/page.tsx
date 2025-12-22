@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -13,6 +19,7 @@ function SignInContent() {
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
   const redirectParam = searchParams.get("redirect");
+  const [authMode, setAuthMode] = useState<"sign-in" | "sign-up">("sign-in");
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -51,7 +58,11 @@ function SignInContent() {
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
       {/* Back Button */}
       <div className="w-full max-w-md mb-4">
-        <Button variant="ghost" asChild className="hover:bg-muted transition-all duration-200 active:scale-95">
+        <Button
+          variant="ghost"
+          asChild
+          className="hover:bg-muted transition-all duration-200 active:scale-95"
+        >
           <Link href="/">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -77,17 +88,25 @@ function SignInContent() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">
             {isWriteReview
-              ? "Sign in to write a review"
+              ? authMode === "sign-up"
+                ? "Create an account to write a review"
+                : "Sign in to write a review"
+              : authMode === "sign-up"
+              ? "Create your Internly account"
               : "Sign in to Internly"}
           </CardTitle>
           <CardDescription>
             {isWriteReview
-              ? "Share your internship experience with fellow students"
-              : "Sign in with Google or create an account to get started"}
+              ? authMode === "sign-up"
+                ? "Join Internly to share your internship experience with fellow students"
+                : "Share your internship experience with fellow students"
+              : authMode === "sign-up"
+              ? "Sign up with Google or email to start browsing and saving reviews"
+              : "Sign in with Google or email to continue"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AuthPanel redirectTo={redirectTo} />
+          <AuthPanel redirectTo={redirectTo} onModeChange={setAuthMode} />
         </CardContent>
       </Card>
     </div>

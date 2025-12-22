@@ -49,7 +49,10 @@ export default function ProfilePage() {
     try {
       const cached = sessionStorage.getItem("profile_myReviews");
       if (cached) {
-        const parsed = JSON.parse(cached) as { data: ReviewWithDetails[]; ts: number };
+        const parsed = JSON.parse(cached) as {
+          data: ReviewWithDetails[];
+          ts: number;
+        };
         const CACHE_TTL_MS = 5 * 60 * 1000;
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           return parsed.data || [];
@@ -63,7 +66,10 @@ export default function ProfilePage() {
     try {
       const cached = sessionStorage.getItem("profile_savedCompanies");
       if (cached) {
-        const parsed = JSON.parse(cached) as { data: CompanyWithStats[]; ts: number };
+        const parsed = JSON.parse(cached) as {
+          data: CompanyWithStats[];
+          ts: number;
+        };
         const CACHE_TTL_MS = 5 * 60 * 1000;
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           return parsed.data || [];
@@ -75,11 +81,17 @@ export default function ProfilePage() {
 
   const cachedReviews = getCachedReviews();
   const cachedSaved = getCachedSaved();
-  const [myReviews, setMyReviews] = useState<ReviewWithDetails[]>(cachedReviews);
-  const [savedCompanies, setSavedCompanies] = useState<CompanyWithStats[]>(cachedSaved);
-  const [loadingReviews, setLoadingReviews] = useState(cachedReviews.length === 0);
+  const [myReviews, setMyReviews] =
+    useState<ReviewWithDetails[]>(cachedReviews);
+  const [savedCompanies, setSavedCompanies] =
+    useState<CompanyWithStats[]>(cachedSaved);
+  const [loadingReviews, setLoadingReviews] = useState(
+    cachedReviews.length === 0
+  );
   const [loadingSaved, setLoadingSaved] = useState(cachedSaved.length === 0);
-  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(
+    new Set()
+  );
   const fetchedReviewsForUserId = useRef<string | null>(null);
   const fetchedSavedForUserId = useRef<string | null>(null);
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -113,13 +125,16 @@ export default function ProfilePage() {
     // Try cached data from sessionStorage first
     const cachedReviews = sessionStorage.getItem("profile_myReviews");
     const cachedSaved = sessionStorage.getItem("profile_savedCompanies");
-    
+
     let hasCachedReviews = false;
     let hasCachedSaved = false;
 
     if (cachedReviews) {
       try {
-        const parsed = JSON.parse(cachedReviews) as { data: ReviewWithDetails[]; ts: number };
+        const parsed = JSON.parse(cachedReviews) as {
+          data: ReviewWithDetails[];
+          ts: number;
+        };
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           setMyReviews(parsed.data || []);
           setLoadingReviews(false);
@@ -132,7 +147,10 @@ export default function ProfilePage() {
 
     if (cachedSaved) {
       try {
-        const parsed = JSON.parse(cachedSaved) as { data: CompanyWithStats[]; ts: number };
+        const parsed = JSON.parse(cachedSaved) as {
+          data: CompanyWithStats[];
+          ts: number;
+        };
         if (Date.now() - parsed.ts < CACHE_TTL_MS) {
           setSavedCompanies(parsed.data || []);
           setLoadingSaved(false);
@@ -152,7 +170,7 @@ export default function ProfilePage() {
 
     // Fetch missing data in parallel
     let isCancelled = false;
-    
+
     if (!hasCachedReviews) setLoadingReviews(true);
     if (!hasCachedSaved) setLoadingSaved(true);
 
@@ -160,17 +178,28 @@ export default function ProfilePage() {
       if (response.ok) {
         return response.json();
       }
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.error || `Failed to fetch reviews (${response.status})`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        errorData.error || `Failed to fetch reviews (${response.status})`
+      );
     });
 
-    const fetchSaved = fetch("/api/user/saved-companies").then(async (response) => {
-      if (response.ok) {
-        return response.json();
+    const fetchSaved = fetch("/api/user/saved-companies").then(
+      async (response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          errorData.error ||
+            `Failed to fetch saved companies (${response.status})`
+        );
       }
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.error || `Failed to fetch saved companies (${response.status})`);
-    });
+    );
 
     Promise.allSettled([fetchReviews, fetchSaved]).then((results) => {
       if (isCancelled) return;
@@ -218,10 +247,10 @@ export default function ProfilePage() {
   const handleDeleteReview = (reviewId: string) => {
     // Update local state
     setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
-    
+
     // Clear sessionStorage cache to force refetch on next load
     sessionStorage.removeItem("profile_myReviews");
-    
+
     // Update cache with new data
     const updatedReviews = myReviews.filter((r) => r.id !== reviewId);
     sessionStorage.setItem(
@@ -261,14 +290,23 @@ export default function ProfilePage() {
       const parts = fullName.split(" ");
       initials =
         parts.length > 1
-          ? `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase()
+          ? `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(
+              0
+            )}`.toUpperCase()
           : fullName.substring(0, 2).toUpperCase();
+    } else if (firstName) {
+      name = firstName;
+      initials = firstName.substring(0, 2).toUpperCase();
     } else if (user.email) {
       const emailName = user.email.split("@")[0];
       const parts = emailName.split(".");
       if (parts.length > 1) {
-        name = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
-        initials = `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+        name = parts
+          .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+          .join(" ");
+        initials = `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(
+          0
+        )}`.toUpperCase();
       } else {
         name = emailName.charAt(0).toUpperCase() + emailName.slice(1);
         initials = emailName.substring(0, 2).toUpperCase();
@@ -316,7 +354,7 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <motion.div 
+      <motion.div
         className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -328,7 +366,9 @@ export default function ProfilePage() {
             {userInfo.initials}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{userInfo.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {userInfo.name}
+            </h1>
             <p className="text-muted-foreground">{userInfo.email}</p>
           </div>
         </div>
@@ -373,9 +413,12 @@ export default function ProfilePage() {
                   <CardContent className="pt-6">
                     <div className="text-center py-12">
                       <FileText className="size-12 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        No reviews yet
+                      </h3>
                       <p className="text-muted-foreground mb-4">
-                        Share your internship experience and help other students.
+                        Share your internship experience and help other
+                        students.
                       </p>
                       <Button asChild className="gap-2">
                         <Link href="/write-review">
@@ -395,9 +438,9 @@ export default function ProfilePage() {
                 >
                   {myReviews.map((review) => (
                     <motion.div key={review.id} variants={itemVariants}>
-                      <ReviewCard 
-                        review={review} 
-                        compact={true} 
+                      <ReviewCard
+                        review={review}
+                        compact={true}
                         onDelete={handleDeleteReview}
                         showEditButton
                         expanded={expandedReviewIds.has(review.id)}
@@ -424,9 +467,12 @@ export default function ProfilePage() {
                   <CardContent className="pt-6">
                     <div className="text-center py-12">
                       <Bookmark className="size-12 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">No saved companies</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        No saved companies
+                      </h3>
                       <p className="text-muted-foreground mb-4">
-                        Save companies you&apos;re interested in to easily find them later.
+                        Save companies you&apos;re interested in to easily find
+                        them later.
                       </p>
                       <Button asChild className="gap-2">
                         <Link href="/companies">
@@ -446,7 +492,10 @@ export default function ProfilePage() {
                 >
                   {savedCompanies.map((company) => (
                     <motion.div key={company.id} variants={itemVariants}>
-                      <CompanyCard company={company} onSaveToggle={handleUnsave} />
+                      <CompanyCard
+                        company={company}
+                        onSaveToggle={handleUnsave}
+                      />
                     </motion.div>
                   ))}
                 </motion.div>
@@ -459,4 +508,3 @@ export default function ProfilePage() {
     </main>
   );
 }
-
