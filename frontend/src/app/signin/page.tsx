@@ -101,7 +101,7 @@ function SignInContent() {
                 ? "Join Internly to share your internship experience with fellow students"
                 : "Share your internship experience with fellow students"
               : authMode === "sign-up"
-              ? "Sign up with Google or email to start browsing and saving reviews"
+              ? "Sign up with Google or email to get started"
               : "Sign in with Google or email to continue"}
           </CardDescription>
         </CardHeader>
