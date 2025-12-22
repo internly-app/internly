@@ -216,6 +216,18 @@
   backface-visibility: hidden;
 }
 
+/* Hide scrollbars (keep scrolling) for dropdown/popup lists.
+  Windows shows a very visible scrollbar gutter by default; this keeps menus sleek.
+  This only affects scrollbar UI, not layout or background. */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge legacy */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 /* Dark Mode - Default */
 :root {
   --color-background: #000000;

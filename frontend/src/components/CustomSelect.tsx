@@ -209,7 +209,7 @@ export function CustomSelect({
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] max-h-60 overflow-y-auto no-scrollbar">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
               <button
@@ -217,11 +217,9 @@ export function CustomSelect({
                 type="button"
                 onClick={() => handleSelect(option.value)}
                 className={cn(
-                  "w-full px-2 py-1.5 text-left text-sm outline-none transition-colors cursor-pointer rounded-sm",
-                  "focus:bg-accent focus:text-accent-foreground",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  option.value === value &&
-                    "bg-accent/60 text-accent-foreground"
+                  "w-full px-3 py-2 text-left text-sm transition-colors duration-200 first:rounded-t-md last:rounded-b-md cursor-pointer",
+                  "hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none",
+                  option.value === value && "bg-[#333333]/50"
                 )}
               >
                 {option.label}

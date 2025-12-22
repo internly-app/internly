@@ -21,7 +21,7 @@ const COMMON_LOCATIONS = [
   "Vancouver, BC",
   "Montreal, QC",
   "London, UK",
-  "Other"
+  "Other",
 ];
 
 interface LocationAutocompleteProps {
@@ -48,7 +48,7 @@ export function LocationAutocomplete({
   useEffect(() => {
     const isCommonLocation = COMMON_LOCATIONS.includes(value);
     setIsOtherSelected(!isCommonLocation && value !== "");
-    
+
     // If it's a common location or empty, show the location name
     // If it's custom, show the custom value
     if (isCommonLocation || value === "") {
@@ -61,7 +61,10 @@ export function LocationAutocomplete({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -75,21 +78,20 @@ export function LocationAutocomplete({
     if (!searchQuery.trim()) return COMMON_LOCATIONS;
 
     const query = searchQuery.toLowerCase().trim();
-    const locationsWithScores = COMMON_LOCATIONS
-      .map((location) => {
-        const lowerLocation = location.toLowerCase();
-        const exactMatch = lowerLocation.includes(query);
-        const fuzzyScore = fuzzyMatch(query, lowerLocation);
-        
-        let score = 0;
-        if (exactMatch) {
-          score = 1.0;
-        } else if (fuzzyScore > 0) {
-          score = fuzzyScore;
-        }
-        
-        return { location, score };
-      })
+    const locationsWithScores = COMMON_LOCATIONS.map((location) => {
+      const lowerLocation = location.toLowerCase();
+      const exactMatch = lowerLocation.includes(query);
+      const fuzzyScore = fuzzyMatch(query, lowerLocation);
+
+      let score = 0;
+      if (exactMatch) {
+        score = 1.0;
+      } else if (fuzzyScore > 0) {
+        score = fuzzyScore;
+      }
+
+      return { location, score };
+    })
       .filter(({ score }) => score > 0)
       .sort((a, b) => {
         if (Math.abs(a.score - b.score) > 0.01) {
@@ -118,7 +120,7 @@ export function LocationAutocomplete({
 
   const handleInputChange = (newValue: string) => {
     setSearchQuery(newValue);
-    
+
     if (isOtherSelected) {
       // If "Other" is selected, update the actual value
       onChange(newValue);
@@ -149,7 +151,7 @@ export function LocationAutocomplete({
       />
 
       {isOpen && !isOtherSelected && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] max-h-60 overflow-y-auto no-scrollbar">
           {filteredLocations.length > 0 ? (
             filteredLocations.map((location) => (
               <button
@@ -158,7 +160,9 @@ export function LocationAutocomplete({
                 className="w-full px-3 py-2 text-left text-sm hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none cursor-pointer transition-colors duration-200 first:rounded-t-md last:rounded-b-md"
               >
                 {location === "Other" ? (
-                  <span className="text-muted-foreground">Other (custom location)</span>
+                  <span className="text-muted-foreground">
+                    Other (custom location)
+                  </span>
                 ) : (
                   location
                 )}
