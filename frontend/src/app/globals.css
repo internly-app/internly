@@ -18,9 +18,12 @@
 
   /* Shadows - visible on dark backgrounds */
   --shadow-sm: 0 1px 2px 0 rgba(255, 255, 255, 0.05);
-  --shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px -1px rgba(255, 255, 255, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -2px rgba(255, 255, 255, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -4px rgba(255, 255, 255, 0.1);
+  --shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1),
+    0 1px 2px -1px rgba(255, 255, 255, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(255, 255, 255, 0.1),
+    0 2px 4px -2px rgba(255, 255, 255, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(255, 255, 255, 0.1),
+    0 4px 6px -4px rgba(255, 255, 255, 0.1);
 
   /* Aurora Animation */
   --animate-aurora: aurora 60s linear infinite;
@@ -91,7 +94,8 @@
 }
 
 @keyframes subtleFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -100,7 +104,8 @@
 }
 
 @keyframes blob {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0px, 0px) scale(1);
   }
   33% {
@@ -211,6 +216,18 @@
   backface-visibility: hidden;
 }
 
+/* Hide scrollbars (keep scrolling) for dropdown/popup lists.
+  Windows shows a very visible scrollbar gutter by default; this keeps menus sleek.
+  This only affects scrollbar UI, not layout or background. */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge legacy */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 /* Dark Mode - Default */
 :root {
   --color-background: #000000;
@@ -222,7 +239,7 @@
   --color-secondary: #1a1a1a;
   --color-secondary-foreground: #ffffff;
   --color-muted: #2a2a2a;
-  --color-muted-foreground: #C4B5FD;
+  --color-muted-foreground: #c4b5fd;
   --color-accent: #ffffff;
   --color-accent-foreground: #000000;
   --color-border: #2a2a2a;
@@ -241,14 +258,13 @@
   --color-secondary: #1a1a1a;
   --color-secondary-foreground: #ffffff;
   --color-muted: #2a2a2a;
-  --color-muted-foreground: #C4B5FD;
+  --color-muted-foreground: #c4b5fd;
   --color-accent: #ffffff;
   --color-accent-foreground: #000000;
   --color-border: #2a2a2a;
   --color-input: #2a2a2a;
   --color-ring: rgba(255, 255, 255, 0.3);
 }
-
 
 /* Base Styles */
 * {
@@ -260,18 +276,25 @@
 html {
   font-size: 1rem;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
-/* Responsive Typography - HappyRobot style */
-@media screen and (max-width: 1920px) {
+/* Responsive base font - consistent across devices */
+@media screen and (max-width: 1440px) {
   html {
     font-size: 1rem;
   }
 }
 
-@media screen and (max-width: 1440px) {
+@media screen and (max-width: 1024px) {
   html {
-    font-size: calc(0.8126951092611863rem + 0.20811654526534862vw);
+    font-size: 0.9375rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 0.875rem;
   }
 }
 
@@ -303,9 +326,9 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui,
+    sans-serif;
 }
-
 
 .text-heading-1 {
   font-size: clamp(2rem, 4vw, 3rem);
@@ -394,13 +417,16 @@ select:focus-visible {
 }
 
 .dark .shadow {
-  box-shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px -1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1),
+    0 1px 2px -1px rgba(255, 255, 255, 0.1);
 }
 
 .dark .shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -2px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1),
+    0 2px 4px -2px rgba(255, 255, 255, 0.1);
 }
 
 .dark .shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -4px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1),
+    0 4px 6px -4px rgba(255, 255, 255, 0.1);
 }

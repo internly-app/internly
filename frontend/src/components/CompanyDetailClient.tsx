@@ -70,15 +70,17 @@ export function CompanyDetailClient({
   const { user } = useAuth();
 
   // ===== State Management =====
-  
+
   const [company] = useState<CompanyWithStats>(initialCompany);
   const [reviews] = useState<ReviewWithDetails[]>(initialReviews);
   const [roles] = useState<string[]>(initialRoles);
   const [roleFilter, setRoleFilter] = useState(searchParams.get("role") || "");
   const [isSaved, setIsSaved] = useState(initialIsSaved);
   const [isSaving, setIsSaving] = useState(false);
-  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
-  
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(
+    new Set()
+  );
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(() => {
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -86,7 +88,7 @@ export function CompanyDetailClient({
   });
 
   // ===== Filtering =====
-  
+
   // Filter reviews by role
   const filteredReviews = useMemo(() => {
     if (!roleFilter) return reviews;
@@ -94,7 +96,7 @@ export function CompanyDetailClient({
   }, [reviews, roleFilter]);
 
   // ===== Pagination =====
-  
+
   // Paginate filtered reviews
   const paginatedReviews = useMemo(() => {
     const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
@@ -108,7 +110,7 @@ export function CompanyDetailClient({
   const hasPrevPage = currentPage > 1;
 
   // ===== URL Sync & Effects =====
-  
+
   // Reset to page 1 when role filter changes
   const prevRoleFilterRef = useRef(roleFilter);
   const isInitialMountRef = useRef(true);
@@ -154,7 +156,9 @@ export function CompanyDetailClient({
       if (roleFilter) params.set("role", roleFilter);
       if (currentPage > 1) params.set("page", currentPage.toString());
 
-      const newUrl = `/companies/${company.slug}${params.toString() ? `?${params.toString()}` : ""}`;
+      const newUrl = `/companies/${company.slug}${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
       router.replace(newUrl, { scroll: false });
     }
 
@@ -162,7 +166,7 @@ export function CompanyDetailClient({
   }, [roleFilter, currentPage, router, company.slug]);
 
   // ===== Event Handlers =====
-  
+
   const handleExpandedChange = (reviewId: string, expanded: boolean) => {
     setExpandedReviewIds((prev) => {
       const next = new Set(prev);
@@ -214,12 +218,19 @@ export function CompanyDetailClient({
   };
 
   const workStyleBadge = {
-    onsite: "bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/20",
-    hybrid: "bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/20",
-    remote: "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/20",
+    onsite:
+      "bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/20",
+    hybrid:
+      "bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/20",
+    remote:
+      "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/20",
   } as const;
 
-  const formatPayRange = (min: number | null, max: number | null, currency: string) => {
+  const formatPayRange = (
+    min: number | null,
+    max: number | null,
+    currency: string
+  ) => {
     if (!min && !max) return null;
     if (min === max || !max) return `$${min?.toFixed(0)} ${currency}`;
     if (!min) return `$${max.toFixed(0)} ${currency}`;
@@ -273,7 +284,9 @@ export function CompanyDetailClient({
                           {company.name}
                         </h1>
                         {company.industry && (
-                          <p className="text-muted-foreground">{company.industry}</p>
+                          <p className="text-muted-foreground">
+                            {company.industry}
+                          </p>
                         )}
                         {company.website && (
                           <a
@@ -307,7 +320,8 @@ export function CompanyDetailClient({
                     {/* Review count badge */}
                     <div className="flex items-center gap-2 mt-4">
                       <Badge variant="outline">
-                        {company.review_count} {company.review_count === 1 ? "review" : "reviews"}
+                        {company.review_count}{" "}
+                        {company.review_count === 1 ? "review" : "reviews"}
                       </Badge>
                     </div>
                   </div>
@@ -333,13 +347,27 @@ export function CompanyDetailClient({
                   <span className="text-sm">Pay Range</span>
                 </div>
                 <div className="text-lg font-semibold">
-                  {(company.min_pay_cad || company.min_pay_usd) ? (
+                  {company.min_pay_cad || company.min_pay_usd ? (
                     <div className="space-y-1">
                       {(company.min_pay_usd || company.max_pay_usd) && (
-                        <div>{formatPayRange(company.min_pay_usd, company.max_pay_usd, "USD")}/hr</div>
+                        <div>
+                          {formatPayRange(
+                            company.min_pay_usd,
+                            company.max_pay_usd,
+                            "USD"
+                          )}
+                          /hr
+                        </div>
                       )}
                       {(company.min_pay_cad || company.max_pay_cad) && (
-                        <div>{formatPayRange(company.min_pay_cad, company.max_pay_cad, "CAD")}/hr</div>
+                        <div>
+                          {formatPayRange(
+                            company.min_pay_cad,
+                            company.max_pay_cad,
+                            "CAD"
+                          )}
+                          /hr
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -418,7 +446,9 @@ export function CompanyDetailClient({
                       )}
                     </>
                   ) : (
-                    <span className="text-lg font-semibold text-muted-foreground font-normal">—</span>
+                    <span className="text-lg font-semibold text-muted-foreground font-normal">
+                      —
+                    </span>
                   )}
                 </div>
               </CardContent>
@@ -504,9 +534,7 @@ export function CompanyDetailClient({
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-xl font-semibold">
-              Reviews ({total})
-            </h2>
+            <h2 className="text-xl font-semibold">Reviews ({total})</h2>
 
             {/* Role Filter */}
             {roles.length > 1 && (
@@ -525,8 +553,8 @@ export function CompanyDetailClient({
                       label: role,
                     })),
                   ]}
-                  placeholder="All roles"
-                  searchable={false}
+                  placeholder="Filter roles..."
+                  searchable={true}
                 />
               </Field>
             )}
@@ -536,7 +564,8 @@ export function CompanyDetailClient({
           <div className="mb-4 text-sm text-muted-foreground">
             Showing{" "}
             <span className="font-semibold text-foreground">
-              {(currentPage - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(currentPage * REVIEWS_PER_PAGE, total)}
+              {(currentPage - 1) * REVIEWS_PER_PAGE + 1}-
+              {Math.min(currentPage * REVIEWS_PER_PAGE, total)}
             </span>{" "}
             of <span className="font-semibold text-foreground">{total}</span>{" "}
             {total === 1 ? "review" : "reviews"}
@@ -583,7 +612,7 @@ export function CompanyDetailClient({
                     <ChevronLeft className="size-4" />
                     Previous
                   </Button>
-                  
+
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                       let pageNum: number;
@@ -596,11 +625,13 @@ export function CompanyDetailClient({
                       } else {
                         pageNum = currentPage - 2 + i;
                       }
-                      
+
                       return (
                         <Button
                           key={pageNum}
-                          variant={currentPage === pageNum ? "default" : "outline"}
+                          variant={
+                            currentPage === pageNum ? "default" : "outline"
+                          }
                           size="sm"
                           onClick={() => handlePageChange(pageNum)}
                           className="min-w-[40px]"
@@ -610,7 +641,7 @@ export function CompanyDetailClient({
                       );
                     })}
                   </div>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -631,4 +662,3 @@ export function CompanyDetailClient({
     </main>
   );
 }
-
