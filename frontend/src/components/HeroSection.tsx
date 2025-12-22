@@ -26,23 +26,23 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
   // Memoize card data to prevent unnecessary re-renders
   const cardData = useMemo(() => {
     if (reviews.length === 0) return { left: null, center: null, right: null };
-    
+
     if (reviews.length >= 3) {
       return {
-        left: reviews[0],   // 2nd most liked
+        left: reviews[0], // 2nd most liked
         center: reviews[1], // Most liked
-        right: reviews[2],  // 3rd most liked
+        right: reviews[2], // 3rd most liked
       };
     }
-    
+
     if (reviews.length === 2) {
       return {
-        left: reviews[0],   // 2nd most liked
+        left: reviews[0], // 2nd most liked
         center: reviews[1], // Most liked
         right: null,
       };
     }
-    
+
     return {
       left: null,
       center: reviews[0], // Only review
@@ -67,7 +67,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-center mb-6 md:mb-8"
-          style={{ fontFamily: 'var(--font-instrument-serif)' }}
+          style={{ fontFamily: "var(--font-instrument-serif)" }}
         >
           <div className="h-[1.2em] overflow-visible">
             <AnimatePresence mode="wait">
@@ -93,7 +93,8 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="text-base sm:text-lg md:text-xl text-center text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-12"
         >
-          Discover what it&apos;s really like to intern at top companies. Read authentic reviews from students who&apos;ve been there.
+          Discover what it&apos;s really like to intern at top companies. Read
+          authentic reviews from students who&apos;ve been there.
         </motion.p>
 
         {/* CTA Buttons - Normal fade */}
@@ -144,45 +145,65 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     transform: "translateZ(0)",
                   }}
                 >
-                  <motion.div
-                    animate={{
-                      boxShadow: [
-                        "0 0 8px rgba(156, 163, 175, 0.15), 0 0 16px rgba(156, 163, 175, 0.08)",
-                        "0 0 12px rgba(156, 163, 175, 0.2), 0 0 24px rgba(156, 163, 175, 0.12)",
-                        "0 0 8px rgba(156, 163, 175, 0.15), 0 0 16px rgba(156, 163, 175, 0.08)",
-                      ],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: [0.4, 0, 0.6, 1],
-                    }}
-                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-gray-400/40 relative"
-                    style={{
-                      transform: "scale(0.98) rotate(-2deg) translateZ(0)",
-                      filter: "blur(0.2px)",
-                      backfaceVisibility: "hidden",
-                      height: "220px",
-                      willChange: "transform, box-shadow",
-                    }}
+                  <div
+                    className="relative w-[340px] lg:w-[380px]"
+                    style={{ transform: "scale(0.98) rotate(-2deg)" }}
                   >
-                    {/* Silver Shine Effect - GPU optimized */}
-                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
-                      <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/26 to-transparent"
-                        style={{
-                          width: "300%",
-                          height: "300%",
-                          animation: "shine 5s ease-in-out 1.7s infinite",
-                          transformOrigin: "center",
-                          willChange: "transform",
-                        }}
-                      />
-                    </div>
-                    <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
-                      <ReviewCard review={cardData.left} compact={true} />
-                    </div>
-                  </motion.div>
+                    {/* Pulsing glow layer - sits behind the card */}
+                    <motion.div
+                      animate={{
+                        opacity: [0.3, 0.6, 0.3],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: [0.4, 0, 0.6, 1],
+                      }}
+                      className="absolute -inset-[3px] rounded-xl bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 blur-[2px]"
+                      style={{ willChange: "opacity" }}
+                    />
+                    <motion.div
+                      animate={{
+                        borderColor: [
+                          "rgba(156, 163, 175, 0.5)",
+                          "rgba(156, 163, 175, 0.8)",
+                          "rgba(156, 163, 175, 0.5)",
+                        ],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: [0.4, 0, 0.6, 1],
+                      }}
+                      className="opacity-90 rounded-xl overflow-hidden w-full border-2 relative bg-card"
+                      style={{
+                        filter: "blur(0.2px)",
+                        backfaceVisibility: "hidden",
+                        height: "220px",
+                        willChange: "border-color",
+                      }}
+                    >
+                      {/* Silver Shine Effect - GPU optimized */}
+                      <div
+                        className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10"
+                        style={{ willChange: "transform" }}
+                      >
+                        <div
+                          className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/26 to-transparent"
+                          style={{
+                            width: "300%",
+                            height: "300%",
+                            animation: "shine 5s ease-in-out 1.7s infinite",
+                            transformOrigin: "center",
+                            willChange: "transform",
+                          }}
+                        />
+                      </div>
+                      <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
+                        <ReviewCard review={cardData.left} compact={true} />
+                      </div>
+                    </motion.div>
+                  </div>
                 </motion.div>
               )}
 
@@ -210,46 +231,63 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-10 h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 translate-x-1/2 -translate-y-1/2">
                     <Trophy className="size-5 fill-current" />
                   </div>
-                  
-                  <motion.div
-                    animate={{
-                      boxShadow: [
-                        "0 0 10px rgba(234, 179, 8, 0.2), 0 0 20px rgba(234, 179, 8, 0.1)",
-                        "0 0 16px rgba(234, 179, 8, 0.3), 0 0 32px rgba(234, 179, 8, 0.15)",
-                        "0 0 10px rgba(234, 179, 8, 0.2), 0 0 20px rgba(234, 179, 8, 0.1)",
-                      ],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: [0.4, 0, 0.6, 1],
-                    }}
-                    className="rounded-xl overflow-hidden w-full max-w-[340px] sm:max-w-none sm:w-[380px] md:w-[420px] lg:w-[440px] sm:scale-105 border-2 border-yellow-400/50 relative"
-                    style={{
-                      transform: "translateZ(0)",
-                      backfaceVisibility: "hidden",
-                      WebkitFontSmoothing: "antialiased",
-                      height: "240px",
-                      willChange: "transform, box-shadow",
-                    }}
-                  >
-                    {/* Gold Shine Effect - GPU optimized */}
-                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
-                      <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/28 to-transparent"
-                        style={{
-                          width: "300%",
-                          height: "300%",
-                          animation: "shine 5s ease-in-out 0s infinite",
-                          transformOrigin: "center",
-                          willChange: "transform",
-                        }}
-                      />
-                    </div>
-                    <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
-                      <ReviewCard review={cardData.center} compact={true} />
-                    </div>
-                  </motion.div>
+
+                  <div className="relative w-full max-w-[340px] sm:max-w-none sm:w-[380px] md:w-[420px] lg:w-[440px] sm:scale-105">
+                    {/* Pulsing glow layer - sits behind the card */}
+                    <motion.div
+                      animate={{
+                        opacity: [0.4, 0.7, 0.4],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: [0.4, 0, 0.6, 1],
+                      }}
+                      className="absolute -inset-[3px] rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 blur-[3px]"
+                      style={{ willChange: "opacity" }}
+                    />
+                    <motion.div
+                      animate={{
+                        borderColor: [
+                          "rgba(234, 179, 8, 0.6)",
+                          "rgba(234, 179, 8, 0.9)",
+                          "rgba(234, 179, 8, 0.6)",
+                        ],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: [0.4, 0, 0.6, 1],
+                      }}
+                      className="rounded-xl overflow-hidden w-full border-2 relative bg-card"
+                      style={{
+                        backfaceVisibility: "hidden",
+                        WebkitFontSmoothing: "antialiased",
+                        height: "240px",
+                        willChange: "border-color",
+                      }}
+                    >
+                      {/* Gold Shine Effect - GPU optimized */}
+                      <div
+                        className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10"
+                        style={{ willChange: "transform" }}
+                      >
+                        <div
+                          className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/28 to-transparent"
+                          style={{
+                            width: "300%",
+                            height: "300%",
+                            animation: "shine 5s ease-in-out 0s infinite",
+                            transformOrigin: "center",
+                            willChange: "transform",
+                          }}
+                        />
+                      </div>
+                      <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
+                        <ReviewCard review={cardData.center} compact={true} />
+                      </div>
+                    </motion.div>
+                  </div>
                 </motion.div>
               )}
 
@@ -272,45 +310,65 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                     transform: "translateZ(0)",
                   }}
                 >
-                  <motion.div
-                    animate={{
-                      boxShadow: [
-                        "0 0 8px rgba(217, 119, 6, 0.15), 0 0 16px rgba(217, 119, 6, 0.08)",
-                        "0 0 12px rgba(217, 119, 6, 0.2), 0 0 24px rgba(217, 119, 6, 0.12)",
-                        "0 0 8px rgba(217, 119, 6, 0.15), 0 0 16px rgba(217, 119, 6, 0.08)",
-                      ],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: [0.4, 0, 0.6, 1],
-                    }}
-                    className="opacity-90 rounded-xl overflow-hidden w-[340px] lg:w-[380px] border-2 border-amber-600/40 relative"
-                    style={{
-                      transform: "scale(0.98) rotate(2deg) translateZ(0)",
-                      filter: "blur(0.2px)",
-                      backfaceVisibility: "hidden",
-                      height: "220px",
-                      willChange: "transform, box-shadow",
-                    }}
+                  <div
+                    className="relative w-[340px] lg:w-[380px]"
+                    style={{ transform: "scale(0.98) rotate(2deg)" }}
                   >
-                    {/* Bronze Shine Effect - GPU optimized */}
-                    <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10" style={{ willChange: "transform" }}>
-                      <div 
-                        className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/26 to-transparent"
-                        style={{
-                          width: "300%",
-                          height: "300%",
-                          animation: "shine 5s ease-in-out 3.4s infinite",
-                          transformOrigin: "center",
-                          willChange: "transform",
-                        }}
-                      />
-                    </div>
-                    <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
-                      <ReviewCard review={cardData.right} compact={true} />
-                    </div>
-                  </motion.div>
+                    {/* Pulsing glow layer - sits behind the card */}
+                    <motion.div
+                      animate={{
+                        opacity: [0.3, 0.6, 0.3],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: [0.4, 0, 0.6, 1],
+                      }}
+                      className="absolute -inset-[3px] rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 blur-[2px]"
+                      style={{ willChange: "opacity" }}
+                    />
+                    <motion.div
+                      animate={{
+                        borderColor: [
+                          "rgba(217, 119, 6, 0.5)",
+                          "rgba(217, 119, 6, 0.8)",
+                          "rgba(217, 119, 6, 0.5)",
+                        ],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: [0.4, 0, 0.6, 1],
+                      }}
+                      className="opacity-90 rounded-xl overflow-hidden w-full border-2 relative bg-card"
+                      style={{
+                        filter: "blur(0.2px)",
+                        backfaceVisibility: "hidden",
+                        height: "220px",
+                        willChange: "border-color",
+                      }}
+                    >
+                      {/* Bronze Shine Effect - GPU optimized */}
+                      <div
+                        className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10"
+                        style={{ willChange: "transform" }}
+                      >
+                        <div
+                          className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/26 to-transparent"
+                          style={{
+                            width: "300%",
+                            height: "300%",
+                            animation: "shine 5s ease-in-out 3.4s infinite",
+                            transformOrigin: "center",
+                            willChange: "transform",
+                          }}
+                        />
+                      </div>
+                      <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
+                        <ReviewCard review={cardData.right} compact={true} />
+                      </div>
+                    </motion.div>
+                  </div>
                 </motion.div>
               )}
             </motion.div>
