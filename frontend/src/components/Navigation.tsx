@@ -205,7 +205,12 @@ export default function Navigation({ animate = false }: NavigationProps) {
                 </Button>
 
                 {/* Profile Dropdown */}
-                <DropdownMenu>
+                {/*
+                  Radix DropdownMenu can lock body scroll when used in "modal" mode.
+                  On Windows this removes the scrollbar and causes noticeable layout shift.
+                  We explicitly disable modal behavior here since this is a non-blocking menu.
+                */}
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <button
                       className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer !outline-none border border-transparent hover:border-zinc-700 data-[state=open]:border-zinc-700 flex-shrink-0"
@@ -237,8 +242,10 @@ export default function Navigation({ animate = false }: NavigationProps) {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
+                    side="bottom"
                     align="end"
-                    sideOffset={8}
+                    sideOffset={12}
+                    collisionPadding={12}
                     className="w-56 border border-zinc-700"
                   >
                     <DropdownMenuLabel>
