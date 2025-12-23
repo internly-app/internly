@@ -325,6 +325,7 @@ body {
   min-height: 100vh;
   margin: 0;
   transition: background-color 0.3s, color 0.3s;
+  overflow-y: scroll;
 }
 
 /* Typography Utilities - Size and spacing only, fonts handled by Tailwind */

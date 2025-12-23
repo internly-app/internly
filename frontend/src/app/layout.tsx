@@ -24,20 +24,30 @@ export const metadata: Metadata = {
     default: "Internly",
     template: "%s | Internly",
   },
-  description: "Read honest internship reviews from students who actually did the work. Get insights on interview processes, compensation, company culture, and real day-to-day experiences.",
-  keywords: ["internship reviews", "student internships", "tech internships", "internship experiences", "company reviews", "interview tips"],
+  description:
+    "Read honest internship reviews from students who actually did the work. Get insights on interview processes, compensation, company culture, and real day-to-day experiences.",
+  keywords: [
+    "internship reviews",
+    "student internships",
+    "tech internships",
+    "internship experiences",
+    "company reviews",
+    "interview tips",
+  ],
   authors: [{ name: "Internly Team" }],
   openGraph: {
     type: "website",
     locale: "en_US",
     title: "Internly - Real Internship Reviews from Students",
-    description: "Read honest internship reviews from students who actually did the work.",
+    description:
+      "Read honest internship reviews from students who actually did the work.",
     siteName: "Internly",
   },
   twitter: {
     card: "summary_large_image",
     title: "Internly - Real Internship Reviews from Students",
-    description: "Read honest internship reviews from students who actually did the work.",
+    description:
+      "Read honest internship reviews from students who actually did the work.",
   },
   robots: {
     index: true,
@@ -62,9 +72,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased overflow-x-hidden`}>
-          <AuthProvider>{children}</AuthProvider>
-          <Analytics />
+      <body
+        className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased`}
+      >
+        <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

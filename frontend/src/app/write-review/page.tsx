@@ -7,14 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CustomSelect } from "@/components/CustomSelect";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useAuth } from "@/components/AuthProvider";
 import { useCreateReview } from "@/hooks/useReviews";
 import { TechnologyAutocomplete } from "@/components/TechnologyAutocomplete";
@@ -421,15 +414,15 @@ function WriteReviewContent() {
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             {(isEditMode
               ? [
-                  { num: 2, label: "Experience" },
-                  { num: 3, label: "Interview" },
-                  { num: 4, label: "Compensation" },
+                  { num: 2, label: "Role Details" },
+                  { num: 3, label: "Compensation" },
+                  { num: 4, label: "Experience & Interview" },
                 ]
               : [
-                  { num: 1, label: "Company" },
-                  { num: 2, label: "Experience" },
-                  { num: 3, label: "Interview" },
-                  { num: 4, label: "Compensation" },
+                  { num: 1, label: "Position & Company" },
+                  { num: 2, label: "Role Details" },
+                  { num: 3, label: "Compensation" },
+                  { num: 4, label: "Experience & Interview" },
                 ]
             ).map((s, index) => (
               <div key={s.num} className="flex flex-col items-center space-y-2">
@@ -476,21 +469,7 @@ function WriteReviewContent() {
 
         {/* Form Steps */}
         <Card>
-          <CardHeader>
-            <CardTitle>
-              {step === 1 && "Company & Role"}
-              {step === 2 && "Work Setup"}
-              {step === 3 && "Compensation"}
-              {step === 4 && "Your Experience"}
-            </CardTitle>
-            <CardDescription>
-              {step === 1 && "Select the company and role you interned at"}
-              {step === 2 && "Quick basics first"}
-              {step === 3 && "Help others understand the compensation"}
-              {step === 4 && "Tell us about your experience and interview"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {/* Step 1: Company & Role */}
             {step === 1 && (
               <form>
@@ -571,7 +550,7 @@ function WriteReviewContent() {
               </form>
             )}
 
-            {/* Step 2: Work Setup (quick basics) */}
+            {/* Step 2: Role Details (quick basics) */}
             {step === 2 && (
               <form>
                 <div className="flex flex-col gap-6">
@@ -819,14 +798,14 @@ function WriteReviewContent() {
                         })
                       }
                       rows={4}
-                      maxLength={1000}
+                      maxLength={600}
                       className={cn(
                         "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
                     />
                     <p className="text-xs text-muted-foreground text-right">
-                      {formData.overall_experience.length}/1000
+                      {formData.overall_experience.length}/600
                     </p>
                   </div>
 
@@ -881,14 +860,14 @@ function WriteReviewContent() {
                         })
                       }
                       rows={4}
-                      maxLength={1000}
+                      maxLength={600}
                       className={cn(
                         "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                       required
                     />
                     <p className="text-xs text-muted-foreground text-right">
-                      {formData.interview_rounds_description.length}/1000
+                      {formData.interview_rounds_description.length}/600
                     </p>
                   </div>
 
@@ -905,13 +884,13 @@ function WriteReviewContent() {
                         })
                       }
                       rows={4}
-                      maxLength={1000}
+                      maxLength={400}
                       className={cn(
                         "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
                       )}
                     />
                     <p className="text-xs text-muted-foreground text-right">
-                      {formData.interview_tips.length}/1000
+                      {formData.interview_tips.length}/400
                     </p>
                   </div>
                 </div>

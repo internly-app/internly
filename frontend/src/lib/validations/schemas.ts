@@ -87,7 +87,7 @@ export const reviewCreateSchema = z.object({
   // Written content (no minimum length required)
   overall_experience: z
     .string()
-    .max(1000)
+    .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : val))
     .refine(
@@ -102,7 +102,7 @@ export const reviewCreateSchema = z.object({
   // If they are provided, they must still pass validation.
   hardest: z
     .string()
-    .max(1000)
+    .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : val))
     .refine(
@@ -115,7 +115,7 @@ export const reviewCreateSchema = z.object({
     ),
   best: z
     .string()
-    .max(1000)
+    .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : val))
     .refine(
@@ -128,7 +128,7 @@ export const reviewCreateSchema = z.object({
     ),
   advice: z
     .string()
-    .max(1000)
+    .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : undefined))
     .refine(
@@ -151,7 +151,7 @@ export const reviewCreateSchema = z.object({
   interview_round_count: z.number().int().min(0).max(20),
   interview_rounds_description: z
     .string()
-    .max(1000)
+    .max(600)
     .transform((val) => sanitizeText(val))
     .refine(
       (val) => {
@@ -163,7 +163,7 @@ export const reviewCreateSchema = z.object({
     ),
   interview_tips: z
     .string()
-    .max(1000)
+    .max(400)
     .transform((val) => sanitizeText(val))
     .refine(
       (val) => {
