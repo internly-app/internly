@@ -29,12 +29,14 @@ function WriteReviewContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const isEditMode = !!editId;
-  
+
   const { user, loading: authLoading } = useAuth();
   const { createReview, loading: submitting, error } = useCreateReview();
-  
+
   const [loadingReview, setLoadingReview] = useState(isEditMode);
-  const [editingReview, setEditingReview] = useState<ReviewWithDetails | null>(null);
+  const [editingReview, setEditingReview] = useState<ReviewWithDetails | null>(
+    null
+  );
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -69,11 +71,15 @@ function WriteReviewContent() {
             work_style: review.work_style,
             duration_months: review.duration_months || "",
             team_name: review.team_name || "",
-            best: review.best,
-            hardest: review.hardest,
+            overall_experience:
+              review.best === review.hardest
+                ? review.best
+                : `${review.best}\n\nHardest part: ${review.hardest}`,
             technologies: review.technologies || "",
-            interview_round_count: review.interview_round_count?.toString() || "",
-            interview_rounds_description: review.interview_rounds_description || "",
+            interview_round_count:
+              review.interview_round_count?.toString() || "",
+            interview_rounds_description:
+              review.interview_rounds_description || "",
             interview_tips: review.interview_tips || "",
             wage_hourly: review.wage_hourly?.toString() || "",
             wage_currency: review.wage_currency || "CAD",
@@ -112,8 +118,7 @@ function WriteReviewContent() {
     work_style: "onsite" as "onsite" | "hybrid" | "remote",
     duration_months: "" as string | number,
     team_name: "",
-    best: "",
-    hardest: "",
+    overall_experience: "",
     technologies: "",
 
     // Interview (Step 3)
@@ -138,7 +143,6 @@ function WriteReviewContent() {
 
   // Submission error (for API/network errors)
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-
 
   const handleNext = () => {
     if (step < 4) setStep(step + 1);
@@ -177,17 +181,25 @@ function WriteReviewContent() {
           location: formData.location,
           term: formData.term,
           work_style: formData.work_style,
-          duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
+          duration_months: formData.duration_months
+            ? typeof formData.duration_months === "string"
+              ? parseInt(formData.duration_months)
+              : formData.duration_months
+            : undefined,
           team_name: formData.team_name || undefined,
           technologies: formData.technologies || undefined,
-          best: formData.best,
-          hardest: formData.hardest,
+          overall_experience: formData.overall_experience,
           wage_hourly: parseFloat(formData.wage_hourly),
           wage_currency: formData.wage_currency || "CAD",
           housing_stipend_provided: formData.housing_stipend_provided,
-          housing_stipend: formData.housing_stipend_provided && formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
+          housing_stipend:
+            formData.housing_stipend_provided && formData.housing_stipend
+              ? parseFloat(formData.housing_stipend)
+              : undefined,
           perks: formData.perks || undefined,
-          interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
+          interview_round_count: formData.interview_round_count
+            ? parseInt(formData.interview_round_count)
+            : 0,
           interview_rounds_description: formData.interview_rounds_description,
           interview_tips: formData.interview_tips,
         };
@@ -272,18 +284,30 @@ function WriteReviewContent() {
           location: formData.location,
           term: formData.term,
           work_style: formData.work_style,
-          duration_months: formData.duration_months ? (typeof formData.duration_months === "string" ? parseInt(formData.duration_months) : formData.duration_months) : undefined,
+          duration_months: formData.duration_months
+            ? typeof formData.duration_months === "string"
+              ? parseInt(formData.duration_months)
+              : formData.duration_months
+            : undefined,
           team_name: formData.team_name || undefined,
           technologies: formData.technologies || undefined,
-          best: formData.best,
-          hardest: formData.hardest,
+          overall_experience: formData.overall_experience,
+          // Backwards-compatibility for the current shared ReviewCreate type.
+          // The API/DB will store overall_experience as canonical.
+          best: formData.overall_experience,
+          hardest: formData.overall_experience,
           advice: undefined,
           wage_hourly: parseFloat(formData.wage_hourly),
           wage_currency: formData.wage_currency || "CAD",
           housing_stipend_provided: formData.housing_stipend_provided,
-          housing_stipend: formData.housing_stipend_provided && formData.housing_stipend ? parseFloat(formData.housing_stipend) : undefined,
+          housing_stipend:
+            formData.housing_stipend_provided && formData.housing_stipend
+              ? parseFloat(formData.housing_stipend)
+              : undefined,
           perks: formData.perks || undefined,
-          interview_round_count: formData.interview_round_count ? parseInt(formData.interview_round_count) : 0,
+          interview_round_count: formData.interview_round_count
+            ? parseInt(formData.interview_round_count)
+            : 0,
           interview_rounds_description: formData.interview_rounds_description,
           interview_tips: formData.interview_tips,
         };
@@ -291,7 +315,10 @@ function WriteReviewContent() {
         const newReview = await createReview(reviewData);
         // Store new review in sessionStorage for optimistic UI update
         if (newReview) {
-          sessionStorage.setItem("newlyCreatedReview", JSON.stringify(newReview));
+          sessionStorage.setItem(
+            "newlyCreatedReview",
+            JSON.stringify(newReview)
+          );
         }
         // Server-side revalidation handles cache invalidation
         router.push("/reviews");
@@ -299,23 +326,38 @@ function WriteReviewContent() {
     } catch (err) {
       // Extract user-friendly error message
       let errorMessage = "An unexpected error occurred. Please try again.";
-      
+
       if (err instanceof Error) {
         errorMessage = err.message;
       } else if (typeof err === "string") {
         errorMessage = err;
       }
-      
+
       // Set submission error to display to user
       setSubmissionError(errorMessage);
       console.error("Failed to submit review:", err);
     }
   };
 
-  const canProceedFromStep1 = isEditMode || (formData.companyName && formData.companyName.trim() && formData.roleName && formData.roleName.trim());
-  const canProceedFromStep2 = formData.location && formData.term && formData.best && formData.hardest;
-  const canProceedFromStep3 = formData.interview_round_count && formData.interview_rounds_description;
-  const canProceedFromStep4 = formData.wage_hourly && parseFloat(formData.wage_hourly) > 0;
+  const canProceedFromStep1 =
+    isEditMode ||
+    (formData.companyName &&
+      formData.companyName.trim() &&
+      formData.roleName &&
+      formData.roleName.trim());
+  // Easy-first flow:
+  // 1) Company/role/term
+  // 2) Work style + basics
+  // 3) Pay
+  // 4) Written experience + interview
+  const canProceedFromStep2 =
+    formData.location && formData.term && formData.work_style;
+  const canProceedFromStep3 =
+    formData.wage_hourly && parseFloat(formData.wage_hourly) > 0;
+  const canProceedFromStep4 =
+    formData.overall_experience &&
+    formData.interview_round_count &&
+    formData.interview_rounds_description;
 
   if (authLoading || loadingReview) {
     return (
@@ -366,33 +408,31 @@ function WriteReviewContent() {
             {isEditMode ? "Edit Review" : "Write a Review"}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            {isEditMode 
-              ? `Editing your review for ${editingReview?.company?.name || "this company"}`
-              : "Share your internship experience to help fellow students"
-            }
+            {isEditMode
+              ? `Editing your review for ${
+                  editingReview?.company?.name || "this company"
+                }`
+              : "Share your internship experience to help fellow students"}
           </p>
         </div>
 
         {/* Progress Indicator */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {(isEditMode 
+            {(isEditMode
               ? [
-                  { num: 2, label: "Experience" }, 
+                  { num: 2, label: "Experience" },
                   { num: 3, label: "Interview" },
-                  { num: 4, label: "Compensation" }
+                  { num: 4, label: "Compensation" },
                 ]
               : [
                   { num: 1, label: "Company" },
-                  { num: 2, label: "Experience" }, 
+                  { num: 2, label: "Experience" },
                   { num: 3, label: "Interview" },
-                  { num: 4, label: "Compensation" }
+                  { num: 4, label: "Compensation" },
                 ]
             ).map((s, index) => (
-              <div
-                key={s.num}
-                className="flex flex-col items-center space-y-2"
-              >
+              <div key={s.num} className="flex flex-col items-center space-y-2">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
                     s.num === step
@@ -403,16 +443,30 @@ function WriteReviewContent() {
                   }`}
                 >
                   {s.num < step ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : (
                     index + 1
                   )}
                 </div>
-                <span className={`text-xs transition-colors duration-200 ${
-                  s.num === step ? "text-foreground font-medium" : "text-muted-foreground"
-                }`}>
+                <span
+                  className={`text-xs transition-colors duration-200 ${
+                    s.num === step
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground"
+                  }`}
+                >
                   {s.label}
                 </span>
               </div>
@@ -425,15 +479,15 @@ function WriteReviewContent() {
           <CardHeader>
             <CardTitle>
               {step === 1 && "Company & Role"}
-              {step === 2 && "Your Experience"}
-              {step === 3 && "Interview Process"}
-              {step === 4 && "Compensation"}
+              {step === 2 && "Work Setup"}
+              {step === 3 && "Compensation"}
+              {step === 4 && "Your Experience"}
             </CardTitle>
             <CardDescription>
               {step === 1 && "Select the company and role you interned at"}
-              {step === 2 && "Tell us about your internship experience"}
-              {step === 3 && "Describe the interview process"}
-              {step === 4 && "Help others understand the compensation"}
+              {step === 2 && "Quick basics first"}
+              {step === 3 && "Help others understand the compensation"}
+              {step === 4 && "Tell us about your experience and interview"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -442,45 +496,56 @@ function WriteReviewContent() {
               <form>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="company">Company <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="company">
+                      Company <span className="text-red-500">*</span>
+                    </Label>
                     <CompanyAutocomplete
-                    value={formData.company_id}
+                      value={formData.company_id}
                       onChange={(companyId, companyName) => {
-                      setFormData({
-                        ...formData,
+                        setFormData({
+                          ...formData,
                           company_id: companyId,
                           companyName: companyName,
-                        role_id: "", // Reset role when company changes
-                        roleName: "",
-                      });
+                          role_id: "", // Reset role when company changes
+                          roleName: "",
+                        });
                         // Clear error when user selects
                         if (fieldErrors.company_id) {
-                          setFieldErrors((prev) => ({ ...prev, company_id: undefined }));
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            company_id: undefined,
+                          }));
                         }
                       }}
                       placeholder="Type to search companies..."
                       error={fieldErrors.company_id}
                     />
-                </div>
+                  </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="role">Role <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="role">
+                      Role <span className="text-red-500">*</span>
+                    </Label>
                     <Input
-                    id="role"
+                      id="role"
                       type="text"
                       placeholder="e.g., Software Engineering Intern, Product Design Intern..."
                       value={formData.roleName}
-                    onChange={(e) => {
-                      setFormData({
-                        ...formData,
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
                           roleName: e.target.value,
                           role_id: "", // Clear role_id when user types
                         });
                         // Clear error when user types
                         if (fieldErrors.role_id || fieldErrors.roleName) {
-                          setFieldErrors((prev) => ({ ...prev, role_id: undefined, roleName: undefined }));
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            role_id: undefined,
+                            roleName: undefined,
+                          }));
                         }
-                    }}
+                      }}
                       disabled={!formData.companyName}
                       className={
                         fieldErrors.roleName || fieldErrors.role_id
@@ -490,25 +555,31 @@ function WriteReviewContent() {
                       required
                     />
                     {(fieldErrors.roleName || fieldErrors.role_id) && (
-                      <p className="mt-1 text-sm text-destructive">{fieldErrors.roleName || fieldErrors.role_id}</p>
+                      <p className="mt-1 text-sm text-destructive">
+                        {fieldErrors.roleName || fieldErrors.role_id}
+                      </p>
                     )}
-                    {!formData.companyName && !fieldErrors.roleName && !fieldErrors.role_id && (
-                    <p className="text-xs text-muted-foreground">
-                      Please select a company first
-                    </p>
-                  )}
-                </div>
+                    {!formData.companyName &&
+                      !fieldErrors.roleName &&
+                      !fieldErrors.role_id && (
+                        <p className="text-xs text-muted-foreground">
+                          Please select a company first
+                        </p>
+                      )}
+                  </div>
                 </div>
               </form>
             )}
 
-            {/* Step 2: Your Experience (Combined Details + Experience) */}
+            {/* Step 2: Work Setup (quick basics) */}
             {step === 2 && (
               <form>
                 <div className="flex flex-col gap-6">
                   {/* Basic Details */}
                   <div className="grid gap-2">
-                    <Label htmlFor="location">Location <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="location">
+                      Location <span className="text-red-500">*</span>
+                    </Label>
                     <LocationAutocomplete
                       value={formData.location}
                       onChange={(value) =>
@@ -520,7 +591,9 @@ function WriteReviewContent() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="term">Term <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="term">
+                      Term <span className="text-red-500">*</span>
+                    </Label>
                     <TermSelect
                       value={formData.term}
                       onChange={(value) =>
@@ -531,7 +604,9 @@ function WriteReviewContent() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label>Work Style <span className="text-red-500">*</span></Label>
+                    <Label>
+                      Work Style <span className="text-red-500">*</span>
+                    </Label>
                     <RadioGroup
                       value={formData.work_style}
                       onValueChange={(value) =>
@@ -543,14 +618,22 @@ function WriteReviewContent() {
                       className="flex gap-6"
                       required
                     >
-                    {(["onsite", "hybrid", "remote"] as const).map((style) => (
-                        <div key={style} className="flex items-center space-x-2">
-                          <RadioGroupItem value={style} id={style} />
-                          <Label htmlFor={style} className="cursor-pointer capitalize">
-                            {style}
-                          </Label>
-                        </div>
-                      ))}
+                      {(["onsite", "hybrid", "remote"] as const).map(
+                        (style) => (
+                          <div
+                            key={style}
+                            className="flex items-center space-x-2"
+                          >
+                            <RadioGroupItem value={style} id={style} />
+                            <Label
+                              htmlFor={style}
+                              className="cursor-pointer capitalize"
+                            >
+                              {style}
+                            </Label>
+                          </div>
+                        )
+                      )}
                     </RadioGroup>
                   </div>
 
@@ -563,10 +646,12 @@ function WriteReviewContent() {
                       max="24"
                       placeholder="4, 8..."
                       value={formData.duration_months}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                          duration_months: e.target.value ? parseInt(e.target.value) : "",
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          duration_months: e.target.value
+                            ? parseInt(e.target.value)
+                            : "",
                         })
                       }
                     />
@@ -582,143 +667,19 @@ function WriteReviewContent() {
                         setFormData({ ...formData, team_name: e.target.value })
                       }
                     />
-                </div>
-
-                  {/* Experience Section */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="best">Best Part <span className="text-red-500">*</span></Label>
-                  <textarea
-                    id="best"
-                      placeholder="What were the highlights of your internship? What did you enjoy most? (e.g., great mentorship, interesting projects, collaborative team culture, learning opportunities...)"
-                    value={formData.best}
-                    onChange={(e) =>
-                      setFormData({ ...formData, best: e.target.value })
-                    }
-                    rows={3}
-                    maxLength={1000}
-                      className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                      )}
-                      required
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.best.length}/1000
-                  </p>
-                </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="hardest">Hardest Part <span className="text-red-500">*</span></Label>
-                  <textarea
-                    id="hardest"
-                      placeholder="What were the biggest challenges you faced? (e.g., steep learning curve, tight deadlines, complex codebases, communication barriers...)"
-                    value={formData.hardest}
-                    onChange={(e) =>
-                      setFormData({ ...formData, hardest: e.target.value })
-                    }
-                    rows={3}
-                    maxLength={1000}
-                      className={cn(
-                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                      )}
-                      required
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.hardest.length}/1000
-                  </p>
-                </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="technologies">Technologies & Skills Used</Label>
-                    <TechnologyAutocomplete
-                      value={formData.technologies}
-                      onChange={(value) =>
-                        setFormData({ ...formData, technologies: value })
-                    }
-                      placeholder="Type to search technologies..."
-                    />
-                </div>
+                  </div>
                 </div>
               </form>
             )}
 
-            {/* Step 3: Interview */}
+            {/* Step 3: Compensation */}
             {step === 3 && (
               <form>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="interview_round_count">Number of Interview Rounds <span className="text-red-500">*</span></Label>
-                  <Input
-                    id="interview_round_count"
-                    type="number"
-                      placeholder="2, 3, 4..."
-                    value={formData.interview_round_count}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        interview_round_count: e.target.value,
-                      })
-                    }
-                    min="0"
-                    max="20"
-                      required
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="interview_rounds_description">
-                    Interview Rounds Description <span className="text-red-500">*</span>
-                  </Label>
-                  <textarea
-                    id="interview_rounds_description"
-                    placeholder="Example: Round 1: 30-min phone screen with recruiter discussing background and resume grill. Round 2: 1-hour technical coding challenge on CodeSignal. I was asked to implement a function to find the longest common subsequence of two strings (Leetcode 1143). Round 3: 1-hour System Design interview with a senior engineer discussing the architecture of Netflix."
-                    value={formData.interview_rounds_description}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        interview_rounds_description: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    maxLength={1000}
-                    className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                    )}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.interview_rounds_description.length}/1000
-                  </p>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="interview_tips">Interview Tips</Label>
-                  <textarea
-                    id="interview_tips"
-                    placeholder="Share your tips and advice for candidates preparing for this interview. What should they study? What topics are commonly asked? How should they prepare? Any specific resources or strategies that helped you?"
-                    value={formData.interview_tips}
-                    onChange={(e) =>
-                      setFormData({ ...formData, interview_tips: e.target.value })
-                    }
-                    rows={4}
-                    maxLength={1000}
-                    className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                    )}
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.interview_tips.length}/1000
-                  </p>
-                </div>
-                </div>
-              </form>
-            )}
-
-            {/* Step 4: Compensation */}
-            {step === 4 && (
-              <form>
-                <div className="flex flex-col gap-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="wage_currency">Currency <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="wage_currency">
+                      Currency <span className="text-red-500">*</span>
+                    </Label>
                     <CustomSelect
                       id="wage_currency"
                       value={formData.wage_currency}
@@ -755,7 +716,10 @@ function WriteReviewContent() {
                       placeholder="e.g., 25.00"
                       value={formData.wage_hourly}
                       onChange={(e) =>
-                        setFormData({ ...formData, wage_hourly: e.target.value })
+                        setFormData({
+                          ...formData,
+                          wage_hourly: e.target.value,
+                        })
                       }
                       required
                     />
@@ -769,25 +733,32 @@ function WriteReviewContent() {
                         setFormData({
                           ...formData,
                           housing_stipend_provided: value === "yes",
-                          housing_stipend: value === "no" ? "" : formData.housing_stipend,
+                          housing_stipend:
+                            value === "no" ? "" : formData.housing_stipend,
                         })
                       }
                       className="flex gap-4"
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="yes" id="housing_yes" />
-                        <Label htmlFor="housing_yes" className="cursor-pointer">Yes</Label>
+                        <Label htmlFor="housing_yes" className="cursor-pointer">
+                          Yes
+                        </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="no" id="housing_no" />
-                        <Label htmlFor="housing_no" className="cursor-pointer">No</Label>
+                        <Label htmlFor="housing_no" className="cursor-pointer">
+                          No
+                        </Label>
                       </div>
                     </RadioGroup>
                   </div>
 
                   {formData.housing_stipend_provided && (
                     <div className="grid gap-2">
-                      <Label htmlFor="housing_stipend">Monthly Housing Stipend Amount</Label>
+                      <Label htmlFor="housing_stipend">
+                        Monthly Housing Stipend Amount
+                      </Label>
                       <Input
                         id="housing_stipend"
                         type="number"
@@ -796,31 +767,153 @@ function WriteReviewContent() {
                         placeholder="e.g., 2000.00"
                         value={formData.housing_stipend}
                         onChange={(e) =>
-                          setFormData({ ...formData, housing_stipend: e.target.value })
+                          setFormData({
+                            ...formData,
+                            housing_stipend: e.target.value,
+                          })
                         }
                       />
                     </div>
                   )}
 
-                <div className="grid gap-2">
-                  <Label htmlFor="perks">Other Perks</Label>
-                  <textarea
-                    id="perks"
-                    placeholder="List any additional perks or benefits you received (e.g., free lunch, gym membership, relocation bonus, transportation allowance, learning budget, team events...)"
-                    value={formData.perks}
-                    onChange={(e) =>
-                      setFormData({ ...formData, perks: e.target.value })
-                    }
-                    rows={3}
-                    maxLength={500}
-                    className={cn(
-                      "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
-                    )}
-                  />
-                  <p className="text-xs text-muted-foreground text-right">
-                    {formData.perks.length}/500
-                  </p>
+                  <div className="grid gap-2">
+                    <Label htmlFor="perks">Other Perks</Label>
+                    <textarea
+                      id="perks"
+                      placeholder="List any additional perks or benefits you received (e.g., free lunch, gym membership, relocation bonus, transportation allowance, learning budget, team events...)"
+                      value={formData.perks}
+                      onChange={(e) =>
+                        setFormData({ ...formData, perks: e.target.value })
+                      }
+                      rows={3}
+                      maxLength={500}
+                      className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      )}
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      {formData.perks.length}/500
+                    </p>
+                  </div>
                 </div>
+              </form>
+            )}
+
+            {/* Step 4: Your Experience (text last) + Interview */}
+            {step === 4 && (
+              <form>
+                <div className="flex flex-col gap-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="overall_experience">
+                      Overall experience (good + bad){" "}
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <textarea
+                      id="overall_experience"
+                      placeholder="Example: Great mentorship and meaningful work, but long hours near deadlines and a steep learning curve. I learned a ton and would still recommend it."
+                      value={formData.overall_experience}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          overall_experience: e.target.value,
+                        })
+                      }
+                      rows={4}
+                      maxLength={1000}
+                      className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      )}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      {formData.overall_experience.length}/1000
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="technologies">
+                      Technologies & Skills Used
+                    </Label>
+                    <TechnologyAutocomplete
+                      value={formData.technologies}
+                      onChange={(value) =>
+                        setFormData({ ...formData, technologies: value })
+                      }
+                      placeholder="Type to search technologies..."
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="interview_round_count">
+                      Number of Interview Rounds{" "}
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="interview_round_count"
+                      type="number"
+                      placeholder="2, 3, 4..."
+                      value={formData.interview_round_count}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          interview_round_count: e.target.value,
+                        })
+                      }
+                      min="0"
+                      max="20"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="interview_rounds_description">
+                      Interview Rounds Description{" "}
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <textarea
+                      id="interview_rounds_description"
+                      placeholder="Example: Round 1: 30-min phone screen with recruiter discussing background and resume grill. Round 2: 1-hour technical coding challenge on CodeSignal. I was asked to implement a function to find the longest common subsequence of two strings (Leetcode 1143). Round 3: 1-hour System Design interview with a senior engineer discussing the architecture of Netflix."
+                      value={formData.interview_rounds_description}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          interview_rounds_description: e.target.value,
+                        })
+                      }
+                      rows={4}
+                      maxLength={1000}
+                      className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      )}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      {formData.interview_rounds_description.length}/1000
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="interview_tips">Interview Tips</Label>
+                    <textarea
+                      id="interview_tips"
+                      placeholder="Share your tips and advice for candidates preparing for this interview. What should they study? What topics are commonly asked? How should they prepare? Any specific resources or strategies that helped you?"
+                      value={formData.interview_tips}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          interview_tips: e.target.value,
+                        })
+                      }
+                      rows={4}
+                      maxLength={1000}
+                      className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-zinc-700 bg-transparent px-3 py-2 text-base transition-colors placeholder:text-muted-foreground hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none"
+                      )}
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      {formData.interview_tips.length}/1000
+                    </p>
+                  </div>
                 </div>
               </form>
             )}
@@ -831,7 +924,9 @@ function WriteReviewContent() {
                 <p className="text-sm text-destructive font-semibold mb-1">
                   {submissionError ? "Error submitting review" : "Error"}
                 </p>
-                <p className="text-sm text-destructive">{error || submissionError}</p>
+                <p className="text-sm text-destructive">
+                  {error || submissionError}
+                </p>
               </div>
             )}
           </CardContent>
@@ -864,10 +959,13 @@ function WriteReviewContent() {
                   disabled={submitting || !canProceedFromStep4}
                   className="w-auto"
                 >
-                  {submitting 
-                    ? (isEditMode ? "Saving..." : "Submitting...") 
-                    : (isEditMode ? "Save Changes" : "Submit Review")
-                  }
+                  {submitting
+                    ? isEditMode
+                      ? "Saving..."
+                      : "Submitting..."
+                    : isEditMode
+                    ? "Save Changes"
+                    : "Submit Review"}
                 </Button>
               )}
             </div>
