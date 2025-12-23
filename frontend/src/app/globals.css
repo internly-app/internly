@@ -279,6 +279,19 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Prevent layout shift when overlays/menus temporarily lock scrolling (common with Radix).
+   Keeps the scrollbar gutter reserved so the navbar doesn't jump when the body scrollbar is hidden. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Fallback for browsers that don't support scrollbar-gutter */
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+
 /* Responsive base font - consistent across devices */
 @media screen and (max-width: 1440px) {
   html {
