@@ -49,5 +49,5 @@ Internly helps students make better internship decisions by learning from real e
 ---
 
 <div align="center">
-  <p>Made with ❤️ by students, for students</p>
+  <p>Made by students, for students</p>
 </div>
