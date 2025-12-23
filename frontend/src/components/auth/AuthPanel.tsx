@@ -48,10 +48,9 @@ export function AuthPanel({
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo:
-            typeof window !== "undefined"
-              ? `${window.location.origin}/auth/callback`
-              : undefined,
+          redirectTo: `${(
+            process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+          ).replace(/\/+$/, "")}/auth/callback`,
         },
       });
 

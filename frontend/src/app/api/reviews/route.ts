@@ -51,8 +51,11 @@ export async function POST(request: NextRequest) {
         {
           status: 429,
           headers: {
-            "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
-            "X-RateLimit-Limit": RATE_LIMITS.CREATE_REVIEW.maxRequests.toString(),
+            "Retry-After": Math.ceil(
+              (rateLimit.resetTime - Date.now()) / 1000
+            ).toString(),
+            "X-RateLimit-Limit":
+              RATE_LIMITS.CREATE_REVIEW.maxRequests.toString(),
             "X-RateLimit-Remaining": rateLimit.remaining.toString(),
             "X-RateLimit-Reset": rateLimit.resetTime.toString(),
           },
@@ -64,19 +67,35 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = reviewCreateSchema.parse(body);
 
+    // Canonicalize written fields:
+    // - New client sends overall_experience (preferred)
+    // - Old clients may send best/hardest
+    const overallExperience =
+      validatedData.overall_experience ??
+      validatedData.best ??
+      validatedData.hardest ??
+      "";
+
     // Sanitize all text fields to prevent XSS attacks
     const sanitizedData = {
       ...validatedData,
       location: stripHTML(validatedData.location),
       term: stripHTML(validatedData.term),
-      team_name: validatedData.team_name ? stripHTML(validatedData.team_name) : null,
-      technologies: validatedData.technologies ? stripHTML(validatedData.technologies) : null,
-      hardest: stripHTML(validatedData.hardest),
-      best: stripHTML(validatedData.best),
+      team_name: validatedData.team_name
+        ? stripHTML(validatedData.team_name)
+        : null,
+      technologies: validatedData.technologies
+        ? stripHTML(validatedData.technologies)
+        : null,
+      overall_experience: stripHTML(overallExperience),
       advice: validatedData.advice ? stripHTML(validatedData.advice) : null,
       perks: validatedData.perks ? stripHTML(validatedData.perks) : null,
-      interview_rounds_description: stripHTML(validatedData.interview_rounds_description),
-      interview_tips: validatedData.interview_tips ? stripHTML(validatedData.interview_tips) : null,
+      interview_rounds_description: stripHTML(
+        validatedData.interview_rounds_description
+      ),
+      interview_tips: validatedData.interview_tips
+        ? stripHTML(validatedData.interview_tips)
+        : null,
     };
 
     // Insert review
@@ -146,7 +165,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const { createServiceRoleClient, createClient } = await import("@/lib/supabase/server");
+    const { createServiceRoleClient, createClient } = await import(
+      "@/lib/supabase/server"
+    );
     let supabaseAdmin;
     try {
       supabaseAdmin = createServiceRoleClient();
@@ -227,7 +248,7 @@ export async function GET(request: NextRequest) {
         .in("review_id", reviewIds);
 
       if (likesError) {
-        console.error('[API] Error fetching user likes:', likesError);
+        console.error("[API] Error fetching user likes:", likesError);
       }
 
       const likedReviewIds = new Set(userLikes?.map((l) => l.review_id) || []);
@@ -246,19 +267,22 @@ export async function GET(request: NextRequest) {
 
     // Smart caching based on authentication
     const cacheControl = user
-      ? 'private, max-age=60, stale-while-revalidate=120' // Authenticated: slightly longer to reduce refetch flicker
-      : 'public, s-maxage=300, stale-while-revalidate=600'; // Anonymous: 5 min cache
+      ? "private, max-age=60, stale-while-revalidate=120" // Authenticated: slightly longer to reduce refetch flicker
+      : "public, s-maxage=300, stale-while-revalidate=600"; // Anonymous: 5 min cache
 
-    return NextResponse.json({
-      reviews: reviewsWithLikeStatus,
-      total: count || 0,
-      limit: query.limit,
-      offset: query.offset,
-    }, {
-      headers: {
-        'Cache-Control': cacheControl,
+    return NextResponse.json(
+      {
+        reviews: reviewsWithLikeStatus,
+        total: count || 0,
+        limit: query.limit,
+        offset: query.offset,
       },
-    });
+      {
+        headers: {
+          "Cache-Control": cacheControl,
+        },
+      }
+    );
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(

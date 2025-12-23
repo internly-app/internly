@@ -21,10 +21,9 @@ export const companyCreateSchema = z.object({
     .min(1, "Company name is required")
     .max(200)
     .transform((val) => sanitizeText(val))
-    .refine(
-      (val) => validateCompanyName(val).isValid,
-      { message: "Invalid company name" }
-    ),
+    .refine((val) => validateCompanyName(val).isValid, {
+      message: "Invalid company name",
+    }),
   slug: z
     .string()
     .min(1)
@@ -41,10 +40,9 @@ export const roleCreateSchema = z.object({
     .min(1, "Role title is required")
     .max(200)
     .transform((val) => sanitizeText(val))
-    .refine(
-      (val) => validateRoleName(val).isValid,
-      { message: "Invalid role name" }
-    ),
+    .refine((val) => validateRoleName(val).isValid, {
+      message: "Invalid role name",
+    }),
   slug: z
     .string()
     .min(1)
@@ -87,10 +85,26 @@ export const reviewCreateSchema = z.object({
     .transform((val) => (val ? sanitizeText(val) : val)),
 
   // Written content (no minimum length required)
+  overall_experience: z
+    .string()
+    .max(600)
+    .optional()
+    .transform((val) => (val ? sanitizeText(val) : val))
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const validation = validateReviewContent(val, "Overall experience");
+        return validation.isValid;
+      },
+      { message: "Overall experience contains inappropriate content" }
+    ),
+  // Backwards-compatible fields (optional): older clients may still send these.
+  // If they are provided, they must still pass validation.
   hardest: z
     .string()
-    .max(1000)
-    .transform((val) => sanitizeText(val))
+    .max(600)
+    .optional()
+    .transform((val) => (val ? sanitizeText(val) : val))
     .refine(
       (val) => {
         if (!val) return true;
@@ -101,8 +115,9 @@ export const reviewCreateSchema = z.object({
     ),
   best: z
     .string()
-    .max(1000)
-    .transform((val) => sanitizeText(val))
+    .max(600)
+    .optional()
+    .transform((val) => (val ? sanitizeText(val) : val))
     .refine(
       (val) => {
         if (!val) return true;
@@ -113,9 +128,9 @@ export const reviewCreateSchema = z.object({
     ),
   advice: z
     .string()
-    .max(1000)
+    .max(600)
     .optional()
-    .transform((val) => val ? sanitizeText(val) : undefined)
+    .transform((val) => (val ? sanitizeText(val) : undefined))
     .refine(
       (val) => {
         if (!val) return true;
@@ -136,7 +151,7 @@ export const reviewCreateSchema = z.object({
   interview_round_count: z.number().int().min(0).max(20),
   interview_rounds_description: z
     .string()
-    .max(1000)
+    .max(600)
     .transform((val) => sanitizeText(val))
     .refine(
       (val) => {
@@ -148,7 +163,7 @@ export const reviewCreateSchema = z.object({
     ),
   interview_tips: z
     .string()
-    .max(1000)
+    .max(400)
     .transform((val) => sanitizeText(val))
     .refine(
       (val) => {
