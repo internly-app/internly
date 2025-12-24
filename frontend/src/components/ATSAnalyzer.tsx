@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,6 +42,29 @@ type AnalysisState =
   | { status: "success"; data: ATSAnalysisResponse }
   | { status: "error"; message: string };
 
+function usePrefersReducedMotion(): boolean {
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(mediaQuery.matches);
+    update();
+
+    // Safari <14 uses addListener/removeListener
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", update);
+      return () => mediaQuery.removeEventListener("change", update);
+    }
+
+    mediaQuery.addListener(update);
+    return () => mediaQuery.removeListener(update);
+  }, []);
+
+  return reducedMotion;
+}
+
 // ---------------------------------------------------------------------------
 // Score display helpers
 // ---------------------------------------------------------------------------
@@ -80,10 +103,101 @@ export default function ATSAnalyzer() {
   const [analysisState, setAnalysisState] = useState<AnalysisState>({
     status: "idle",
   });
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["skills", "responsibilities"])
   );
+  const [loadingStageIndex, setLoadingStageIndex] = useState(0);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [resultAnimState, setResultAnimState] = useState<
+    "idle" | "enter" | "settled"
+  >("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadingStages = [
+    "Reading resume content",
+    "Understanding job requirements",
+    "Comparing experience and skills",
+    "Evaluating alignment",
+    "Finalizing results",
+  ];
+
+  useEffect(() => {
+    if (analysisState.status !== "loading") {
+      setLoadingStageIndex(0);
+      setLoadingProgress(0);
+      return;
+    }
+
+    // Stage timings are intentionally "loose" — they should feel real-time
+    // without implying exact internal steps.
+    const stageDurationsMs = [900, 1100, 1400, 1200, 1000];
+    let stage = 0;
+    let cancelled = false;
+
+    setLoadingStageIndex(0);
+    setLoadingProgress(prefersReducedMotion ? 1 : 2);
+
+    const progressCap = 94; // Don't reach 100% until we actually complete.
+    const tickMs = 80;
+
+    const interval = window.setInterval(() => {
+      if (cancelled) return;
+
+      setLoadingProgress((p) => {
+        if (prefersReducedMotion) return Math.min(100, p);
+
+        // Map each stage to a target range of the progress bar.
+        const stageEndPct = ((stage + 1) / loadingStages.length) * 100;
+        const target = Math.min(progressCap, stageEndPct - 1);
+
+        // Ease towards the target; smaller deltas as we approach the cap.
+        const remaining = target - p;
+        const delta = Math.max(0.25, Math.min(2.0, remaining / 12));
+        return Math.min(target, p + delta);
+      });
+    }, tickMs);
+
+    const timeouts: number[] = [];
+    let elapsed = 0;
+    for (let i = 0; i < stageDurationsMs.length; i++) {
+      elapsed += stageDurationsMs[i];
+      const t = window.setTimeout(() => {
+        if (cancelled) return;
+        stage = Math.min(i + 1, loadingStages.length - 1);
+        setLoadingStageIndex(stage);
+      }, elapsed);
+      timeouts.push(t);
+    }
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      for (const t of timeouts) window.clearTimeout(t);
+    };
+  }, [analysisState.status, prefersReducedMotion, loadingStages.length]);
+
+  useEffect(() => {
+    if (analysisState.status === "success") {
+      setLoadingProgress(100);
+    }
+  }, [analysisState.status]);
+
+  useEffect(() => {
+    if (analysisState.status === "success") {
+      if (prefersReducedMotion) {
+        setResultAnimState("settled");
+        return;
+      }
+
+      // First frame: set to enter; next tick: settle to trigger CSS transitions.
+      setResultAnimState("enter");
+      const t = window.setTimeout(() => setResultAnimState("settled"), 20);
+      return () => window.clearTimeout(t);
+    }
+
+    setResultAnimState("idle");
+  }, [analysisState.status, prefersReducedMotion]);
 
   const toggleSection = useCallback((section: string) => {
     setExpandedSections((prev) => {
@@ -228,6 +342,18 @@ export default function ATSAnalyzer() {
 
   const isLoading = analysisState.status === "loading";
 
+  const scoreStroke =
+    analysisState.status === "success"
+      ? analysisState.data.score.overallScore * 2.64
+      : 0;
+
+  const ringStrokeDasharray =
+    prefersReducedMotion || resultAnimState === "settled"
+      ? `${scoreStroke} 264`
+      : `0 264`;
+
+  const showFilledBars = prefersReducedMotion || resultAnimState === "settled";
+
   return (
     <div className="space-y-6">
       {/* Input Section */}
@@ -303,7 +429,7 @@ export default function ATSAnalyzer() {
           </CardHeader>
           <CardContent>
             <Textarea
-              placeholder="Paste the relevant parts of thejob description here..."
+              placeholder="Paste the relevant parts of the job description here..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               className="min-h-[140px] resize-none"
@@ -371,8 +497,32 @@ export default function ATSAnalyzer() {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Loader2 className="size-5 animate-spin text-primary" />
-                <span className="text-sm">{analysisState.step}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm">
+                    {loadingStages[loadingStageIndex]}…
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    This usually takes under a minute.
+                  </span>
+                </div>
               </div>
+
+              {/* Progress bar: smooth, subtle, non-blocking */}
+              <div className="space-y-1">
+                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary/80 transition-[width] duration-300 ease-out"
+                    style={{
+                      width: `${Math.max(2, Math.min(100, loadingProgress))}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-[11px] text-muted-foreground">
+                  <span>Working…</span>
+                  <span>{Math.round(loadingProgress)}%</span>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
@@ -385,9 +535,27 @@ export default function ATSAnalyzer() {
 
       {/* Results */}
       {analysisState.status === "success" && (
-        <div className="space-y-6">
+        <div
+          className={
+            prefersReducedMotion
+              ? "space-y-6"
+              : `space-y-6 transition-opacity duration-200 ease-out ${
+                  resultAnimState === "enter" ? "opacity-0" : "opacity-100"
+                }`
+          }
+        >
           {/* Score Overview */}
-          <Card>
+          <Card
+            className={
+              prefersReducedMotion
+                ? undefined
+                : `transition-all duration-200 ease-out ${
+                    resultAnimState === "enter"
+                      ? "opacity-0 translate-y-1"
+                      : "opacity-100 translate-y-0"
+                  }`
+            }
+          >
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 {/* Score Circle */}
@@ -404,7 +572,7 @@ export default function ATSAnalyzer() {
                     <circle
                       className={`${getScoreColor(
                         analysisState.data.score.overallScore
-                      )} transition-all duration-500`}
+                      )} transition-[stroke-dasharray] duration-700 ease-out`}
                       strokeWidth="8"
                       strokeLinecap="round"
                       fill="none"
@@ -412,13 +580,21 @@ export default function ATSAnalyzer() {
                       cy="50"
                       r="42"
                       style={{
-                        strokeDasharray: `${
-                          analysisState.data.score.overallScore * 2.64
-                        } 264`,
+                        strokeDasharray: ringStrokeDasharray,
                       }}
                     />
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div
+                    className={
+                      prefersReducedMotion
+                        ? "absolute inset-0 flex flex-col items-center justify-center"
+                        : `absolute inset-0 flex flex-col items-center justify-center transition-transform duration-200 ease-out ${
+                            resultAnimState === "enter"
+                              ? "scale-[0.98]"
+                              : "scale-100"
+                          }`
+                    }
+                  >
                     <span className="text-3xl font-bold">
                       {analysisState.data.score.overallScore}
                     </span>
@@ -449,8 +625,12 @@ export default function ATSAnalyzer() {
                           <div
                             className={`h-full ${getScoreColor(
                               category.percentage
-                            )} transition-all duration-500`}
-                            style={{ width: `${category.percentage}%` }}
+                            )} transition-[width] duration-700 ease-out`}
+                            style={{
+                              width: showFilledBars
+                                ? `${category.percentage}%`
+                                : "0%",
+                            }}
                           />
                         </div>
                       </div>
@@ -467,7 +647,17 @@ export default function ATSAnalyzer() {
           </Card>
 
           {/* Skills Section */}
-          <Card>
+          <Card
+            className={
+              prefersReducedMotion
+                ? undefined
+                : `transition-all duration-200 ease-out delay-[40ms] ${
+                    resultAnimState === "enter"
+                      ? "opacity-0 translate-y-1"
+                      : "opacity-100 translate-y-0"
+                  }`
+            }
+          >
             <CardHeader
               className="cursor-pointer"
               onClick={() => toggleSection("skills")}
@@ -622,7 +812,17 @@ export default function ATSAnalyzer() {
           </Card>
 
           {/* Responsibilities Section */}
-          <Card>
+          <Card
+            className={
+              prefersReducedMotion
+                ? undefined
+                : `transition-all duration-200 ease-out delay-[80ms] ${
+                    resultAnimState === "enter"
+                      ? "opacity-0 translate-y-1"
+                      : "opacity-100 translate-y-0"
+                  }`
+            }
+          >
             <CardHeader
               className="cursor-pointer"
               onClick={() => toggleSection("responsibilities")}
@@ -726,7 +926,17 @@ export default function ATSAnalyzer() {
 
           {/* Deductions Section */}
           {analysisState.data.score.allDeductions.length > 0 && (
-            <Card>
+            <Card
+              className={
+                prefersReducedMotion
+                  ? undefined
+                  : `transition-all duration-200 ease-out delay-[120ms] ${
+                      resultAnimState === "enter"
+                        ? "opacity-0 translate-y-1"
+                        : "opacity-100 translate-y-0"
+                    }`
+              }
+            >
               <CardHeader
                 className="cursor-pointer"
                 onClick={() => toggleSection("deductions")}

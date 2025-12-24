@@ -189,6 +189,218 @@ function uniqueByNormalized(items: string[]): string[] {
   return out;
 }
 
+function isGenericCategorySkill(skill: string): boolean {
+  const s = normalizeSkillName(skill);
+  // Phrases that are categories rather than actual skills.
+  const genericPhrases: RegExp[] = [
+    /^programming\s+language(s)?$/i,
+    /^one\s+or\s+more\s+languages$/i,
+    /^one\s+or\s+more\s+programming\s+languages$/i,
+    /^a\s+programming\s+language$/i,
+    /^any\s+programming\s+language$/i,
+    /^software\s+development\s+experience$/i,
+  ];
+  return genericPhrases.some((re) => re.test(s));
+}
+
+/**
+ * Strip generic category phrases that should never be treated as literal skills.
+ *
+ * Example problem: JD text like "Experience in at least one programming language
+ * like Python, Java, or JavaScript" can lead the model to output
+ * requiredSkills: ["programming language", "Python", ...].
+ *
+ * We remove "programming language" and keep concrete examples.
+ */
+function removeGenericCategorySkills(
+  parsed: ParsedJobDescription
+): ParsedJobDescription {
+  return {
+    ...parsed,
+    requiredSkills: uniqueByNormalized(
+      parsed.requiredSkills.filter((s) => !isGenericCategorySkill(s))
+    ),
+    preferredSkills: uniqueByNormalized(
+      parsed.preferredSkills.filter((s) => !isGenericCategorySkill(s))
+    ),
+  };
+}
+
+/**
+ * If a skill appears in a "like/such as" list, treat it as preferred unless
+ * the JD explicitly marks the specific skill as required.
+ */
+function applyExampleListHeuristics(
+  rawJdText: string,
+  parsed: ParsedJobDescription
+): ParsedJobDescription {
+  const required = [...parsed.requiredSkills];
+  const preferred = [...parsed.preferredSkills];
+
+  // Keep in required only if the JD explicitly marks that exact skill as required.
+  const explicitRequirementRe = (skill: string) => {
+    const s = skill
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+");
+    return new RegExp(
+      `(?:must|required|mandatory|need|have to)\\s+(?:have\\s+)?(?:experience\\s+with\\s+)?${s}\\b`,
+      "i"
+    );
+  };
+
+  function appearsInExampleList(skill: string): boolean {
+    const escaped = skill
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+");
+
+    const patterns: RegExp[] = [
+      // "... like Python, Java, or JavaScript"
+      new RegExp(`\\b(?:like|such as)\\b[^\n]{0,120}\\b${escaped}\\b`, "i"),
+      // "... a language such as Python"
+      new RegExp(
+        `\\b(?:a|one)\\s+language\\s+such\\s+as\\b[^\n]{0,120}\\b${escaped}\\b`,
+        "i"
+      ),
+    ];
+    return patterns.some((re) => re.test(rawJdText));
+  }
+
+  const newRequired: string[] = [];
+  for (const skill of required) {
+    if (explicitRequirementRe(skill).test(rawJdText)) {
+      newRequired.push(skill);
+      continue;
+    }
+
+    if (appearsInExampleList(skill)) {
+      preferred.push(skill);
+      continue;
+    }
+
+    newRequired.push(skill);
+  }
+
+  return {
+    ...parsed,
+    requiredSkills: uniqueByNormalized(newRequired),
+    preferredSkills: uniqueByNormalized(preferred),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Interchangeable skill groups (deterministic)
+// ---------------------------------------------------------------------------
+
+/**
+ * Some JDs phrase requirements as "at least one of X/Y/Z".
+ *
+ * We treat these as interchangeable: candidates shouldn't be penalized for
+ * missing any one specific option if they have another.
+ *
+ * Implementation approach (deterministic):
+ * - Keep the concrete example skills (X/Y/Z)
+ * - Remove the generic phrase "programming language" (handled elsewhere)
+ * - Add a synthetic required skill token representing the group, and move
+ *   the individual examples to preferred so they don't become hard requirements.
+ */
+function applyAtLeastOneOfHeuristics(
+  rawJdText: string,
+  parsed: ParsedJobDescription
+): ParsedJobDescription {
+  const jdText = rawJdText;
+
+  // Matches: "at least one ... like Python, Java, or JavaScript"
+  // Capture the list tail after like/such as.
+  const re =
+    /at\s+least\s+one\s+(?:programming\s+language|language)s?\b[^\n]{0,80}\b(?:like|such as)\b([^\n]{0,180})/gi;
+
+  const groups: string[][] = [];
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(jdText))) {
+    const tail = match[1] ?? "";
+    // Split on commas / "or" / slashes.
+    const parts = tail
+      .split(/,|\bor\b|\//i)
+      .map((p) => p.replace(/[()]/g, " ").trim())
+      .filter(Boolean);
+
+    // Only keep items that look like concrete skills (and are not generic).
+    const skills = parts.filter((p) => !isGenericCategorySkill(p));
+    if (skills.length >= 2) groups.push(skills);
+  }
+
+  if (groups.length === 0) return parsed;
+
+  const preferred = [...parsed.preferredSkills];
+  const required = [...parsed.requiredSkills];
+
+  // Flatten and normalize for comparisons.
+  const requiredNorm = new Set(required.map(normalizeSkillName));
+  const preferredNorm = new Set(preferred.map(normalizeSkillName));
+
+  const syntheticRequired: string[] = [];
+
+  for (const group of groups) {
+    const normalizedGroup = uniqueByNormalized(group);
+
+    // If any group member is explicitly required (must/required/etc), skip grouping.
+    const anyExplicitRequired = normalizedGroup.some((skill) => {
+      const s = skill
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/\s+/g, "\\s+");
+      const sr = new RegExp(
+        `(?:must|required|mandatory|need|have to)\\s+(?:have\\s+)?(?:experience\\s+with\\s+)?${s}\\b`,
+        "i"
+      );
+      return sr.test(jdText);
+    });
+    if (anyExplicitRequired) continue;
+
+    // Remove group members from required to avoid "missing one option" penalties.
+    for (const skill of normalizedGroup) {
+      const key = normalizeSkillName(skill);
+      if (requiredNorm.has(key)) {
+        requiredNorm.delete(key);
+      }
+      if (!preferredNorm.has(key)) {
+        preferredNorm.add(key);
+        preferred.push(skill);
+      }
+    }
+
+    // Add a synthetic group token which we can score as a single requirement.
+    syntheticRequired.push(`At least one of: ${normalizedGroup.join(", ")}`);
+  }
+
+  const newRequired = required.filter((s) =>
+    requiredNorm.has(normalizeSkillName(s))
+  );
+  newRequired.push(...syntheticRequired);
+
+  return {
+    ...parsed,
+    requiredSkills: uniqueByNormalized(newRequired),
+    preferredSkills: uniqueByNormalized(preferred),
+  };
+}
+
+/**
+ * Deterministic post-processing for a ParsedJobDescription, separate from
+ * the OpenAI call. Exported to make unit testing possible.
+ */
+export function postProcessParsedJobDescription(
+  rawJdText: string,
+  parsed: ParsedJobDescription
+): ParsedJobDescription {
+  const cleaned = removeGenericCategorySkills(parsed);
+  const withExamples = applyExampleListHeuristics(rawJdText, cleaned);
+  const withAtLeastOne = applyAtLeastOneOfHeuristics(rawJdText, withExamples);
+  return applySkillRequirementHeuristics(rawJdText, withAtLeastOne);
+}
+
 /**
  * Downgrade skills that are likely NOT required based on the exact JD text.
  *
@@ -338,5 +550,5 @@ export async function parseJobDescription(
     );
   }
 
-  return applySkillRequirementHeuristics(trimmed, result.data);
+  return postProcessParsedJobDescription(trimmed, result.data);
 }

@@ -31,6 +31,8 @@ export const CATEGORY_WEIGHTS = {
   education: 15,
 } as const;
 
+const MAX_SINGLE_REQUIRED_SKILL_DEDUCTION = 12;
+
 // Compile-time check that weights sum to 100
 const _weightSum: 100 = (CATEGORY_WEIGHTS.requiredSkills +
   CATEGORY_WEIGHTS.preferredSkills +
@@ -412,18 +414,45 @@ export function calculateATSScore(
   const requiredSkillsDeductions: ScoreDeduction[] = [];
   const { summary: skillSummary } = skillComparison;
 
+  // Special-case synthetic group tokens of the form:
+  // "At least one of: Python, Java, JavaScript"
+  const atLeastOneGroupPrefix = "at least one of:";
+
   let requiredSkillsPercentage = 100;
   if (skillSummary.totalRequired > 0) {
     requiredSkillsPercentage =
       (skillSummary.matchedRequired / skillSummary.totalRequired) * 100;
 
-    // Add deduction for each missing required skill
+    const perSkill =
+      CATEGORY_WEIGHTS.requiredSkills / Math.max(1, skillSummary.totalRequired);
+    const perSkillDeduction = Math.min(
+      MAX_SINGLE_REQUIRED_SKILL_DEDUCTION,
+      Math.max(1, Math.round(perSkill))
+    );
+
+    // Add deduction for each missing required skill (capped per item).
     for (const missingSkill of skillComparison.missing) {
+      const trimmed = missingSkill.trim();
+
+      // Handle interchangeable groups as a single, clearly explained deduction.
+      if (trimmed.toLowerCase().startsWith(atLeastOneGroupPrefix)) {
+        const options = trimmed
+          .slice(atLeastOneGroupPrefix.length)
+          .trim()
+          .replace(/\s+/g, " ");
+        const deduction: ScoreDeduction = {
+          reason: `Missing at least one of: ${options}`,
+          points: perSkillDeduction,
+          category: "requiredSkills",
+        };
+        requiredSkillsDeductions.push(deduction);
+        allDeductions.push(deduction);
+        continue;
+      }
+
       const deduction: ScoreDeduction = {
-        reason: `Missing required skill: ${missingSkill}`,
-        points: Math.round(
-          CATEGORY_WEIGHTS.requiredSkills / skillSummary.totalRequired
-        ),
+        reason: `Missing required skill: ${trimmed}`,
+        points: perSkillDeduction,
         category: "requiredSkills",
       };
       requiredSkillsDeductions.push(deduction);

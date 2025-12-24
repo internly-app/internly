@@ -10,6 +10,7 @@ function mockSkillComparison(missingRequired: string[]): SkillComparisonResult {
   return {
     matched: { required: [], preferred: [] },
     missing: missingRequired,
+    missingPreferred: [],
     extra: [],
     summary: {
       totalRequired: missingRequired.length,
@@ -17,6 +18,7 @@ function mockSkillComparison(missingRequired: string[]): SkillComparisonResult {
       matchedRequired: 0,
       matchedPreferred: 0,
       missingRequired: missingRequired.length,
+      missingPreferred: 0,
       extraSkills: 0,
     },
   };
@@ -31,6 +33,76 @@ function mockResponsibilityMatching(
     notCovered: [],
     ...args,
   };
+}
+
+// Required skills: deductions should be capped (no single missing skill nukes the category)
+{
+  const skillComparison: SkillComparisonResult = {
+    ...mockSkillComparison(["Kubernetes"]),
+    summary: {
+      totalRequired: 1,
+      totalPreferred: 0,
+      matchedRequired: 0,
+      matchedPreferred: 0,
+      missingRequired: 1,
+      missingPreferred: 0,
+      extraSkills: 0,
+    },
+  };
+
+  const responsibilityMatching = mockResponsibilityMatching({
+    coveredResponsibilities: [],
+    weaklyCovered: [],
+    notCovered: [],
+  });
+
+  const score = calculateATSScore({
+    skillComparison,
+    responsibilityMatching,
+    jobDescription: { educationRequirements: [] },
+    resume: { education: [] },
+  });
+
+  const requiredDeductions = score.allDeductions.filter(
+    (d) => d.category === "requiredSkills"
+  );
+  assert.equal(requiredDeductions.length, 1);
+  assert(requiredDeductions[0].points <= 12);
+}
+
+// Interchangeable group token should produce a clear group deduction
+{
+  const skillComparison: SkillComparisonResult = {
+    ...mockSkillComparison(["At least one of: Python, Java, JavaScript"]),
+    summary: {
+      totalRequired: 1,
+      totalPreferred: 0,
+      matchedRequired: 0,
+      matchedPreferred: 0,
+      missingRequired: 1,
+      missingPreferred: 0,
+      extraSkills: 0,
+    },
+  };
+
+  const responsibilityMatching = mockResponsibilityMatching({
+    coveredResponsibilities: [],
+    weaklyCovered: [],
+    notCovered: [],
+  });
+
+  const score = calculateATSScore({
+    skillComparison,
+    responsibilityMatching,
+    jobDescription: { educationRequirements: [] },
+    resume: { education: [] },
+  });
+
+  const groupDeduction = score.allDeductions.find((d) =>
+    d.reason.toLowerCase().startsWith("missing at least one of:")
+  );
+
+  assert(groupDeduction, "Expected a group deduction explanation");
 }
 
 function mockJD(
