@@ -199,8 +199,31 @@ function isGenericCategorySkill(skill: string): boolean {
     /^a\s+programming\s+language$/i,
     /^any\s+programming\s+language$/i,
     /^software\s+development\s+experience$/i,
+    /^strong\s+foundation\s+in\s+computer\s+science\s+fundamentals$/i,
+    /^computer\s+science\s+fundamentals$/i,
+    /^strong\s+foundation\s+in\s+cs\s+fundamentals$/i,
+    /^cs\s+fundamentals$/i,
   ];
   return genericPhrases.some((re) => re.test(s));
+}
+
+function isSoftCompetencyPhrase(skill: string): boolean {
+  const s = normalizeSkillName(skill);
+  // These are often written as requirements, but aren't ATS "skills" in the
+  // same way as concrete tools/languages. We keep them out of requiredSkills
+  // to avoid unfair penalties.
+  const patterns: RegExp[] = [
+    /\bstrong\s+foundation\b/i,
+    /\bsolid\s+foundation\b/i,
+    /\bfundamentals\b/i,
+    /\bcomputer\s+science\b.*\bfundamentals\b/i,
+    /\bdata\s+structures\s+and\s+algorithms\b/i,
+    /\bos\b.*\bconcepts\b/i,
+    /\boperating\s+systems\b/i,
+    /\bcomputer\s+networks\b/i,
+    /\bdistributed\s+systems\b/i,
+  ];
+  return patterns.some((re) => re.test(s));
 }
 
 /**
@@ -218,10 +241,14 @@ function removeGenericCategorySkills(
   return {
     ...parsed,
     requiredSkills: uniqueByNormalized(
-      parsed.requiredSkills.filter((s) => !isGenericCategorySkill(s))
+      parsed.requiredSkills.filter(
+        (s) => !isGenericCategorySkill(s) && !isSoftCompetencyPhrase(s)
+      )
     ),
     preferredSkills: uniqueByNormalized(
-      parsed.preferredSkills.filter((s) => !isGenericCategorySkill(s))
+      parsed.preferredSkills.filter(
+        (s) => !isGenericCategorySkill(s) && !isSoftCompetencyPhrase(s)
+      )
     ),
   };
 }

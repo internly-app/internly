@@ -109,6 +109,9 @@ export default function ATSAnalyzer() {
   );
   const [loadingStageIndex, setLoadingStageIndex] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMilestone, setLoadingMilestone] = useState<
+    "idle" | "uploading" | "waiting" | "receiving" | "finalizing"
+  >("idle");
   const [resultAnimState, setResultAnimState] = useState<
     "idle" | "enter" | "settled"
   >("idle");
@@ -126,20 +129,16 @@ export default function ATSAnalyzer() {
     if (analysisState.status !== "loading") {
       setLoadingStageIndex(0);
       setLoadingProgress(0);
+      setLoadingMilestone("idle");
       return;
     }
 
-    // Stage timings are intentionally "loose" — they should feel real-time
-    // without implying exact internal steps.
-    const stageDurationsMs = [900, 1100, 1400, 1200, 1000];
-    let stage = 0;
     let cancelled = false;
 
-    setLoadingStageIndex(0);
-    setLoadingProgress(prefersReducedMotion ? 1 : 2);
-
-    const progressCap = 94; // Don't reach 100% until we actually complete.
-    const tickMs = 80;
+    // We keep progress moving based on the client-visible lifecycle.
+    // This avoids a "race to 94% then freeze" while still never claiming 100%
+    // until results are actually ready.
+    const tickMs = 100;
 
     const interval = window.setInterval(() => {
       if (cancelled) return;
@@ -147,35 +146,65 @@ export default function ATSAnalyzer() {
       setLoadingProgress((p) => {
         if (prefersReducedMotion) return Math.min(100, p);
 
-        // Map each stage to a target range of the progress bar.
-        const stageEndPct = ((stage + 1) / loadingStages.length) * 100;
-        const target = Math.min(progressCap, stageEndPct - 1);
+        // Targets are intentionally loose and high-level.
+        // The bar approaches these targets smoothly and then slowly creeps.
+        const milestoneTargets: Record<
+          typeof loadingMilestone,
+          { target: number; creepUntil: number }
+        > = {
+          idle: { target: 0, creepUntil: 0 },
+          uploading: { target: 22, creepUntil: 28 },
+          waiting: { target: 55, creepUntil: 74 },
+          receiving: { target: 82, creepUntil: 92 },
+          finalizing: { target: 92, creepUntil: 98 },
+        };
 
-        // Ease towards the target; smaller deltas as we approach the cap.
-        const remaining = target - p;
-        const delta = Math.max(0.25, Math.min(2.0, remaining / 12));
-        return Math.min(target, p + delta);
+        const { target, creepUntil } = milestoneTargets[loadingMilestone];
+
+        // Fast-ish easing while we're behind target
+        if (p < target) {
+          const remaining = target - p;
+          const delta = Math.max(0.6, Math.min(3.0, remaining / 6));
+          return Math.min(target, p + delta);
+        }
+
+        // Slow creep (keeps it feeling alive) but never reaches 100%.
+        if (p < creepUntil) {
+          const delta = Math.max(0.05, (creepUntil - p) / 220);
+          return Math.min(creepUntil, p + delta);
+        }
+
+        return p;
       });
     }, tickMs);
 
-    const timeouts: number[] = [];
-    let elapsed = 0;
-    for (let i = 0; i < stageDurationsMs.length; i++) {
-      elapsed += stageDurationsMs[i];
-      const t = window.setTimeout(() => {
-        if (cancelled) return;
-        stage = Math.min(i + 1, loadingStages.length - 1);
-        setLoadingStageIndex(stage);
-      }, elapsed);
-      timeouts.push(t);
-    }
+    // Also keep the stage text coherent with the milestone.
+    // Stages should only move forward.
+    const stageInterval = window.setInterval(() => {
+      if (cancelled) return;
+      setLoadingStageIndex((prev) => {
+        const mapping: Record<typeof loadingMilestone, number> = {
+          idle: 0,
+          uploading: 0,
+          waiting: 1,
+          receiving: 3,
+          finalizing: 4,
+        };
+        return Math.max(prev, mapping[loadingMilestone]);
+      });
+    }, 250);
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
-      for (const t of timeouts) window.clearTimeout(t);
+      window.clearInterval(stageInterval);
     };
-  }, [analysisState.status, prefersReducedMotion, loadingStages.length]);
+  }, [
+    analysisState.status,
+    prefersReducedMotion,
+    loadingMilestone,
+    loadingStages.length,
+  ]);
 
   useEffect(() => {
     if (analysisState.status === "success") {
@@ -285,21 +314,29 @@ export default function ATSAnalyzer() {
   const handleAnalyze = useCallback(async () => {
     if (!file || !jobDescription.trim()) return;
 
-    setAnalysisState({ status: "loading", step: "Uploading resume..." });
+    setLoadingStageIndex(0);
+    setLoadingProgress(prefersReducedMotion ? 1 : 2);
+    setLoadingMilestone("uploading");
+    setAnalysisState({ status: "loading", step: "Working..." });
 
     try {
       const formData = new FormData();
       formData.append("resume", file);
       formData.append("jobDescription", jobDescription.trim());
 
-      setAnalysisState({ status: "loading", step: "Analyzing resume..." });
+      setLoadingMilestone("waiting");
+      setAnalysisState({ status: "loading", step: "Working..." });
 
       const response = await fetch("/api/ats/analyze", {
         method: "POST",
         body: formData,
       });
 
+      setLoadingMilestone("receiving");
+
       const result = await response.json();
+
+      setLoadingMilestone("finalizing");
 
       if (!response.ok) {
         // Handle rate limiting with specific message
@@ -325,6 +362,7 @@ export default function ATSAnalyzer() {
 
       setAnalysisState({ status: "success", data: result.data });
     } catch (err) {
+      setLoadingMilestone("idle");
       setAnalysisState({
         status: "error",
         message:
@@ -333,7 +371,7 @@ export default function ATSAnalyzer() {
             : "An unexpected error occurred. Please try again.",
       });
     }
-  }, [file, jobDescription]);
+  }, [file, jobDescription, prefersReducedMotion]);
 
   const canAnalyze =
     file &&

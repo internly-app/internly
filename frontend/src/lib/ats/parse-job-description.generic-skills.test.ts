@@ -68,3 +68,20 @@ function makeParsed(
     out.preferredSkills.map((s) => s.toLowerCase()).includes("javascript")
   );
 }
+
+// Regression: soft competency phrases shouldn't become hard required skills.
+{
+  const jd = "Strong foundation in computer science fundamentals is required.";
+
+  const parsed = makeParsed({
+    requiredSkills: ["strong foundation in computer science fundamentals"],
+    preferredSkills: [],
+  });
+
+  const out = postProcessParsedJobDescription(jd, parsed);
+
+  assert(
+    out.requiredSkills.length === 0,
+    "Expected soft competency phrase to be removed from requiredSkills"
+  );
+}
