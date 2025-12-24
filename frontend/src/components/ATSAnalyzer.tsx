@@ -226,6 +226,8 @@ export default function ATSAnalyzer() {
     jobDescription.trim().length >= MIN_JD_LENGTH &&
     analysisState.status !== "loading";
 
+  const isLoading = analysisState.status === "loading";
+
   return (
     <div className="space-y-6">
       {/* Input Section */}
@@ -301,7 +303,7 @@ export default function ATSAnalyzer() {
           </CardHeader>
           <CardContent>
             <Textarea
-              placeholder="Paste the relevant parts of the job description here..."
+              placeholder="Paste the relevant parts of thejob description here..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               className="min-h-[140px] resize-none"
@@ -316,23 +318,34 @@ export default function ATSAnalyzer() {
       </div>
 
       {/* Analyze Button */}
-      <div className="flex justify-center">
-        <Button
-          onClick={handleAnalyze}
-          disabled={!canAnalyze}
-          size="lg"
-          className="min-w-[200px]"
-        >
-          {analysisState.status === "loading" ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              {analysisState.step}
-            </>
-          ) : (
-            "Analyze Match"
-          )}
-        </Button>
-      </div>
+      {!isLoading && (
+        <div className="flex justify-center">
+          <Button
+            onClick={handleAnalyze}
+            disabled={!canAnalyze}
+            size="lg"
+            className="min-w-[200px]"
+          >
+            Analyze Resume
+          </Button>
+        </div>
+      )}
+
+      {/* Note */}
+      <Card className="border-zinc-800/60 bg-zinc-900/10">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Info className="size-5 text-muted-foreground shrink-0 mt-0.5" />
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Missing some required or preferred skills does not mean you
+              shouldn&apos;t apply. Many students land internships from roles
+              they didn&apos;t think they&apos;d even get an interview for. This
+              tool is here to give you the best possible chance, not to filter
+              you out.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Error State */}
       {analysisState.status === "error" && (
@@ -352,8 +365,8 @@ export default function ATSAnalyzer() {
       )}
 
       {/* Loading State */}
-      {analysisState.status === "loading" && (
-        <Card>
+      {isLoading && (
+        <Card className="animate-in fade-in-0 duration-200">
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -550,6 +563,29 @@ export default function ATSAnalyzer() {
                   </div>
                 )}
 
+                {/* Missing Preferred */}
+                {analysisState.data.details.skillComparison.missingPreferred
+                  .length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-500 mb-2 flex items-center gap-2">
+                      <AlertCircle className="size-4" />
+                      Missing Preferred Skills
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {analysisState.data.details.skillComparison.missingPreferred.map(
+                        (skill) => (
+                          <span
+                            key={skill}
+                            className="px-2 py-1 text-xs rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
+                          >
+                            {skill}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Extra Skills */}
                 {analysisState.data.details.skillComparison.extraSkills.length >
                   0 && (
@@ -697,7 +733,7 @@ export default function ATSAnalyzer() {
               >
                 <CardTitle className="text-base font-medium flex items-center justify-between">
                   <span className="flex items-center gap-2">
-                    Score Deductions
+                    Points Deduction
                     <span className="text-xs text-muted-foreground font-normal">
                       ({analysisState.data.score.allDeductions.length} items)
                     </span>
@@ -711,6 +747,10 @@ export default function ATSAnalyzer() {
               </CardHeader>
               {expandedSections.has("deductions") && (
                 <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground mb-3">
+                    These are the concrete reasons points were deducted from the
+                    overall score.
+                  </p>
                   <div className="space-y-2">
                     {analysisState.data.score.allDeductions
                       .sort((a, b) => b.points - a.points)

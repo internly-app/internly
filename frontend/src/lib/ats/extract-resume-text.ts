@@ -7,8 +7,36 @@
  * Supported formats: PDF, DOCX
  */
 
+import path from "path";
+import { pathToFileURL } from "url";
+
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
+
+// ---------------------------------------------------------------------------
+// PDF Worker Configuration for Next.js/Serverless
+// ---------------------------------------------------------------------------
+
+// Configure worker path for pdf-parse in Node.js environment.
+// pdf-parse v2 uses pdfjs-dist which requires a worker file.
+// In Node.js, we need to provide the full file:// URL to the worker.
+if (typeof PDFParse.setWorker === "function") {
+  try {
+    // The worker file is included in pdf-parse package at this location
+    const workerPath = path.resolve(
+      process.cwd(),
+      "node_modules/pdf-parse/dist/worker/pdf.worker.mjs"
+    );
+    // Convert to file:// URL as required by Node.js ESM loader
+    const workerUrl = pathToFileURL(workerPath).href;
+    PDFParse.setWorker(workerUrl);
+  } catch (e) {
+    // Worker configuration failed - PDF parsing will fail
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[PDF Parse] Failed to configure worker:", e);
+    }
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -162,10 +190,18 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
 
   try {
     // pdf-parse v2 uses class-based API
+    // Pass the buffer directly as 'data'
     parser = new PDFParse({ data: buffer });
+
+    // Get text from PDF
     const textResult = await parser.getText();
 
-    if (!textResult.text || textResult.text.trim().length === 0) {
+    // Check if we got text
+    if (
+      !textResult ||
+      !textResult.text ||
+      textResult.text.trim().length === 0
+    ) {
       return {
         success: false,
         error: {
@@ -178,10 +214,14 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
 
     const text = normalizeText(textResult.text);
 
-    // Get page count from info
-    const infoResult = await parser.getInfo();
-    const pageCount =
-      infoResult.pages?.length ?? textResult.pages?.length ?? null;
+    // Get page count from info (optional, don't fail if it errors)
+    let pageCount: number | null = null;
+    try {
+      const infoResult = await parser.getInfo();
+      pageCount = infoResult.pages?.length ?? infoResult.total ?? null;
+    } catch {
+      // Ignore info errors - text is more important
+    }
 
     return {
       success: true,
@@ -195,21 +235,39 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
       },
     };
   } catch (err) {
+    // Log the actual error for debugging (avoid noisy prod logs)
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[PDF Extraction Error]", err);
+    }
+
     // pdf-parse throws on corrupt/invalid PDFs
     const message =
       err instanceof Error ? err.message : "Unknown PDF parsing error";
 
-    // Check for common corruption indicators
+    // Check for common error types
     if (
       message.includes("Invalid PDF") ||
       message.includes("bad XRef") ||
-      message.includes("Missing")
+      message.includes("Missing") ||
+      message.includes("Invalid PDF structure")
     ) {
       return {
         success: false,
         error: {
           code: "CORRUPT_FILE",
           message: "The PDF file appears to be corrupt or malformed.",
+        },
+      };
+    }
+
+    // Password protected PDFs
+    if (message.includes("password") || message.includes("Password")) {
+      return {
+        success: false,
+        error: {
+          code: "CORRUPT_FILE",
+          message:
+            "The PDF is password-protected. Please remove the password and try again.",
         },
       };
     }
@@ -224,9 +282,11 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
   } finally {
     // Clean up PDF parser resources
     if (parser) {
-      await parser.destroy().catch(() => {
+      try {
+        await parser.destroy();
+      } catch {
         // Ignore cleanup errors
-      });
+      }
     }
   }
 }

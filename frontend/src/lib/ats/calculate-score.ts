@@ -47,6 +47,39 @@ export const RESPONSIBILITY_POINTS = {
   not_covered: 0.0, // No points
 } as const;
 
+// Responsibilities that are primarily learning/behavioral expectations should
+// not produce experience-based deductions for interns.
+const LEARNING_ORIENTED_RESPONSIBILITY_PATTERNS: RegExp[] = [
+  /learn\s+quickly/i,
+  /willing\s+to\s+learn/i,
+  /eager\s+to\s+learn/i,
+  /ask\s+questions/i,
+  /curious/i,
+  /growth\s+mindset/i,
+  /self-?starter/i,
+  /adapt/i,
+  /take\s+initiative/i,
+  /collaborat(e|ion)/i,
+  /communicat(e|ion)/i,
+];
+
+function isLearningOrientedResponsibility(text: string): boolean {
+  return LEARNING_ORIENTED_RESPONSIBILITY_PATTERNS.some((re) => re.test(text));
+}
+
+/**
+ * If the JD doesn't explicitly require prior experience for a responsibility,
+ * we avoid harsh deductions (especially for interns).
+ *
+ * We don't have the original JD responsibility phrasing/section tagging here,
+ * so this is a conservative heuristic based on the responsibility phrasing.
+ */
+function isExplicitExperienceRequirement(text: string): boolean {
+  return /\b(must|required|proven|demonstrated|hands-?on|experience)\b/i.test(
+    text
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -137,6 +170,44 @@ function extractDegreeLevel(text: string): DegreeLevel | null {
 }
 
 /**
+ * Extract the minimum acceptable degree level from a JD requirement string.
+ *
+ * Fairness rule: if the JD says "Bachelor's OR Master's", a Bachelor's
+ * is sufficient (minimum = bachelors), even though a master's is also valid.
+ */
+function extractMinimumDegreeLevel(text: string): DegreeLevel | null {
+  const normalized = text.toLowerCase();
+
+  // Any typical "or" construct: "bachelor's or master's" / "bs or ms".
+  const hasOr = /\bor\b|\//i.test(text);
+  const mentioned: DegreeLevel[] = [];
+  for (const level of DEGREE_HIERARCHY) {
+    if (DEGREE_PATTERNS[level].test(normalized)) {
+      mentioned.push(level);
+    }
+  }
+
+  if (mentioned.length === 0) return null;
+
+  // If it's an "or" list, accept the lowest level mentioned.
+  if (hasOr && mentioned.length >= 2) {
+    return mentioned.reduce((lowest, current) => {
+      return DEGREE_HIERARCHY.indexOf(current) >
+        DEGREE_HIERARCHY.indexOf(lowest)
+        ? current
+        : lowest;
+    }, mentioned[0]);
+  }
+
+  // Otherwise fall back to the highest (most strict) level.
+  return mentioned.reduce((highest, current) => {
+    return DEGREE_HIERARCHY.indexOf(current) < DEGREE_HIERARCHY.indexOf(highest)
+      ? current
+      : highest;
+  }, mentioned[0]);
+}
+
+/**
  * Check if resume education meets JD requirements.
  * Returns a score from 0-1.
  */
@@ -151,10 +222,10 @@ function calculateEducationMatch(
     return { score: 1.0, deductions: [] };
   }
 
-  // Extract required degree level from JD
+  // Extract minimum required degree level from JD
   let requiredLevel: DegreeLevel | null = null;
   for (const req of jdRequirements) {
-    const level = extractDegreeLevel(req);
+    const level = extractMinimumDegreeLevel(req);
     if (level) {
       // Take the highest required level
       if (
@@ -251,7 +322,15 @@ const CS_RELATED_FIELDS = [
   "artificial intelligence",
   "machine learning",
   "cybersecurity",
+  "informatics",
+  "computing",
   "electrical engineering",
+  "electronics",
+  "electronics and communication",
+  "telecommunications",
+  "management engineering",
+  "engineering",
+  "systems engineering",
   "mathematics",
   "applied mathematics",
   "statistics",
@@ -268,6 +347,18 @@ function isCSRelatedField(field: string | null): boolean {
     (csField) =>
       normalized.includes(csField) || csField.includes(normalized.split(" ")[0])
   );
+}
+
+function dedupeDeductions(deductions: ScoreDeduction[]): ScoreDeduction[] {
+  const seen = new Set<string>();
+  const result: ScoreDeduction[] = [];
+  for (const d of deductions) {
+    const key = `${d.category}::${d.reason}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(d);
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -397,6 +488,12 @@ export function calculateATSScore(
 
     // Deductions for not covered responsibilities
     for (const item of responsibilityMatching.notCovered) {
+      // Don't penalize learning/behavioral expectations.
+      if (isLearningOrientedResponsibility(item.responsibility)) continue;
+      // Only penalize "no experience" when the responsibility reads like an
+      // explicit prior-experience requirement.
+      if (!isExplicitExperienceRequirement(item.responsibility)) continue;
+
       const deduction: ScoreDeduction = {
         reason: `No experience for: ${item.responsibility.slice(0, 60)}${
           item.responsibility.length > 60 ? "..." : ""
@@ -412,6 +509,9 @@ export function calculateATSScore(
 
     // Partial deductions for weakly covered
     for (const item of responsibilityMatching.weaklyCovered) {
+      if (isLearningOrientedResponsibility(item.responsibility)) continue;
+      if (!isExplicitExperienceRequirement(item.responsibility)) continue;
+
       const deduction: ScoreDeduction = {
         reason: `Limited experience for: ${item.responsibility.slice(0, 60)}${
           item.responsibility.length > 60 ? "..." : ""
@@ -463,7 +563,6 @@ export function calculateATSScore(
       category: "education",
     };
     educationResult.deductions.push(deduction);
-    allDeductions.push(deduction);
     educationFieldAdjustment = -0.1;
   }
 
@@ -472,6 +571,8 @@ export function calculateATSScore(
     Math.min(100, (educationResult.score + educationFieldAdjustment) * 100)
   );
 
+  // Gather deductions across categories, then de-dupe so the same reason
+  // doesn't appear multiple times in the UI.
   allDeductions.push(...educationResult.deductions);
 
   const educationScore: CategoryScore = {
@@ -483,6 +584,8 @@ export function calculateATSScore(
     weightedScore: (educationPercentage / 100) * CATEGORY_WEIGHTS.education,
     deductions: educationResult.deductions,
   };
+
+  const dedupedAllDeductions = dedupeDeductions(allDeductions);
 
   // ---------------------------------------------------------------------------
   // Calculate Overall Score
@@ -538,7 +641,7 @@ export function calculateATSScore(
       responsibilities: responsibilitiesScore,
       education: educationScore,
     },
-    allDeductions,
+    allDeductions: dedupedAllDeductions,
     summary,
   };
 }

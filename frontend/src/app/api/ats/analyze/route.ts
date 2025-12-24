@@ -294,7 +294,9 @@ export async function POST(
     // ---------------------------------------------------------------------------
     // Step 1: Extract text from resume
     // ---------------------------------------------------------------------------
-    const resumeBuffer = Buffer.from(await resumeFile.arrayBuffer());
+    const resumeArrayBuffer = await resumeFile.arrayBuffer();
+    const resumeBuffer = Buffer.from(resumeArrayBuffer);
+
     const extractionResult = await extractResumeText(resumeBuffer, {
       mimeType: resumeFile.type,
     });
@@ -331,16 +333,21 @@ export async function POST(
     // Step 2: Parse JD and normalize resume in parallel
     // ---------------------------------------------------------------------------
     const [parsedJDResult, normalizedResumeResult] = await Promise.all([
-      parseJobDescription(jobDescription).catch((err) => ({
-        error: err instanceof Error ? err.message : "JD parsing failed",
-      })),
-      normalizeResume(extractionResult.data.text).catch((err) => ({
-        success: false as const,
-        error: {
-          code: "LLM_ERROR" as const,
-          message: err instanceof Error ? err.message : "Resume parsing failed",
-        },
-      })),
+      parseJobDescription(jobDescription).catch((err) => {
+        return {
+          error: err instanceof Error ? err.message : "JD parsing failed",
+        };
+      }),
+      normalizeResume(extractionResult.data.text).catch((err) => {
+        return {
+          success: false as const,
+          error: {
+            code: "LLM_ERROR" as const,
+            message:
+              err instanceof Error ? err.message : "Resume parsing failed",
+          },
+        };
+      }),
     ]);
 
     // Check for JD parsing errors
@@ -349,6 +356,19 @@ export async function POST(
         { ...logContext, fileSize, fileType, jdLength, step: "parse_jd" },
         { message: parsedJDResult.error }
       );
+
+      // Check for quota/billing errors
+      if (
+        parsedJDResult.error.includes("quota") ||
+        parsedJDResult.error.includes("billing") ||
+        parsedJDResult.error.includes("429")
+      ) {
+        return errorResponse(
+          "The AI service is temporarily unavailable. Please try again later.",
+          503
+        );
+      }
+
       return errorResponse(
         "Failed to analyze the job description. Please check the format and try again.",
         500
@@ -438,6 +458,7 @@ export async function POST(
             (m) => m.jdSkill
           ),
           missingRequired: skillComparison.missing,
+          missingPreferred: skillComparison.missingPreferred,
           extraSkills: skillComparison.extra,
         },
         responsibilityCoverage: {
@@ -487,6 +508,9 @@ export async function POST(
 
     return NextResponse.json({ data: response }, { status: 200 });
   } catch (error: unknown) {
+    // Log the full error for debugging
+    console.error("[API /api/ats/analyze] Unhandled error:", error);
+
     // Log unexpected errors
     atsLogger.analysisFailure(
       { userId, ipAddress, fileSize, fileType, jdLength, step: "unexpected" },

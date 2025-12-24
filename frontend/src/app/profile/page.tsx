@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/AuthProvider";
-import { FileText, Bookmark, ArrowRight, Target } from "lucide-react";
+import { FileText, Bookmark, ArrowRight, FileBarChart2 } from "lucide-react";
 import type { ReviewWithDetails, CompanyWithStats } from "@/lib/types/database";
 
 // Animation variants - fade in only (no y movement for smoother loading)
@@ -401,7 +401,7 @@ export default function ProfilePage() {
             onClick={() => setActiveTab("ats")}
             className="gap-2 flex-1 sm:flex-initial"
           >
-            <Target className="size-4" />
+            <FileBarChart2 className="size-4" />
             <span className="hidden sm:inline">ATS Analyzer</span>
             <span className="sm:hidden">ATS</span>
           </Button>
@@ -514,7 +514,17 @@ export default function ProfilePage() {
           )}
 
           {/* ATS Analyzer Tab */}
-          {activeTab === "ats" && <ATSAnalyzer />}
+          {activeTab === "ats" && (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div variants={itemVariants}>
+                <ATSAnalyzer />
+              </motion.div>
+            </motion.div>
+          )}
         </div>
       </motion.div>
       <Footer />

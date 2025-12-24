@@ -163,7 +163,99 @@ Rules:
 5. If years of experience is mentioned as a range (e.g., "3-5 years"), use the minimum. Return null if not specified.
 6. Keep skill names concise (e.g., "React" not "React.js framework experience").
 7. Responsibilities should be brief summaries, not full sentences.
-8. When in doubt, prefer empty arrays or "unknown"/null over guessing.`;
+8. Critical: classify requiredSkills VERY conservatively.
+   - Only put a skill into requiredSkills if the JD clearly implies it is REQUIRED, using words like: "must", "required", "need", "have to", "mandatory".
+   - Languages/tools mentioned as context (e.g., "we work mostly in X, Y, Z", "our stack includes X", "tech we use") are NOT requirements. Put those in preferredSkills.
+   - If the JD says languages can be learned (e.g., "new programming languages can be learned"), treat mentioned languages as preferredSkills unless explicitly marked required.
+9. When in doubt, prefer preferredSkills over requiredSkills (or omit the skill) rather than incorrectly marking it required.`;
+
+// ---------------------------------------------------------------------------
+// Post-processing (deterministic guardrails)
+// ---------------------------------------------------------------------------
+
+function normalizeSkillName(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ").replace(/\.+$/g, "");
+}
+
+function uniqueByNormalized(items: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of items) {
+    const key = normalizeSkillName(item);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(item.trim());
+  }
+  return out;
+}
+
+/**
+ * Downgrade skills that are likely NOT required based on the exact JD text.
+ *
+ * This specifically catches patterns like:
+ * - "We work mostly in Java, Ruby, JavaScript, Scala, and Go"
+ * - "Our stack includes ..."
+ * - "We believe new programming languages can be learned ..."
+ */
+function applySkillRequirementHeuristics(
+  rawJdText: string,
+  parsed: ParsedJobDescription
+): ParsedJobDescription {
+  const jdLower = rawJdText.toLowerCase();
+
+  const descriptiveListSignals: RegExp[] = [
+    /we\s+work\s+mostly\s+in\b/i,
+    /our\s+stack\b/i,
+    /tech\s+stack\b/i,
+    /our\s+tech\s+stack\b/i,
+    /we\s+use\b/i,
+    /technologies\s+we\s+use\b/i,
+    /languages\s+we\s+use\b/i,
+  ];
+
+  const learningSignals: RegExp[] = [
+    /can\s+be\s+learned\b/i,
+    /willing\s+to\s+learn\b/i,
+    /learn\s+new\s+languages\b/i,
+    /new\s+programming\s+languages\s+can\s+be\s+learned\b/i,
+  ];
+
+  const hasDescriptiveSignal = descriptiveListSignals.some((re) =>
+    re.test(jdLower)
+  );
+  const hasLearningSignal = learningSignals.some((re) => re.test(jdLower));
+  if (!hasDescriptiveSignal && !hasLearningSignal) return parsed;
+
+  const required = [...parsed.requiredSkills];
+  const preferred = [...parsed.preferredSkills];
+
+  // Keep in required only if the JD explicitly marks that exact skill as required.
+  const explicitRequirementRe = (skill: string) => {
+    const s = skill
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+");
+    return new RegExp(
+      `(?:must|required|mandatory|need|have to)\\s+(?:have\\s+)?(?:experience\\s+with\\s+)?${s}\\b`,
+      "i"
+    );
+  };
+
+  const newRequired: string[] = [];
+  for (const skill of required) {
+    if (explicitRequirementRe(skill).test(rawJdText)) {
+      newRequired.push(skill);
+    } else {
+      preferred.push(skill);
+    }
+  }
+
+  return {
+    ...parsed,
+    requiredSkills: uniqueByNormalized(newRequired),
+    preferredSkills: uniqueByNormalized(preferred),
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Main Function
@@ -246,5 +338,5 @@ export async function parseJobDescription(
     );
   }
 
-  return result.data;
+  return applySkillRequirementHeuristics(trimmed, result.data);
 }

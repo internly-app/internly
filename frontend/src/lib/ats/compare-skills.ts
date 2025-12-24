@@ -34,6 +34,8 @@ export interface SkillComparisonResult {
   };
   /** Required skills from JD not found in the resume. */
   missing: string[];
+  /** Preferred skills from JD not found in the resume. */
+  missingPreferred: string[];
   /** Resume skills not mentioned in JD (neither required nor preferred). */
   extra: string[];
   /** Summary counts for quick reference. */
@@ -43,6 +45,7 @@ export interface SkillComparisonResult {
     matchedRequired: number;
     matchedPreferred: number;
     missingRequired: number;
+    missingPreferred: number;
     extraSkills: number;
   };
 }
@@ -171,39 +174,63 @@ const REVERSE_SYNONYM_MAP = buildReverseSynonymMap();
 // ---------------------------------------------------------------------------
 
 /**
- * Normalize a skill string for comparison:
- * - Lowercase
- * - Trim whitespace
- * - Remove trailing punctuation
- * - Collapse multiple spaces
- * - Handle common plural forms
+ * Split a raw skill into candidate tokens.
+ *
+ * Example: "JavaScript/ES6" -> ["JavaScript", "ES6"]
+ *          "React (Hooks)"  -> ["React", "Hooks"]
  */
-function normalizeSkill(skill: string): string {
-  let normalized = skill
+function splitSkillTokens(skill: string): string[] {
+  return skill
+    .split(/[\/,|()]/g)
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Version-ish tokens that should be ignored for matching.
+ */
+function isVersionToken(token: string): boolean {
+  const t = token.toLowerCase().trim();
+  if (!t) return true;
+
+  // ECMAScript versions
+  if (/^es\d+$/i.test(t)) return true; // es6, es7, ...
+  if (/^es\d{4}$/i.test(t)) return true; // es2015, es2020, ...
+  if (t === "ecma" || t === "ecmascript") return true;
+
+  // Generic versions
+  if (/^v\d+(\.\d+){0,2}$/i.test(t)) return true; // v3, v18.2, v1.2.3
+  if (/^\d+(\.\d+){1,2}$/.test(t)) return true; // 1.2, 18.2.0
+
+  // Common fluff in parentheses
+  if (["latest", "current", "new", "modern"].includes(t)) return true;
+
+  return false;
+}
+
+/**
+ * Normalize a string chunk for comparison (single token).
+ */
+function normalizeSkillToken(token: string): string {
+  let normalized = token
     .toLowerCase()
     .trim()
     // Remove trailing punctuation
     .replace(/[.,;:!?]+$/, "")
     // Collapse multiple spaces
     .replace(/\s+/g, " ")
-    // Remove parenthetical version info like "(v3)" or "(latest)"
-    .replace(/\s*\([^)]*\)\s*$/, "")
     .trim();
 
-  // Handle common plural forms
+  // Handle simple plural forms (same logic as before)
   if (normalized.endsWith("ies") && normalized.length > 4) {
-    // e.g., "technologies" -> keep as-is (too aggressive to change)
+    // intentionally no-op
   } else if (normalized.endsWith("s") && normalized.length > 2) {
-    // Try without trailing 's' for simple plurals
-    // But be careful with things like "css", "aws", "kubernetes"
     const withoutS = normalized.slice(0, -1);
-    // Only de-pluralize if it's a common English plural pattern
     if (
       !["ss", "us", "is", "as", "os"].some((ending) =>
         normalized.endsWith(ending)
       )
     ) {
-      // Check if singular form exists in our synonym map
       if (REVERSE_SYNONYM_MAP.has(withoutS)) {
         normalized = withoutS;
       }
@@ -214,11 +241,57 @@ function normalizeSkill(skill: string): string {
 }
 
 /**
+ * Normalize a raw skill string into a set of canonical skills.
+ *
+ * - Lowercase
+ * - Split on / , | ( )
+ * - Remove version tokens (es6, es2015, vX)
+ * - Map aliases to canonical using the synonym groups
+ */
+function getCanonicalSkillSet(skill: string): Set<string> {
+  const tokens = splitSkillTokens(skill);
+  const canonicals = new Set<string>();
+
+  for (const token of tokens.length > 0 ? tokens : [skill]) {
+    if (isVersionToken(token)) continue;
+    const normalized = normalizeSkillToken(token);
+    if (!normalized) continue;
+    const canonical = REVERSE_SYNONYM_MAP.get(normalized) ?? normalized;
+    canonicals.add(canonical);
+  }
+
+  // Fallback: if everything got filtered out (e.g., skill === "ES6"), keep original
+  if (canonicals.size === 0) {
+    const normalized = normalizeSkillToken(skill);
+    if (normalized)
+      canonicals.add(REVERSE_SYNONYM_MAP.get(normalized) ?? normalized);
+  }
+
+  return canonicals;
+}
+
+/**
+ * Normalize a skill string for comparison:
+ * - Lowercase
+ * - Trim whitespace
+ * - Remove trailing punctuation
+ * - Collapse multiple spaces
+ * - Handle common plural forms
+ */
+function normalizeSkill(skill: string): string {
+  // Keep backwards-compatible single-key normalization used for Map lookups.
+  // (We now do richer token normalization via getCanonicalSkillSet.)
+  return normalizeSkillToken(skill);
+}
+
+/**
  * Get canonical form of a skill (via synonym map).
  */
 function getCanonicalSkill(skill: string): string {
-  const normalized = normalizeSkill(skill);
-  return REVERSE_SYNONYM_MAP.get(normalized) ?? normalized;
+  // Backwards-compatible "single canonical" form.
+  // Prefer the first canonical from the richer set (deterministic by iteration).
+  const canonicals = getCanonicalSkillSet(skill);
+  return canonicals.values().next().value ?? normalizeSkill(skill);
 }
 
 // ---------------------------------------------------------------------------
@@ -260,13 +333,21 @@ export function compareSkills(
   // Build lookup structures for resume skills
   const resumeSkillsNormalized = new Map<string, string>(); // normalized -> original
   const resumeSkillsCanonical = new Map<string, string>(); // canonical -> original
+  const resumeCanonicalsToOriginals = new Map<string, Set<string>>(); // canonical -> originals
 
   for (const skill of allResumeSkills) {
     const normalized = normalizeSkill(skill);
     const canonical = getCanonicalSkill(skill);
+    const canonicals = getCanonicalSkillSet(skill);
 
     resumeSkillsNormalized.set(normalized, skill);
     resumeSkillsCanonical.set(canonical, skill);
+
+    for (const c of canonicals) {
+      const set = resumeCanonicalsToOriginals.get(c) ?? new Set<string>();
+      set.add(skill);
+      resumeCanonicalsToOriginals.set(c, set);
+    }
   }
 
   // Track which resume skills were matched (to find extras)
@@ -278,6 +359,7 @@ export function compareSkills(
   function findMatch(jdSkill: string): SkillMatch | null {
     const jdNormalized = normalizeSkill(jdSkill);
     const jdCanonical = getCanonicalSkill(jdSkill);
+    const jdCanonicals = getCanonicalSkillSet(jdSkill);
 
     // 1. Exact match (case-insensitive via normalized)
     const exactMatch = resumeSkillsNormalized.get(jdNormalized);
@@ -298,6 +380,20 @@ export function compareSkills(
       return {
         jdSkill,
         resumeSkill: canonicalMatch,
+        matchType: "synonym",
+      };
+    }
+
+    // 2b. Canonical set overlap (handles compound/versioned skills)
+    for (const jdC of jdCanonicals) {
+      const originals = resumeCanonicalsToOriginals.get(jdC);
+      if (!originals || originals.size === 0) continue;
+
+      const resumeSkill = originals.values().next().value as string;
+      matchedResumeSkills.add(resumeSkill);
+      return {
+        jdSkill,
+        resumeSkill,
         matchType: "synonym",
       };
     }
@@ -332,18 +428,23 @@ export function compareSkills(
 
   // Match preferred skills
   const matchedPreferred: SkillMatch[] = [];
+  const missingPreferred: string[] = [];
 
   for (const skill of jd.preferredSkills) {
     const match = findMatch(skill);
     if (match) {
       matchedPreferred.push(match);
+    } else {
+      missingPreferred.push(skill);
     }
-    // Note: we don't track missing preferred skills (by design)
   }
 
   // Find extra skills (in resume but not in JD)
   const allJdSkills = [...jd.requiredSkills, ...jd.preferredSkills];
-  const jdCanonicals = new Set(allJdSkills.map(getCanonicalSkill));
+  const jdCanonicals = new Set<string>();
+  for (const s of allJdSkills) {
+    for (const c of getCanonicalSkillSet(s)) jdCanonicals.add(c);
+  }
 
   const extra: string[] = [];
   for (const skill of allResumeSkills) {
@@ -351,8 +452,9 @@ export function compareSkills(
     if (matchedResumeSkills.has(skill)) continue;
 
     // Check if skill's canonical form is in JD (might have been matched differently)
-    const canonical = getCanonicalSkill(skill);
-    if (!jdCanonicals.has(canonical)) {
+    const canonicals = getCanonicalSkillSet(skill);
+    const overlaps = [...canonicals].some((c) => jdCanonicals.has(c));
+    if (!overlaps) {
       extra.push(skill);
     }
   }
@@ -363,6 +465,7 @@ export function compareSkills(
       preferred: matchedPreferred,
     },
     missing,
+    missingPreferred,
     extra,
     summary: {
       totalRequired: jd.requiredSkills.length,
@@ -370,6 +473,7 @@ export function compareSkills(
       matchedRequired: matchedRequired.length,
       matchedPreferred: matchedPreferred.length,
       missingRequired: missing.length,
+      missingPreferred: missingPreferred.length,
       extraSkills: extra.length,
     },
   };

@@ -13,6 +13,7 @@ export interface ATSAnalysisResponse {
       matchedRequired: string[];
       matchedPreferred: string[];
       missingRequired: string[];
+      missingPreferred: string[];
       extraSkills: string[];
     };
     responsibilityCoverage: {
