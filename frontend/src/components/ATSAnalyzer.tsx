@@ -962,65 +962,134 @@ export default function ATSAnalyzer() {
             )}
           </Card>
 
-          {/* Deductions Section */}
-          {analysisState.data.score.allDeductions.length > 0 && (
-            <Card
-              className={
-                prefersReducedMotion
-                  ? undefined
-                  : `transition-all duration-200 ease-out delay-[120ms] ${
-                      resultAnimState === "enter"
-                        ? "opacity-0 translate-y-1"
-                        : "opacity-100 translate-y-0"
-                    }`
-              }
-            >
-              <CardHeader
-                className="cursor-pointer"
-                onClick={() => toggleSection("deductions")}
+          {/* Deductions / Explainability Section */}
+          {(() => {
+            const score = analysisState.data.score;
+            const hasItemizedDeductions = score.allDeductions.length > 0;
+            const shouldShowExplainability = score.overallScore < 100;
+
+            if (!shouldShowExplainability) return null;
+
+            const breakdownEntries = Object.entries(score.breakdown)
+              .map(([key, category]) => {
+                const pointsLost = Math.max(
+                  0,
+                  Math.round(category.weight - category.weightedScore)
+                );
+                return { key, category, pointsLost };
+              })
+              .filter((x) => x.pointsLost > 0)
+              .sort((a, b) => b.pointsLost - a.pointsLost);
+
+            const missingPreferredCount =
+              analysisState.data.details.skillComparison.missingPreferred
+                ?.length ?? 0;
+
+            return (
+              <Card
+                className={
+                  prefersReducedMotion
+                    ? undefined
+                    : `transition-all duration-200 ease-out delay-[120ms] ${
+                        resultAnimState === "enter"
+                          ? "opacity-0 translate-y-1"
+                          : "opacity-100 translate-y-0"
+                      }`
+                }
               >
-                <CardTitle className="text-base font-medium flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    Points Deduction
-                    <span className="text-xs text-muted-foreground font-normal">
-                      ({analysisState.data.score.allDeductions.length} items)
+                <CardHeader
+                  className="cursor-pointer"
+                  onClick={() => toggleSection("deductions")}
+                >
+                  <CardTitle className="text-base font-medium flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      {hasItemizedDeductions
+                        ? "Points Deduction"
+                        : "Where points went"}
+                      {hasItemizedDeductions && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          ({analysisState.data.score.allDeductions.length}{" "}
+                          items)
+                        </span>
+                      )}
                     </span>
-                  </span>
-                  {expandedSections.has("deductions") ? (
-                    <ChevronUp className="size-4" />
-                  ) : (
-                    <ChevronDown className="size-4" />
-                  )}
-                </CardTitle>
-              </CardHeader>
-              {expandedSections.has("deductions") && (
-                <CardContent className="pt-0">
-                  <p className="text-xs text-muted-foreground mb-3">
-                    These are the concrete reasons points were deducted from the
-                    overall score.
-                  </p>
-                  <div className="space-y-2">
-                    {analysisState.data.score.allDeductions
-                      .sort((a, b) => b.points - a.points)
-                      .slice(0, 10)
-                      .map((deduction, i) => (
-                        <div
-                          key={i}
-                          className="flex items-start justify-between gap-4 text-sm py-1"
-                        >
-                          <span className="text-muted-foreground">
-                            {deduction.reason}
-                          </span>
-                          <span className="text-red-500 shrink-0">
-                            -{deduction.points} pts
-                          </span>
+                    {expandedSections.has("deductions") ? (
+                      <ChevronUp className="size-4" />
+                    ) : (
+                      <ChevronDown className="size-4" />
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                {expandedSections.has("deductions") && (
+                  <CardContent className="pt-0">
+                    {hasItemizedDeductions ? (
+                      <>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          These are the concrete reasons points were deducted
+                          from the overall score.
+                        </p>
+                        <div className="space-y-2">
+                          {analysisState.data.score.allDeductions
+                            .sort((a, b) => b.points - a.points)
+                            .slice(0, 10)
+                            .map((deduction, i) => (
+                              <div
+                                key={i}
+                                className="flex items-start justify-between gap-4 text-sm py-1"
+                              >
+                                <span className="text-muted-foreground">
+                                  {deduction.reason}
+                                </span>
+                                <span className="text-red-500 shrink-0">
+                                  -{deduction.points} pts
+                                </span>
+                              </div>
+                            ))}
                         </div>
-                      ))}
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          This job description reduced your score mainly through
+                          category weighting (e.g., preferred skills), even
+                          though there weren&apos;t specific
+                          &quot;deduction&quot; items.
+                        </p>
+
+                        {missingPreferredCount > 0 && (
+                          <p className="text-xs text-muted-foreground mb-3">
+                            Missing preferred skills: {missingPreferredCount}
+                          </p>
+                        )}
+
+                        <div className="space-y-2">
+                          {breakdownEntries.length > 0 ? (
+                            breakdownEntries.slice(0, 10).map((entry) => (
+                              <div
+                                key={entry.key}
+                                className="flex items-start justify-between gap-4 text-sm py-1"
+                              >
+                                <span className="text-muted-foreground">
+                                  {entry.category.name}
+                                </span>
+                                <span className="text-red-500 shrink-0">
+                                  -{entry.pointsLost} pts
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              No scored categories reported point loss.
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })()}
         </div>
       )}
     </div>
