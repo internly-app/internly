@@ -301,7 +301,7 @@ export default function ATSAnalyzer() {
           </CardHeader>
           <CardContent>
             <Textarea
-              placeholder="Paste the job description here..."
+              placeholder="Paste the relevant parts of the job description here..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               className="min-h-[140px] resize-none"
