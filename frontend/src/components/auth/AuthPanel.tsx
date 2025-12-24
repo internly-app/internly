@@ -126,6 +126,7 @@ export function AuthPanel({
             data: {
               first_name: sanitizedFirstName,
             },
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://internly.tech'}/auth/callback`,
           },
         });
 
@@ -133,22 +134,15 @@ export function AuthPanel({
           throw new Error(signUpError.message);
         }
 
-        // If no session was created (email confirmation required), inform user
+        // If no session was created, email confirmation is required
         if (!data.session) {
-          // Try to sign in immediately (in case email confirmation is disabled)
-          const { error: fallbackSignInError } =
-            await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-
-          if (fallbackSignInError) {
-            throw new Error(fallbackSignInError.message);
-          }
+          setMessage("Check your email for a confirmation link to complete your signup.");
+          setFormStatus("idle");
+          return;
         }
 
+        // Session exists - user is signed in (email confirmation disabled)
         setMessage("Account created! You're all set to continue.");
-        setMode("sign-in");
 
         // Call onSuccess callback if provided
         if (onSuccess) {
