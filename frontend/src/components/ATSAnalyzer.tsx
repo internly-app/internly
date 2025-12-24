@@ -93,6 +93,16 @@ function getScoreColor(score: number): string {
   return "bg-red-500";
 }
 
+function getScoreRingStroke(score: number): string {
+  // SVG strokes can't use `bg-*` Tailwind classes. Keep the intent consistent
+  // with the UI color scheme.
+  if (score >= 90) return "rgb(34, 197, 94)"; // green-500
+  if (score >= 80) return "rgb(59, 130, 246)"; // blue-500
+  if (score >= 70) return "rgb(234, 179, 8)"; // yellow-500
+  if (score >= 60) return "rgb(249, 115, 22)"; // orange-500
+  return "rgb(239, 68, 68)"; // red-500
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -150,29 +160,35 @@ export default function ATSAnalyzer() {
         // The bar approaches these targets smoothly and then slowly creeps.
         const milestoneTargets: Record<
           typeof loadingMilestone,
-          { target: number; creepUntil: number }
+          { target: number; creepUntil: number; hardCap: number }
         > = {
-          idle: { target: 0, creepUntil: 0 },
-          uploading: { target: 22, creepUntil: 28 },
-          waiting: { target: 55, creepUntil: 74 },
-          receiving: { target: 82, creepUntil: 92 },
-          finalizing: { target: 92, creepUntil: 98 },
+          idle: { target: 0, creepUntil: 0, hardCap: 0 },
+          uploading: { target: 12, creepUntil: 18, hardCap: 20 },
+          waiting: { target: 38, creepUntil: 62, hardCap: 70 },
+          receiving: { target: 70, creepUntil: 88, hardCap: 92 },
+          finalizing: { target: 88, creepUntil: 95, hardCap: 95 },
         };
 
-        const { target, creepUntil } = milestoneTargets[loadingMilestone];
+        const { target, creepUntil, hardCap } =
+          milestoneTargets[loadingMilestone];
 
         // Fast-ish easing while we're behind target
         if (p < target) {
           const remaining = target - p;
-          const delta = Math.max(0.6, Math.min(3.0, remaining / 6));
+          const delta = Math.max(0.25, Math.min(1.4, remaining / 10));
           return Math.min(target, p + delta);
         }
 
         // Slow creep (keeps it feeling alive) but never reaches 100%.
         if (p < creepUntil) {
-          const delta = Math.max(0.05, (creepUntil - p) / 220);
+          const remaining = creepUntil - p;
+          const delta = Math.max(0.03, Math.min(0.25, remaining / 260));
           return Math.min(creepUntil, p + delta);
         }
+
+        // Never let the client-side ticker claim we're basically done.
+        // We'll jump to 100% only once we actually have the result data.
+        return Math.min(p, hardCap);
 
         return p;
       });
@@ -360,6 +376,8 @@ export default function ATSAnalyzer() {
         throw new Error(result.error || "Analysis failed. Please try again.");
       }
 
+      // Completion: let the progress bar finish smoothly right when we have data.
+      setLoadingProgress(100);
       setAnalysisState({ status: "success", data: result.data });
     } catch (err) {
       setLoadingMilestone("idle");
@@ -601,14 +619,15 @@ export default function ATSAnalyzer() {
                   <svg className="size-full -rotate-90" viewBox="0 0 100 100">
                     {/* Outer grade ring */}
                     <circle
-                      className={`${getScoreColor(
-                        analysisState.data.score.overallScore
-                      )} opacity-40`}
+                      className="opacity-40"
                       strokeWidth="4"
                       fill="none"
                       cx="50"
                       cy="50"
                       r="48"
+                      stroke={getScoreRingStroke(
+                        analysisState.data.score.overallScore
+                      )}
                     />
                     <circle
                       className="stroke-zinc-800"
@@ -619,15 +638,16 @@ export default function ATSAnalyzer() {
                       r="42"
                     />
                     <circle
-                      className={`${getScoreColor(
-                        analysisState.data.score.overallScore
-                      )} transition-[stroke-dasharray] duration-700 ease-out`}
+                      className="transition-[stroke-dasharray] duration-700 ease-out"
                       strokeWidth="8"
                       strokeLinecap="round"
                       fill="none"
                       cx="50"
                       cy="50"
                       r="42"
+                      stroke={getScoreRingStroke(
+                        analysisState.data.score.overallScore
+                      )}
                       style={{
                         strokeDasharray: ringStrokeDasharray,
                       }}
