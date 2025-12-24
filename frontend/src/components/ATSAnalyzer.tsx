@@ -599,6 +599,17 @@ export default function ATSAnalyzer() {
                 {/* Score Circle */}
                 <div className="relative size-32 shrink-0">
                   <svg className="size-full -rotate-90" viewBox="0 0 100 100">
+                    {/* Outer grade ring */}
+                    <circle
+                      className={`${getScoreColor(
+                        analysisState.data.score.overallScore
+                      )} opacity-40`}
+                      strokeWidth="4"
+                      fill="none"
+                      cx="50"
+                      cy="50"
+                      r="48"
+                    />
                     <circle
                       className="stroke-zinc-800"
                       strokeWidth="8"
