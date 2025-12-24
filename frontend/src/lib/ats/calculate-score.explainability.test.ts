@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "assert";
 
 import { calculateATSScore } from "./calculate-score";
 import type {
@@ -7,53 +7,59 @@ import type {
   SkillComparisonResult,
 } from "./types";
 
-describe("ATS score explainability", () => {
-  it("can produce score < 100 with no itemized deductions (preferred skill shortfall)", () => {
-    const skillComparison: SkillComparisonResult = {
-      matched: [],
-      missing: [],
-      matchedRequired: ["TypeScript"],
-      missingRequired: [],
-      matchedPreferred: [],
-      missingPreferred: ["React", "Next.js"],
-      extraSkills: [],
-      summary: {
-        matchedRequired: 1,
-        totalRequired: 1,
-        matchedPreferred: 0,
-        totalPreferred: 2,
-        missingPreferred: 2,
-      },
-    };
+function run() {
+  // Preferred skills are a scored category but intentionally don't emit
+  // itemized deductions. In that case the UI should still be able to explain
+  // where points went via category weights.
+  const skillComparison: SkillComparisonResult = {
+    matched: [],
+    missing: [],
+    matchedRequired: ["TypeScript"],
+    missingRequired: [],
+    matchedPreferred: [],
+    missingPreferred: ["React", "Next.js"],
+    extraSkills: [],
+    summary: {
+      matchedRequired: 1,
+      totalRequired: 1,
+      matchedPreferred: 0,
+      totalPreferred: 2,
+      missingPreferred: 2,
+    },
+  };
 
-    const responsibilityMatching: ResponsibilityMatchingResult = {
-      coveredResponsibilities: [],
-      weaklyCovered: [],
-      notCovered: [],
-      covered: [],
-      notCovered: [],
-    };
+  const responsibilityMatching: ResponsibilityMatchingResult = {
+    coveredResponsibilities: [],
+    weaklyCovered: [],
+    notCovered: [],
+    covered: [],
+  };
 
-    const jobDescription = {
-      educationRequirements: [],
-    };
+  const jobDescription = {
+    educationRequirements: [],
+  };
 
-    const resume: Pick<NormalizedResume, "education"> = {
-      education: [],
-    };
+  const resume: Pick<NormalizedResume, "education"> = {
+    education: [],
+  };
 
-    const score = calculateATSScore({
-      skillComparison,
-      responsibilityMatching,
-      jobDescription,
-      resume,
-    });
-
-    assert.ok(score.overallScore < 100);
-    assert.equal(score.allDeductions.length, 0);
-
-    const preferred = score.breakdown.preferredSkills;
-    assert.equal(preferred.percentage, 0);
-    assert.ok(preferred.weightedScore < preferred.weight);
+  const score = calculateATSScore({
+    skillComparison,
+    responsibilityMatching,
+    jobDescription,
+    resume,
   });
-});
+
+  assert.ok(score.overallScore < 100);
+  assert.strictEqual(score.allDeductions.length, 0);
+
+  const preferred = score.breakdown.preferredSkills;
+  assert.strictEqual(preferred.percentage, 0);
+  assert.ok(preferred.weightedScore < preferred.weight);
+
+  if (process.env.TEST_VERBOSE === "1") {
+    console.log("calculate-score explainability tests: OK");
+  }
+}
+
+run();
