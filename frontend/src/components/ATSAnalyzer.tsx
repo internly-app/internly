@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Upload,
   FileText,
   CheckCircle2,
-  AlertCircle,
   XCircle,
   ChevronDown,
   ChevronUp,
@@ -122,6 +119,9 @@ export default function ATSAnalyzer() {
   const [loadingMilestone, setLoadingMilestone] = useState<
     "idle" | "uploading" | "waiting" | "receiving" | "finalizing"
   >("idle");
+  // serverReported progress and message are driven by backend stage events
+  const [serverProgress, setServerProgress] = useState<number>(0);
+  const [loadingMessage, setLoadingMessage] = useState<string>("");
   const [resultAnimState, setResultAnimState] = useState<
     "idle" | "enter" | "settled"
   >("idle");
@@ -136,77 +136,47 @@ export default function ATSAnalyzer() {
   ];
 
   useEffect(() => {
+    // The loading UI is driven by backend stage events. We smooth the UI
+    // progress toward the last server-reported value, but never advance
+    // beyond it. This satisfies "don't fake progress with timers alone"
+    // while keeping motion subtle.
     if (analysisState.status !== "loading") {
       setLoadingStageIndex(0);
       setLoadingProgress(0);
       setLoadingMilestone("idle");
+      setServerProgress(0);
+      setLoadingMessage("");
       return;
     }
 
     let cancelled = false;
 
-    // We keep progress moving based on the client-visible lifecycle.
-    // This avoids a "race to 94% then freeze" while still never claiming 100%
-    // until results are actually ready.
-    const tickMs = 100;
-
+    const tickMs = 90;
     const interval = window.setInterval(() => {
       if (cancelled) return;
-
-      setLoadingProgress((p) => {
-        if (prefersReducedMotion) return Math.min(100, p);
-
-        // Targets are intentionally loose and high-level.
-        // The bar approaches these targets smoothly and then slowly creeps.
-        const milestoneTargets: Record<
-          typeof loadingMilestone,
-          { target: number; creepUntil: number; hardCap: number }
-        > = {
-          idle: { target: 0, creepUntil: 0, hardCap: 0 },
-          uploading: { target: 12, creepUntil: 18, hardCap: 20 },
-          waiting: { target: 38, creepUntil: 62, hardCap: 70 },
-          receiving: { target: 70, creepUntil: 88, hardCap: 92 },
-          finalizing: { target: 88, creepUntil: 95, hardCap: 95 },
-        };
-
-        const { target, creepUntil, hardCap } =
-          milestoneTargets[loadingMilestone];
-
-        // Fast-ish easing while we're behind target
-        if (p < target) {
-          const remaining = target - p;
-          const delta = Math.max(0.25, Math.min(1.4, remaining / 10));
-          return Math.min(target, p + delta);
-        }
-
-        // Slow creep (keeps it feeling alive) but never reaches 100%.
-        if (p < creepUntil) {
-          const remaining = creepUntil - p;
-          const delta = Math.max(0.03, Math.min(0.25, remaining / 260));
-          return Math.min(creepUntil, p + delta);
-        }
-
-        // Never let the client-side ticker claim we're basically done.
-        // We'll jump to 100% only once we actually have the result data.
-        return Math.min(p, hardCap);
-
-        return p;
+      setLoadingProgress((current) => {
+        if (prefersReducedMotion) return Math.min(100, serverProgress || current);
+        // Smoothly approach serverProgress
+        const target = Math.max(current, serverProgress || current);
+        if (target <= current) return current;
+        const delta = Math.max(0.4, Math.min(3, (target - current) / 6));
+        const next = Math.min(target, current + delta);
+        return Math.round(next * 100) / 100;
       });
     }, tickMs);
 
-    // Also keep the stage text coherent with the milestone.
-    // Stages should only move forward.
+    // Keep a loose mapping for stage index for legacy stage list display; the
+    // canonical source of truth for status text is `loadingMessage` which is
+    // set from backend stage events.
     const stageInterval = window.setInterval(() => {
       if (cancelled) return;
       setLoadingStageIndex((prev) => {
-        const mapping: Record<typeof loadingMilestone, number> = {
-          idle: 0,
-          uploading: 0,
-          waiting: 1,
-          receiving: 3,
-          finalizing: 4,
-        };
-        return Math.max(prev, mapping[loadingMilestone]);
+        // Map serverProgress ranges to stage indices (rough)
+        if (serverProgress >= 95) return Math.max(prev, 4);
+        if (serverProgress >= 70) return Math.max(prev, 3);
+        if (serverProgress >= 50) return Math.max(prev, 2);
+        if (serverProgress >= 25) return Math.max(prev, 1);
+        return Math.max(prev, 0);
       });
     }, 250);
 
@@ -215,12 +185,7 @@ export default function ATSAnalyzer() {
       window.clearInterval(interval);
       window.clearInterval(stageInterval);
     };
-  }, [
-    analysisState.status,
-    prefersReducedMotion,
-    loadingMilestone,
-    loadingStages.length,
-  ]);
+  }, [analysisState.status, prefersReducedMotion, serverProgress]);
 
   useEffect(() => {
     if (analysisState.status === "success") {
@@ -391,50 +356,6 @@ export default function ATSAnalyzer() {
     }
   }, [file, jobDescription, prefersReducedMotion]);
 
-  const canAnalyze =
-    file &&
-    jobDescription.trim().length >= MIN_JD_LENGTH &&
-    analysisState.status !== "loading";
-
-  const isLoading = analysisState.status === "loading";
-
-  const scoreStroke =
-    analysisState.status === "success"
-      ? analysisState.data.score.overallScore * 2.64
-      : 0;
-
-  const ringStrokeDasharray =
-    prefersReducedMotion || resultAnimState === "settled"
-      ? `${scoreStroke} 264`
-      : `0 264`;
-
-  const showFilledBars = prefersReducedMotion || resultAnimState === "settled";
-
-  return (
-    <div className="space-y-6">
-      {/* Input Section */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Resume Upload */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium flex items-center gap-2">
-              <FileText className="size-4" />
-              Resume
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`
-                border-2 border-dashed rounded-lg p-6 text-center transition-colors
-                ${
-                  file
-                    ? "border-green-500/50 bg-green-500/5"
-                    : "border-zinc-700 hover:border-zinc-600"
-                }
-              `}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-            >
               <input
                 ref={fileInputRef}
                 type="file"
@@ -555,7 +476,7 @@ export default function ATSAnalyzer() {
                 <Loader2 className="size-5 animate-spin text-primary" />
                 <div className="flex flex-col">
                   <span className="text-sm">
-                    {loadingStages[loadingStageIndex]}…
+                    {loadingMessage || loadingStages[loadingStageIndex]}…
                   </span>
                   <span className="text-xs text-muted-foreground">
                     This usually takes under a minute.

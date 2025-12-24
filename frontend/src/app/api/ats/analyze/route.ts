@@ -291,9 +291,12 @@ export async function POST(
       jdLength,
     });
 
-    // ---------------------------------------------------------------------------
-    // Step 1: Extract text from resume
-    // ---------------------------------------------------------------------------
+    // We'll stream stage updates to the client as newline-delimited JSON
+    // (NDJSON). Each stage event is a small object like:
+    // { stage: 'resume_parsing', message: 'Extracting resume text', progress: 10 }
+    // Final result is sent as: { done: true, data: {...} }
+
+    // Read the resume into a buffer once (we'll reuse it during extraction)
     const resumeArrayBuffer = await resumeFile.arrayBuffer();
     const resumeBuffer = Buffer.from(resumeArrayBuffer);
 
@@ -331,24 +334,8 @@ export async function POST(
 
     // ---------------------------------------------------------------------------
     // Step 2: Parse JD and normalize resume in parallel
-    // ---------------------------------------------------------------------------
-    const [parsedJDResult, normalizedResumeResult] = await Promise.all([
-      parseJobDescription(jobDescription).catch((err) => {
-        return {
-          error: err instanceof Error ? err.message : "JD parsing failed",
-        };
-      }),
-      normalizeResume(extractionResult.data.text).catch((err) => {
-        return {
-          success: false as const,
-          error: {
-            code: "LLM_ERROR" as const,
-            message:
-              err instanceof Error ? err.message : "Resume parsing failed",
-          },
-        };
-      }),
-    ]);
+    // We perform the work below and stream stage-by-stage in the ReadableStream
+    // so the client sees progress only when a backend stage completes.
 
     // Check for JD parsing errors
     if ("error" in parsedJDResult) {
@@ -396,21 +383,263 @@ export async function POST(
       );
     }
 
-    const parsedJD = parsedJDResult;
-    const normalizedResume = normalizedResumeResult.data;
+    // The remainder of the work will be done inside the stream producer below.
+    // Create a ReadableStream that performs each step and writes an NDJSON
+    // event after each completed stage.
 
-    // ---------------------------------------------------------------------------
-    // Step 3: Compare skills (deterministic, no AI)
-    // ---------------------------------------------------------------------------
-    const skillComparison = compareSkills(parsedJD, normalizedResume);
+    const encoder = new TextEncoder();
 
-    // ---------------------------------------------------------------------------
-    // Step 4: Match responsibilities (lightweight AI)
-    // ---------------------------------------------------------------------------
-    const responsibilityResult = await matchResponsibilities(
-      parsedJD,
-      normalizedResume
-    );
+    const stream = new ReadableStream({
+      async start(controller) {
+        const push = (obj: unknown) => {
+          try {
+            controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
+          } catch (e) {
+            // ignore enqueue errors
+          }
+        };
+
+        try {
+          // Stage: resume parsing
+          push({
+            stage: "resume_parsing",
+            message: "Reading resume content",
+            progress: 8,
+          });
+
+          // extractionResult already computed above
+          push({
+            stage: "resume_parsed",
+            message: "Resume text extracted",
+            progress: 12,
+          });
+
+          // Stage: JD parsing
+          push({
+            stage: "jd_parsing",
+            message: "Understanding job requirements",
+            progress: 25,
+          });
+          const parsedJDResult = await parseJobDescription(
+            jobDescription
+          ).catch((err) => ({
+            error: err instanceof Error ? err.message : "JD parsing failed",
+          }));
+
+          if ("error" in parsedJDResult) {
+            atsLogger.analysisFailure(
+              { ...logContext, fileSize, fileType, jdLength, step: "parse_jd" },
+              { message: parsedJDResult.error }
+            );
+            push({
+              error: "Failed to analyze the job description. Please try again.",
+              status: 500,
+            });
+            controller.close();
+            return;
+          }
+          push({
+            stage: "jd_parsed",
+            message: "Job description parsed",
+            progress: 34,
+          });
+
+          // Stage: normalize resume
+          push({
+            stage: "resume_normalize",
+            message: "Normalizing resume",
+            progress: 42,
+          });
+          const normalizedResumeResult = await normalizeResume(
+            extractionResult.data.text
+          ).catch((err) => ({
+            success: false as const,
+            error: {
+              code: "LLM_ERROR" as const,
+              message:
+                err instanceof Error ? err.message : "Resume parsing failed",
+            },
+          }));
+
+          if (!normalizedResumeResult.success) {
+            atsLogger.analysisFailure(
+              {
+                ...logContext,
+                fileSize,
+                fileType,
+                jdLength,
+                step: "normalize_resume",
+              },
+              {
+                message: normalizedResumeResult.error.message,
+                code: normalizedResumeResult.error.code,
+              }
+            );
+            push({
+              error:
+                "Failed to analyze the resume content. Please try a different file.",
+              status: 500,
+            });
+            controller.close();
+            return;
+          }
+
+          const parsedJD = parsedJDResult as any;
+          const normalizedResume = normalizedResumeResult.data;
+          push({
+            stage: "normalized",
+            message: "Resume normalized",
+            progress: 50,
+          });
+
+          // Stage: compare skills
+          push({
+            stage: "skills_compare",
+            message: "Comparing experience and skills",
+            progress: 62,
+          });
+          const skillComparison = compareSkills(parsedJD, normalizedResume);
+          push({
+            stage: "skills_compared",
+            message: "Skills comparison complete",
+            progress: 68,
+          });
+
+          // Stage: match responsibilities
+          push({
+            stage: "responsibilities_match",
+            message: "Matching responsibilities",
+            progress: 74,
+          });
+          const responsibilityResult = await matchResponsibilities(
+            parsedJD,
+            normalizedResume
+          );
+
+          if (!responsibilityResult.success) {
+            atsLogger.analysisFailure(
+              {
+                ...logContext,
+                fileSize,
+                fileType,
+                jdLength,
+                step: "match_responsibilities",
+              },
+              {
+                message: responsibilityResult.error.message,
+                code: responsibilityResult.error.code,
+              }
+            );
+            push({
+              error: "Failed to match responsibilities. Please try again.",
+              status: 500,
+            });
+            controller.close();
+            return;
+          }
+          const responsibilityMatching = responsibilityResult.data;
+          push({
+            stage: "responsibilities_matched",
+            message: "Responsibilities matched",
+            progress: 80,
+          });
+
+          // Stage: scoring
+          push({
+            stage: "scoring",
+            message: "Calculating alignment score",
+            progress: 88,
+          });
+          const score = calculateATSScore({
+            skillComparison,
+            responsibilityMatching,
+            jobDescription: parsedJD,
+            resume: normalizedResume,
+          });
+          push({ stage: "scored", message: "Score calculated", progress: 94 });
+
+          // Build final payload
+          const response: ATSAnalysisResponse = {
+            score,
+            details: {
+              skillComparison: {
+                matchedRequired: skillComparison.matched.required.map(
+                  (m) => m.jdSkill
+                ),
+                matchedPreferred: skillComparison.matched.preferred.map(
+                  (m) => m.jdSkill
+                ),
+                missingRequired: skillComparison.missing,
+                missingPreferred: skillComparison.missingPreferred,
+                extraSkills: skillComparison.extra,
+              },
+              responsibilityCoverage: {
+                covered: responsibilityMatching.coveredResponsibilities.map(
+                  (r) => ({
+                    responsibility: r.responsibility,
+                    explanation: r.explanation,
+                  })
+                ),
+                weaklyCovered: responsibilityMatching.weaklyCovered.map(
+                  (r) => ({
+                    responsibility: r.responsibility,
+                    explanation: r.explanation,
+                  })
+                ),
+                notCovered: responsibilityMatching.notCovered.map((r) => ({
+                  responsibility: r.responsibility,
+                  explanation: r.explanation,
+                })),
+              },
+              parsedResume: {
+                name: normalizedResume.contactInfo.name,
+                skillCount:
+                  normalizedResume.skills.technical.length +
+                  normalizedResume.skills.soft.length +
+                  normalizedResume.skills.other.length,
+                experienceCount: normalizedResume.experience.length,
+                educationCount: normalizedResume.education.length,
+              },
+              parsedJD: {
+                requiredSkillCount: parsedJD.requiredSkills.length,
+                preferredSkillCount: parsedJD.preferredSkills.length,
+                responsibilityCount: parsedJD.responsibilities.length,
+              },
+            },
+          };
+
+          // Finalize
+          push({
+            stage: "finalizing",
+            message: "Finalizing results",
+            progress: 98,
+          });
+          push({ done: true, data: response });
+          controller.close();
+          return;
+        } catch (err) {
+          console.error("[API /api/ats/analyze] stream error:", err);
+          push({
+            error: "An unexpected error occurred. Please try again later.",
+            status: 500,
+          });
+          controller.close();
+          return;
+        }
+      },
+    });
+
+    return new NextResponse(stream, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/x-ndjson",
+        "Cache-Control": "no-store",
+      },
+    });
+
+    // NOTE: earlier this function returned a single JSON response after
+    // performing all steps synchronously. We now stream stage events so the
+    // client receives high-level stage completions as they happen.
 
     if (!responsibilityResult.success) {
       atsLogger.analysisFailure(
