@@ -49,19 +49,24 @@ export const ParsedJobDescriptionSchema = z.object({
   responsibilities: z
     .array(z.string())
     .describe("Key job responsibilities or duties mentioned."),
+  educationRequirements: z
+    .array(z.string())
+    .describe(
+      "Education requirements explicitly mentioned (e.g., 'Bachelor's in Computer Science'). Empty array if not specified."
+    ),
   seniorityLevel: SeniorityLevelSchema.describe(
-    "Inferred seniority level based on title, years of experience, and language."
+    "Seniority level based on explicit title or stated requirements. Use 'unknown' if unclear or not stated."
   ),
   senioritySignals: z
     .array(z.string())
     .describe(
-      "Specific phrases or requirements that indicate seniority (e.g., '5+ years', 'lead a team')."
+      "Specific phrases or requirements that indicate seniority (e.g., '5+ years', 'lead a team'). Empty if none found."
     ),
   yearsOfExperience: z
     .number()
     .nullable()
     .describe(
-      "Minimum years of experience mentioned, or null if not specified."
+      "Minimum years of experience explicitly mentioned, or null if not specified."
     ),
 });
 
@@ -97,6 +102,12 @@ const JD_JSON_SCHEMA = {
         items: { type: "string" as const },
         description: "Key job responsibilities or duties mentioned.",
       },
+      educationRequirements: {
+        type: "array" as const,
+        items: { type: "string" as const },
+        description:
+          "Education requirements explicitly mentioned (e.g., 'Bachelor's in Computer Science'). Empty array if not specified.",
+      },
       seniorityLevel: {
         type: "string" as const,
         enum: [
@@ -111,24 +122,25 @@ const JD_JSON_SCHEMA = {
           "unknown",
         ],
         description:
-          "Inferred seniority level based on title, years of experience, and language.",
+          "Seniority level based on explicit title or stated requirements. Use 'unknown' if unclear or not stated.",
       },
       senioritySignals: {
         type: "array" as const,
         items: { type: "string" as const },
         description:
-          "Specific phrases or requirements that indicate seniority (e.g., '5+ years', 'lead a team').",
+          "Specific phrases or requirements that indicate seniority (e.g., '5+ years', 'lead a team'). Empty if none found.",
       },
       yearsOfExperience: {
         type: ["number", "null"] as const,
         description:
-          "Minimum years of experience mentioned, or null if not specified.",
+          "Minimum years of experience explicitly mentioned, or null if not specified.",
       },
     },
     required: [
       "requiredSkills",
       "preferredSkills",
       "responsibilities",
+      "educationRequirements",
       "seniorityLevel",
       "senioritySignals",
       "yearsOfExperience",
@@ -145,11 +157,13 @@ const SYSTEM_PROMPT = `You are a job description parser. Given a job description
 
 Rules:
 1. Only include skills/responsibilities explicitly mentioned in the text.
-2. Do not invent or assume information not present.
-3. For seniorityLevel, infer from title, required years, and language used.
-4. If years of experience is mentioned as a range (e.g., "3-5 years"), use the minimum.
-5. Keep skill names concise (e.g., "React" not "React.js framework experience").
-6. Responsibilities should be brief summaries, not full sentences.`;
+2. Do not invent, assume, or infer information not present.
+3. For seniorityLevel, only use values when explicitly stated in the title or requirements. Use "unknown" if the seniority is unclear or not mentioned.
+4. For educationRequirements, only extract when explicitly mentioned (e.g., "Bachelor's degree required"). Return empty array if not specified.
+5. If years of experience is mentioned as a range (e.g., "3-5 years"), use the minimum. Return null if not specified.
+6. Keep skill names concise (e.g., "React" not "React.js framework experience").
+7. Responsibilities should be brief summaries, not full sentences.
+8. When in doubt, prefer empty arrays or "unknown"/null over guessing.`;
 
 // ---------------------------------------------------------------------------
 // Main Function
