@@ -15,8 +15,9 @@ import { parseJobDescription } from "@/lib/ats/parse-job-description";
 import { compareSkills } from "@/lib/ats/compare-skills";
 import { matchResponsibilities } from "@/lib/ats/match-responsibilities";
 import { calculateATSScore } from "@/lib/ats/calculate-score";
-import { atsLogger, createTimer } from "@/lib/ats/logger";
+import { atsLogger } from "@/lib/ats/logger";
 import type { ATSAnalysisResponse } from "@/lib/ats/types";
+import type { ParsedJobDescription } from "@/lib/ats/parse-job-description";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -133,7 +134,6 @@ function errorResponse(
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<{ data: ATSAnalysisResponse } | { error: string }>> {
-  const timer = createTimer();
   const ipAddress = getIpAddress(request);
   let userId: string | undefined;
   let fileSize: number | undefined;
@@ -333,55 +333,9 @@ export async function POST(
     }
 
     // ---------------------------------------------------------------------------
-    // Step 2: Parse JD and normalize resume in parallel
-    // We perform the work below and stream stage-by-stage in the ReadableStream
-    // so the client sees progress only when a backend stage completes.
-
-    // Check for JD parsing errors
-    if ("error" in parsedJDResult) {
-      atsLogger.analysisFailure(
-        { ...logContext, fileSize, fileType, jdLength, step: "parse_jd" },
-        { message: parsedJDResult.error }
-      );
-
-      // Check for quota/billing errors
-      if (
-        parsedJDResult.error.includes("quota") ||
-        parsedJDResult.error.includes("billing") ||
-        parsedJDResult.error.includes("429")
-      ) {
-        return errorResponse(
-          "The AI service is temporarily unavailable. Please try again later.",
-          503
-        );
-      }
-
-      return errorResponse(
-        "Failed to analyze the job description. Please check the format and try again.",
-        500
-      );
-    }
-
-    // Check for resume normalization errors
-    if (!normalizedResumeResult.success) {
-      atsLogger.analysisFailure(
-        {
-          ...logContext,
-          fileSize,
-          fileType,
-          jdLength,
-          step: "normalize_resume",
-        },
-        {
-          message: normalizedResumeResult.error.message,
-          code: normalizedResumeResult.error.code,
-        }
-      );
-      return errorResponse(
-        "Failed to analyze the resume content. Please try a different file.",
-        500
-      );
-    }
+    // Step 2+: The remaining work is done inside the stream producer below.
+    // We stream stage-by-stage so the client only shows progress for completed
+    // backend stages (truthful progress).
 
     // The remainder of the work will be done inside the stream producer below.
     // Create a ReadableStream that performs each step and writes an NDJSON
@@ -394,7 +348,7 @@ export async function POST(
         const push = (obj: unknown) => {
           try {
             controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
-          } catch (e) {
+          } catch {
             // ignore enqueue errors
           }
         };
@@ -420,24 +374,36 @@ export async function POST(
             message: "Understanding job requirements",
             progress: 25,
           });
-          const parsedJDResult = await parseJobDescription(
-            jobDescription
-          ).catch((err) => ({
-            error: err instanceof Error ? err.message : "JD parsing failed",
-          }));
+          let parsedJD: ParsedJobDescription;
+          try {
+            parsedJD = await parseJobDescription(jobDescription);
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
 
-          if ("error" in parsedJDResult) {
             atsLogger.analysisFailure(
               { ...logContext, fileSize, fileType, jdLength, step: "parse_jd" },
-              { message: parsedJDResult.error }
+              { message: msg }
             );
+
+            const lowered = msg.toLowerCase();
+            const status =
+              lowered.includes("quota") ||
+              lowered.includes("billing") ||
+              lowered.includes("429")
+                ? 503
+                : 500;
+
             push({
-              error: "Failed to analyze the job description. Please try again.",
-              status: 500,
+              error:
+                status === 503
+                  ? "The AI service is temporarily unavailable. Please try again later."
+                  : "Failed to analyze the job description. Please check the format and try again.",
+              status,
             });
             controller.close();
             return;
           }
+
           push({
             stage: "jd_parsed",
             message: "Job description parsed",
@@ -452,14 +418,7 @@ export async function POST(
           });
           const normalizedResumeResult = await normalizeResume(
             extractionResult.data.text
-          ).catch((err) => ({
-            success: false as const,
-            error: {
-              code: "LLM_ERROR" as const,
-              message:
-                err instanceof Error ? err.message : "Resume parsing failed",
-            },
-          }));
+          );
 
           if (!normalizedResumeResult.success) {
             atsLogger.analysisFailure(
@@ -484,7 +443,6 @@ export async function POST(
             return;
           }
 
-          const parsedJD = parsedJDResult as any;
           const normalizedResume = normalizedResumeResult.data;
           push({
             stage: "normalized",
@@ -636,106 +594,6 @@ export async function POST(
         "Cache-Control": "no-store",
       },
     });
-
-    // NOTE: earlier this function returned a single JSON response after
-    // performing all steps synchronously. We now stream stage events so the
-    // client receives high-level stage completions as they happen.
-
-    if (!responsibilityResult.success) {
-      atsLogger.analysisFailure(
-        {
-          ...logContext,
-          fileSize,
-          fileType,
-          jdLength,
-          step: "match_responsibilities",
-        },
-        {
-          message: responsibilityResult.error.message,
-          code: responsibilityResult.error.code,
-        }
-      );
-      return errorResponse(
-        "Failed to match responsibilities. Please try again.",
-        500
-      );
-    }
-
-    const responsibilityMatching = responsibilityResult.data;
-
-    // ---------------------------------------------------------------------------
-    // Step 5: Calculate ATS score (deterministic)
-    // ---------------------------------------------------------------------------
-    const score = calculateATSScore({
-      skillComparison,
-      responsibilityMatching,
-      jobDescription: parsedJD,
-      resume: normalizedResume,
-    });
-
-    // ---------------------------------------------------------------------------
-    // Build response
-    // ---------------------------------------------------------------------------
-    const response: ATSAnalysisResponse = {
-      score,
-      details: {
-        skillComparison: {
-          matchedRequired: skillComparison.matched.required.map(
-            (m) => m.jdSkill
-          ),
-          matchedPreferred: skillComparison.matched.preferred.map(
-            (m) => m.jdSkill
-          ),
-          missingRequired: skillComparison.missing,
-          missingPreferred: skillComparison.missingPreferred,
-          extraSkills: skillComparison.extra,
-        },
-        responsibilityCoverage: {
-          covered: responsibilityMatching.coveredResponsibilities.map((r) => ({
-            responsibility: r.responsibility,
-            explanation: r.explanation,
-          })),
-          weaklyCovered: responsibilityMatching.weaklyCovered.map((r) => ({
-            responsibility: r.responsibility,
-            explanation: r.explanation,
-          })),
-          notCovered: responsibilityMatching.notCovered.map((r) => ({
-            responsibility: r.responsibility,
-            explanation: r.explanation,
-          })),
-        },
-        parsedResume: {
-          name: normalizedResume.contactInfo.name,
-          skillCount:
-            normalizedResume.skills.technical.length +
-            normalizedResume.skills.soft.length +
-            normalizedResume.skills.other.length,
-          experienceCount: normalizedResume.experience.length,
-          educationCount: normalizedResume.education.length,
-        },
-        parsedJD: {
-          requiredSkillCount: parsedJD.requiredSkills.length,
-          preferredSkillCount: parsedJD.preferredSkills.length,
-          responsibilityCount: parsedJD.responsibilities.length,
-        },
-      },
-    };
-
-    // ---------------------------------------------------------------------------
-    // Log success
-    // ---------------------------------------------------------------------------
-    atsLogger.analysisSuccess({
-      userId,
-      ipAddress,
-      fileSize,
-      fileType: FILE_TYPE_NAMES[fileType] || fileType,
-      jdLength,
-      duration: timer.elapsed(),
-      score: score.overallScore,
-      grade: score.grade,
-    });
-
-    return NextResponse.json({ data: response }, { status: 200 });
   } catch (error: unknown) {
     // Log the full error for debugging
     console.error("[API /api/ats/analyze] Unhandled error:", error);

@@ -3,11 +3,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Upload,
   FileText,
   CheckCircle2,
   XCircle,
+  AlertCircle,
   ChevronDown,
   ChevronUp,
   Info,
@@ -35,9 +38,19 @@ const ALLOWED_FILE_TYPES = [
 
 type AnalysisState =
   | { status: "idle" }
-  | { status: "loading"; step: string }
+  | { status: "loading" }
   | { status: "success"; data: ATSAnalysisResponse }
   | { status: "error"; message: string };
+
+type AtsStageEvent = {
+  stage?: string;
+  message?: string;
+  progress?: number;
+  done?: boolean;
+  data?: ATSAnalysisResponse;
+  error?: string;
+  status?: number;
+};
 
 function usePrefersReducedMotion(): boolean {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -116,9 +129,6 @@ export default function ATSAnalyzer() {
   );
   const [loadingStageIndex, setLoadingStageIndex] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMilestone, setLoadingMilestone] = useState<
-    "idle" | "uploading" | "waiting" | "receiving" | "finalizing"
-  >("idle");
   // serverReported progress and message are driven by backend stage events
   const [serverProgress, setServerProgress] = useState<number>(0);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
@@ -143,7 +153,6 @@ export default function ATSAnalyzer() {
     if (analysisState.status !== "loading") {
       setLoadingStageIndex(0);
       setLoadingProgress(0);
-      setLoadingMilestone("idle");
       setServerProgress(0);
       setLoadingMessage("");
       return;
@@ -155,7 +164,8 @@ export default function ATSAnalyzer() {
     const interval = window.setInterval(() => {
       if (cancelled) return;
       setLoadingProgress((current) => {
-        if (prefersReducedMotion) return Math.min(100, serverProgress || current);
+        if (prefersReducedMotion)
+          return Math.min(100, serverProgress || current);
         // Smoothly approach serverProgress
         const target = Math.max(current, serverProgress || current);
         if (target <= current) return current;
@@ -297,55 +307,125 @@ export default function ATSAnalyzer() {
 
     setLoadingStageIndex(0);
     setLoadingProgress(prefersReducedMotion ? 1 : 2);
-    setLoadingMilestone("uploading");
-    setAnalysisState({ status: "loading", step: "Working..." });
+    setServerProgress(prefersReducedMotion ? 1 : 2);
+    setLoadingMessage("Uploading…");
+    setAnalysisState({ status: "loading" });
 
     try {
       const formData = new FormData();
       formData.append("resume", file);
       formData.append("jobDescription", jobDescription.trim());
 
-      setLoadingMilestone("waiting");
-      setAnalysisState({ status: "loading", step: "Working..." });
-
       const response = await fetch("/api/ats/analyze", {
         method: "POST",
         body: formData,
       });
 
-      setLoadingMilestone("receiving");
+      // If the server doesn't stream, fall back to JSON.
+      const contentType = response.headers.get("Content-Type") || "";
+      const isNdjson = contentType.includes("application/x-ndjson");
 
-      const result = await response.json();
-
-      setLoadingMilestone("finalizing");
-
-      if (!response.ok) {
-        // Handle rate limiting with specific message
-        if (response.status === 429) {
-          const retryAfter = response.headers.get("Retry-After");
-          const retryMessage = retryAfter
-            ? ` Please try again in ${Math.ceil(
-                parseInt(retryAfter) / 60
-              )} minute(s).`
-            : "";
-          throw new Error(
-            result.error || `Rate limit exceeded.${retryMessage}`
-          );
+      // Non-OK responses: try to parse a JSON error body.
+      if (!response.ok && !isNdjson) {
+        let msg = "Analysis failed. Please try again.";
+        try {
+          const errJson = (await response.json()) as { error?: string };
+          if (errJson?.error) msg = errJson.error;
+        } catch {
+          // ignore parsing errors
         }
-
-        // Handle auth errors
-        if (response.status === 401) {
-          throw new Error("Please sign in to use ATS analysis.");
-        }
-
-        throw new Error(result.error || "Analysis failed. Please try again.");
+        throw new Error(msg);
       }
 
-      // Completion: let the progress bar finish smoothly right when we have data.
+      if (!isNdjson) {
+        // JSON success path
+        const result = (await response.json()) as { data: ATSAnalysisResponse };
+        setServerProgress(100);
+        setLoadingProgress(100);
+        setAnalysisState({ status: "success", data: result.data });
+        return;
+      }
+
+      if (!response.body) {
+        throw new Error("No response body from server.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let finalData: ATSAnalysisResponse | null = null;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines only
+        while (true) {
+          const newlineIndex = buffer.indexOf("\n");
+          if (newlineIndex === -1) break;
+
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (!line) continue;
+
+          let evt: AtsStageEvent | null = null;
+          try {
+            evt = JSON.parse(line) as AtsStageEvent;
+          } catch {
+            continue;
+          }
+
+          if (evt.error) {
+            // streamed error
+            const status = evt.status;
+            const msg = evt.error;
+            if (status === 401)
+              throw new Error("Please sign in to use ATS analysis.");
+            if (status === 429)
+              throw new Error(
+                "Rate limit exceeded. Please try again in a bit."
+              );
+            throw new Error(msg);
+          }
+
+          if (typeof evt.progress === "number") {
+            const p = Math.max(0, Math.min(100, evt.progress));
+            setServerProgress((prev) => Math.max(prev, p));
+          }
+          if (typeof evt.message === "string" && evt.message.trim()) {
+            setLoadingMessage(evt.message);
+          }
+
+          // keep a loose mapping for the legacy stage list
+          if (typeof evt.progress === "number") {
+            const p = evt.progress;
+            setLoadingStageIndex((prev) => {
+              if (p >= 95) return Math.max(prev, 4);
+              if (p >= 70) return Math.max(prev, 3);
+              if (p >= 50) return Math.max(prev, 2);
+              if (p >= 25) return Math.max(prev, 1);
+              return Math.max(prev, 0);
+            });
+          }
+
+          if (evt.done && evt.data) {
+            finalData = evt.data;
+          }
+        }
+      }
+
+      if (!finalData) {
+        throw new Error("Analysis did not complete. Please try again.");
+      }
+
+      // Completion: let the progress UI go to 100% exactly when we have the final payload.
+      setServerProgress(100);
       setLoadingProgress(100);
-      setAnalysisState({ status: "success", data: result.data });
+      setAnalysisState({ status: "success", data: finalData });
     } catch (err) {
-      setLoadingMilestone("idle");
       setAnalysisState({
         status: "error",
         message:
@@ -356,6 +436,44 @@ export default function ATSAnalyzer() {
     }
   }, [file, jobDescription, prefersReducedMotion]);
 
+  // -----------------------------------------------------------------------
+  // Render
+  // -----------------------------------------------------------------------
+
+  const isLoading = analysisState.status === "loading";
+  const canAnalyze =
+    Boolean(file) && jobDescription.trim().length >= MIN_JD_LENGTH;
+
+  // Score ring stroke values (used by the results view)
+  const ringRadius = 42;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringScore =
+    analysisState.status === "success"
+      ? analysisState.data.score.overallScore
+      : 0;
+  const ringStrokeDasharray = `${
+    (ringScore / 100) * ringCircumference
+  } ${ringCircumference}`;
+
+  const showFilledBars = resultAnimState !== "enter";
+
+  return (
+    <div className="space-y-6">
+      {/* Inputs */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <Upload className="size-4" />
+              Resume
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="border border-dashed border-zinc-700 rounded-lg p-6 text-center hover:border-zinc-500 transition-colors"
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+            >
               <input
                 ref={fileInputRef}
                 type="file"
@@ -363,19 +481,22 @@ export default function ATSAnalyzer() {
                 onChange={handleFileChange}
                 className="hidden"
                 id="resume-upload"
+                disabled={isLoading}
               />
 
               {file ? (
                 <div className="flex items-center justify-center gap-3">
                   <CheckCircle2 className="size-5 text-green-500" />
-                  <span className="text-sm font-medium truncate max-w-[200px]">
+                  <span className="text-sm font-medium truncate max-w-[240px]">
                     {file.name}
                   </span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-6"
+                    className="size-7"
                     onClick={clearFile}
+                    disabled={isLoading}
+                    aria-label="Remove resume"
                   >
                     <X className="size-4" />
                   </Button>
@@ -388,7 +509,7 @@ export default function ATSAnalyzer() {
                     <span className="text-primary">browse</span>
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    PDF or DOCX (max 5MB)
+                    PDF or DOCX (max {MAX_FILE_SIZE_DISPLAY})
                   </p>
                 </label>
               )}
@@ -396,7 +517,6 @@ export default function ATSAnalyzer() {
           </CardContent>
         </Card>
 
-        {/* Job Description */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -410,64 +530,34 @@ export default function ATSAnalyzer() {
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               className="min-h-[140px] resize-none"
+              disabled={isLoading}
             />
             <p className="text-xs text-muted-foreground mt-2">
-              {jobDescription.length < 50
-                ? `${50 - jobDescription.length} more characters needed`
+              {jobDescription.length < MIN_JD_LENGTH
+                ? `${
+                    MIN_JD_LENGTH - jobDescription.length
+                  } more characters needed`
                 : `${jobDescription.length.toLocaleString()} characters`}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Analyze Button */}
+      {/* Analyze */}
       {!isLoading && (
         <div className="flex justify-center">
           <Button
             onClick={handleAnalyze}
             disabled={!canAnalyze}
             size="lg"
-            className="min-w-[200px]"
+            className="min-w-[220px]"
           >
             Analyze Resume
           </Button>
         </div>
       )}
 
-      {/* Note */}
-      <Card className="border-zinc-800/60 bg-zinc-900/10">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <Info className="size-5 text-muted-foreground shrink-0 mt-0.5" />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Missing some required or preferred skills does not mean you
-              shouldn&apos;t apply. Many students land internships from roles
-              they didn&apos;t think they&apos;d even get an interview for. This
-              tool is here to give you the best possible chance, not to filter
-              you out.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Error State */}
-      {analysisState.status === "error" && (
-        <Card className="border-red-500/50 bg-red-500/5">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="size-5 text-red-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-red-500">Analysis Failed</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {analysisState.message}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Loading State */}
+      {/* Loading */}
       {isLoading && (
         <Card className="animate-in fade-in-0 duration-200">
           <CardContent className="pt-6">
@@ -484,7 +574,6 @@ export default function ATSAnalyzer() {
                 </div>
               </div>
 
-              {/* Progress bar: smooth, subtle, non-blocking */}
               <div className="space-y-1">
                 <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
                   <div
@@ -510,7 +599,23 @@ export default function ATSAnalyzer() {
         </Card>
       )}
 
-      {/* Results */}
+      {/* Error */}
+      {analysisState.status === "error" && (
+        <Card className="border-red-500/50 bg-red-500/5">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="size-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-red-500">Analysis Failed</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {analysisState.message}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {analysisState.status === "success" && (
         <div
           className={
