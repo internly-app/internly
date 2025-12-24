@@ -8,11 +8,12 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import CompanyCard from "@/components/CompanyCard";
+import ATSAnalyzer from "@/components/ATSAnalyzer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/AuthProvider";
-import { FileText, Bookmark, ArrowRight } from "lucide-react";
+import { FileText, Bookmark, ArrowRight, Target } from "lucide-react";
 import type { ReviewWithDetails, CompanyWithStats } from "@/lib/types/database";
 
 // Animation variants - fade in only (no y movement for smoother loading)
@@ -38,7 +39,7 @@ const itemVariants = {
   },
 };
 
-type Tab = "reviews" | "saved";
+type Tab = "reviews" | "saved" | "ats";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -395,6 +396,15 @@ export default function ProfilePage() {
             <span className="sm:hidden">Saved</span>
             <span className="ml-1">({savedCompanies.length})</span>
           </Button>
+          <Button
+            variant={activeTab === "ats" ? "default" : "outline"}
+            onClick={() => setActiveTab("ats")}
+            className="gap-2 flex-1 sm:flex-initial"
+          >
+            <Target className="size-4" />
+            <span className="hidden sm:inline">ATS Analyzer</span>
+            <span className="sm:hidden">ATS</span>
+          </Button>
         </div>
 
         {/* Content Area - Same structure for both tabs */}
@@ -502,6 +512,9 @@ export default function ProfilePage() {
               )}
             </>
           )}
+
+          {/* ATS Analyzer Tab */}
+          {activeTab === "ats" && <ATSAnalyzer />}
         </div>
       </motion.div>
       <Footer />
