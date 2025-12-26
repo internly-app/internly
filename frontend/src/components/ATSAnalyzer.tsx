@@ -60,39 +60,66 @@ type LoadingCheckpoint = {
 
 // Deterministic loading cycles (frontend-only)
 // - Phase 1: fast ramp to ~35–45% within the first second
-// - Phase 2: slow/uneven increments to ~65–75%
-// - Phase 3: very slow movement (or pause) while waiting for backend
+// - Phase 2: slow/uneven increments with pauses to ~80–90%
+// - Phase 3: very slow creep toward ~92-95% while waiting for backend
 
 const LOADING_CYCLES: ReadonlyArray<ReadonlyArray<LoadingCheckpoint>> = [
-  // Cycle A
+  // Cycle A - has pauses at 28%, 52%, and 74%
   [
     { atMs: 0, percent: 0, message: "Preparing analysis" },
-    { atMs: 220, percent: 18, message: "Parsing resume structure" },
-    { atMs: 520, percent: 33, message: "Reading job description" },
-    { atMs: 900, percent: 42, message: "Extracting skills and experience" },
-    { atMs: 1700, percent: 51, message: "Evaluating requirements match" },
-    { atMs: 2600, percent: 62, message: "Comparing keywords" },
-    { atMs: 3600, percent: 71, message: "Calculating ATS score" },
+    { atMs: 180, percent: 12, message: "Reading resume content" },
+    { atMs: 380, percent: 22, message: "Parsing resume structure" },
+    { atMs: 600, percent: 28, message: "Parsing resume structure" }, // pause
+    { atMs: 950, percent: 28, message: "Extracting text content" }, // hold
+    { atMs: 1150, percent: 38, message: "Reading job description" },
+    { atMs: 1550, percent: 48, message: "Extracting skills and experience" },
+    { atMs: 1900, percent: 52, message: "Extracting skills and experience" }, // pause
+    { atMs: 2400, percent: 52, message: "Analyzing requirements" }, // hold
+    { atMs: 2650, percent: 61, message: "Evaluating requirements match" },
+    { atMs: 3100, percent: 68, message: "Comparing keywords" },
+    { atMs: 3500, percent: 74, message: "Comparing keywords" }, // pause
+    { atMs: 4100, percent: 74, message: "Calculating alignment" }, // hold
+    { atMs: 4400, percent: 81, message: "Calculating ATS score" },
+    { atMs: 5000, percent: 86, message: "Finalizing analysis" },
+    { atMs: 5800, percent: 89, message: "Almost done" },
   ],
-  // Cycle B
+  // Cycle B - has pauses at 34%, 58%, and 78%
   [
     { atMs: 0, percent: 0, message: "Preparing analysis" },
-    { atMs: 180, percent: 16, message: "Reading resume content" },
-    { atMs: 480, percent: 29, message: "Parsing resume structure" },
-    { atMs: 850, percent: 38, message: "Reading job description" },
-    { atMs: 1650, percent: 49, message: "Extracting skills and experience" },
-    { atMs: 2550, percent: 61, message: "Evaluating requirements match" },
-    { atMs: 3450, percent: 73, message: "Finalizing analysis" },
+    { atMs: 200, percent: 15, message: "Reading resume content" },
+    { atMs: 450, percent: 26, message: "Parsing resume structure" },
+    { atMs: 700, percent: 34, message: "Reading job description" },
+    { atMs: 1100, percent: 34, message: "Reading job description" }, // pause
+    { atMs: 1400, percent: 34, message: "Analyzing job requirements" }, // hold
+    { atMs: 1650, percent: 45, message: "Extracting skills and experience" },
+    { atMs: 2050, percent: 52, message: "Evaluating requirements match" },
+    { atMs: 2450, percent: 58, message: "Evaluating requirements match" }, // pause
+    { atMs: 2950, percent: 58, message: "Cross-referencing experience" }, // hold
+    { atMs: 3250, percent: 67, message: "Comparing keywords" },
+    { atMs: 3700, percent: 73, message: "Calculating alignment" },
+    { atMs: 4100, percent: 78, message: "Calculating ATS score" },
+    { atMs: 4600, percent: 78, message: "Calculating ATS score" }, // pause
+    { atMs: 5000, percent: 84, message: "Finalizing analysis" },
+    { atMs: 5600, percent: 88, message: "Almost done" },
   ],
-  // Cycle C
+  // Cycle C - has pauses at 31%, 55%, and 72%
   [
     { atMs: 0, percent: 0, message: "Preparing analysis" },
-    { atMs: 260, percent: 20, message: "Parsing resume structure" },
-    { atMs: 560, percent: 34, message: "Reading job description" },
-    { atMs: 980, percent: 45, message: "Extracting skills and experience" },
-    { atMs: 1900, percent: 55, message: "Evaluating requirements match" },
-    { atMs: 2900, percent: 66, message: "Calculating ATS score" },
-    { atMs: 4200, percent: 75, message: "Finalizing analysis" },
+    { atMs: 160, percent: 10, message: "Reading resume content" },
+    { atMs: 340, percent: 19, message: "Parsing resume structure" },
+    { atMs: 580, percent: 31, message: "Reading job description" },
+    { atMs: 900, percent: 31, message: "Reading job description" }, // pause
+    { atMs: 1300, percent: 31, message: "Processing document" }, // hold
+    { atMs: 1500, percent: 42, message: "Extracting skills and experience" },
+    { atMs: 1900, percent: 49, message: "Evaluating requirements match" },
+    { atMs: 2300, percent: 55, message: "Evaluating requirements match" }, // pause
+    { atMs: 2700, percent: 55, message: "Matching experience bullets" }, // hold
+    { atMs: 3000, percent: 64, message: "Comparing keywords" },
+    { atMs: 3500, percent: 72, message: "Calculating alignment" },
+    { atMs: 3900, percent: 72, message: "Calculating alignment" }, // pause
+    { atMs: 4300, percent: 79, message: "Calculating ATS score" },
+    { atMs: 4800, percent: 85, message: "Finalizing analysis" },
+    { atMs: 5500, percent: 90, message: "Almost done" },
   ],
 ];
 
@@ -221,10 +248,10 @@ export default function ATSAnalyzer() {
     let cancelled = false;
 
     // Phase 3: cap that we creep toward while waiting for backend, to avoid
-    // hitting 100% before the response.
+    // hitting 100% before the response. Goes up to ~92-95% for realistic feel.
     const phase3Cap = Math.min(
-      78,
-      Math.max(68, cycle[cycle.length - 1]?.percent ?? 72)
+      94,
+      Math.max(91, cycle[cycle.length - 1]?.percent ?? 90)
     );
 
     const tick = () => {
@@ -270,13 +297,22 @@ export default function ATSAnalyzer() {
         return Math.round(next * 100) / 100;
       });
 
-      // Phase 3 creep: very slow movement while waiting.
+      // Phase 3 creep: slow movement with micro-pauses while waiting for backend.
+      // Creates realistic "processing" feel by occasionally pausing.
       if (!backendDone) {
         setLoadingProgress((current) => {
           if (prefersReducedMotion) return current;
           if (current >= phase3Cap) return current;
-          // tiny creep.
-          const next = Math.min(phase3Cap, current + 0.08);
+
+          // Create micro-pauses: ~30% of ticks do nothing (simulates processing)
+          const tick = Math.floor(elapsed / 90);
+          const shouldPause = tick % 5 === 0 || tick % 7 === 0;
+          if (shouldPause && current > 85) return current; // more pauses near the end
+
+          // Variable creep speed: slower as we get closer to the cap
+          const remaining = phase3Cap - current;
+          const creepRate = remaining > 5 ? 0.12 : remaining > 2 ? 0.06 : 0.03;
+          const next = Math.min(phase3Cap, current + creepRate);
           return Math.round(next * 100) / 100;
         });
       }
@@ -1074,8 +1110,6 @@ export default function ATSAnalyzer() {
                 const weaklyCovered =
                   analysisState.data.details.responsibilityCoverage
                     .weaklyCovered;
-                const notCovered =
-                  analysisState.data.details.responsibilityCoverage.notCovered;
 
                 // Some LLM outputs can accidentally duplicate the same responsibility
                 // across buckets (or even within a bucket). We compute displayed counts
@@ -1090,36 +1124,33 @@ export default function ATSAnalyzer() {
 
                 const uniqueCovered = unique(covered);
                 const uniqueWeakly = unique(weaklyCovered);
-                const uniqueNot = unique(notCovered);
 
                 // If a responsibility appears in multiple buckets, treat it as the
-                // strongest bucket for count purposes: covered > partially > not.
+                // strongest bucket for count purposes: covered > partially.
                 const coveredSet = new Set(uniqueCovered);
                 const weaklySet = new Set(
                   uniqueWeakly.filter((r) => !coveredSet.has(r))
                 );
-                const notSet = new Set(
-                  uniqueNot.filter(
-                    (r) => !coveredSet.has(r) && !weaklySet.has(r)
-                  )
-                );
 
                 const coveredCount = coveredSet.size;
-                const totalUnique =
-                  coveredSet.size + weaklySet.size + notSet.size;
+                const totalUnique = coveredSet.size + weaklySet.size;
                 const totalFromJD =
                   analysisState.data.details.parsedJD.responsibilityCount;
 
-                const denominator = Math.max(totalUnique, totalFromJD);
+                // Prefer what we actually display (unique covered + partially covered).
+                // Fall back to JD count if the matcher returned fewer items (e.g., model omission).
+                const totalResponsibilities = Math.max(
+                  totalUnique,
+                  totalFromJD
+                );
+
+                // Suppress unused variable warnings - kept for possible future use
+                void coveredCount;
+                void totalResponsibilities;
 
                 return (
                   <CardTitle className="text-base font-medium flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      Experience Alignment
-                      <span className="text-xs text-muted-foreground font-normal">
-                        ({coveredCount}/{denominator} covered)
-                      </span>
-                    </span>
+                    <span>Experience Alignment</span>
                     {expandedSections.has("responsibilities") ? (
                       <ChevronUp className="size-4" />
                     ) : (
@@ -1198,40 +1229,6 @@ export default function ATSAnalyzer() {
                       ))}
                   </div>
                 )}
-
-                {/* Not Covered */}
-                {analysisState.data.details.responsibilityCoverage.notCovered
-                  .length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-red-500 flex items-center gap-2">
-                      <XCircle className="size-4" />
-                      Not Covered
-                    </h4>
-                    {analysisState.data.details.responsibilityCoverage.notCovered
-                      .filter((item, idx, arr) => {
-                        const r = item.responsibility.trim();
-                        if (!r) return false;
-                        return (
-                          arr.findIndex(
-                            (x) => x.responsibility.trim() === r
-                          ) === idx
-                        );
-                      })
-                      .map((item, i) => (
-                        <div
-                          key={`${item.responsibility}-${i}`}
-                          className="pl-6 border-l-2 border-red-500/30 py-1"
-                        >
-                          <p className="text-sm font-medium">
-                            {item.responsibility}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                            {item.explanation}
-                          </p>
-                        </div>
-                      ))}
-                  </div>
-                )}
               </CardContent>
             )}
           </Card>
@@ -1239,91 +1236,17 @@ export default function ATSAnalyzer() {
           {/* Deductions / Explainability Section */}
           {(() => {
             const score = analysisState.data.score;
-            const hasItemizedDeductions = score.allDeductions.length > 0;
-            const shouldShowExplainability = score.overallScore < 100;
+            const deductions = score.deductions || [];
+            const shouldShowExplainability =
+              score.overallScore < 100 && deductions.length > 0;
 
             if (!shouldShowExplainability) return null;
 
-            const explainabilityLabelForCategoryKey = (
-              key: string,
-              categoryName: string
-            ): string => {
-              // Keep labels consistent with the sections above.
-              if (key === "responsibilities") return "Experience alignment";
-              return categoryName;
-            };
-
-            const explainabilityReasonForCategoryKey = (
-              key: string
-            ): string | null => {
-              if (key === "preferredSkills") {
-                const missingPreferredCountLocal =
-                  analysisState.data.details.skillComparison.missingPreferred
-                    ?.length ?? 0;
-                if (missingPreferredCountLocal > 0) {
-                  return `Some preferred skills were missing (${missingPreferredCountLocal}).`;
-                }
-                return "Preferred skills are bonus points and can lower the score if not present.";
-              }
-
-              if (key === "responsibilities") {
-                const notCovered =
-                  analysisState.data.details.responsibilityCoverage?.notCovered
-                    ?.length ?? 0;
-                const weaklyCovered =
-                  analysisState.data.details.responsibilityCoverage
-                    ?.weaklyCovered?.length ?? 0;
-                if (notCovered + weaklyCovered > 0) {
-                  const parts: string[] = [];
-                  if (notCovered > 0) parts.push(`${notCovered} not covered`);
-                  if (weaklyCovered > 0)
-                    parts.push(`${weaklyCovered} partially covered`);
-                  return `Some job responsibilities weren't strongly supported by the resume (${parts.join(
-                    ", "
-                  )}).`;
-                }
-                return "Some responsibilities were only weakly supported by the resume.";
-              }
-
-              if (key === "education") {
-                // We intentionally keep this high-level; itemized details (e.g., exact degree mismatch)
-                // are only shown when the scorer provides explicit deductions.
-                return "Education alignment affected the score (if the job description specifies education requirements, your resume may not fully match them).";
-              }
-
-              if (key === "requiredSkills") {
-                const missingRequiredCount =
-                  analysisState.data.details.skillComparison.missingRequired
-                    ?.length ?? 0;
-                if (missingRequiredCount > 0) {
-                  return `Some required skills were missing (${missingRequiredCount}).`;
-                }
-                return "Required skill coverage affected the overall score.";
-              }
-
-              return null;
-            };
-
-            const breakdownEntries = Object.entries(score.breakdown)
-              .map(([key, category]) => {
-                const pointsLost = Math.max(
-                  0,
-                  Math.round(category.weight - category.weightedScore)
-                );
-                return {
-                  key,
-                  category,
-                  pointsLost,
-                  label: explainabilityLabelForCategoryKey(key, category.name),
-                  reason: explainabilityReasonForCategoryKey(key),
-                };
-              })
-              .filter((x) => x.pointsLost > 0)
-              .sort((a, b) => b.pointsLost - a.pointsLost);
-
-            const missingPreferredCount =
-              analysisState.data.details.skillComparison.missingPreferred
-                ?.length ?? 0;
+            // Total points lost equals sum of deductions (guaranteed by new scoring)
+            const totalPointsLost = deductions.reduce(
+              (sum, d) => sum + (Number.isFinite(d.points) ? d.points : 0),
+              0
+            );
 
             return (
               <Card
@@ -1343,15 +1266,10 @@ export default function ATSAnalyzer() {
                 >
                   <CardTitle className="text-base font-medium flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                      {hasItemizedDeductions
-                        ? "Points Deduction"
-                        : "Where Points Were Lost"}
-                      {hasItemizedDeductions && (
-                        <span className="text-xs text-muted-foreground font-normal">
-                          ({analysisState.data.score.allDeductions.length}{" "}
-                          items)
-                        </span>
-                      )}
+                      Where Points Were Lost
+                      <span className="text-xs text-muted-foreground font-normal">
+                        ({totalPointsLost} pts total)
+                      </span>
                     </span>
                     {expandedSections.has("deductions") ? (
                       <ChevronUp className="size-4" />
@@ -1362,76 +1280,23 @@ export default function ATSAnalyzer() {
                 </CardHeader>
                 {expandedSections.has("deductions") && (
                   <CardContent className="pt-0">
-                    {hasItemizedDeductions ? (
-                      <>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          These are the concrete reasons points were deducted
-                          from the overall score.
-                        </p>
-                        <div className="space-y-2">
-                          {analysisState.data.score.allDeductions
-                            .sort((a, b) => b.points - a.points)
-                            .slice(0, 10)
-                            .map((deduction, i) => (
-                              <div
-                                key={i}
-                                className="flex items-start justify-between gap-4 text-sm py-1"
-                              >
-                                <span className="text-muted-foreground">
-                                  {deduction.reason}
-                                </span>
-                                <span className="text-red-500 shrink-0">
-                                  -{deduction.points} pts
-                                </span>
-                              </div>
-                            ))}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          Your score dropped due to category weighting (for
-                          example: missing preferred skills). In this view, we
-                          don&apos;t have item-by-item deductions, so we show
-                          the categories where points were lost.
-                        </p>
-
-                        {missingPreferredCount > 0 && (
-                          <p className="text-xs text-muted-foreground mb-3">
-                            Missing preferred skills: {missingPreferredCount}
-                          </p>
-                        )}
-
-                        <div className="space-y-2">
-                          {breakdownEntries.length > 0 ? (
-                            breakdownEntries.slice(0, 10).map((entry) => (
-                              <div
-                                key={entry.key}
-                                className="flex items-start justify-between gap-4 text-sm py-1"
-                              >
-                                <div className="min-w-0">
-                                  <div className="text-muted-foreground">
-                                    {entry.label}
-                                  </div>
-                                  {entry.reason && (
-                                    <div className="text-xs text-muted-foreground/80 mt-0.5">
-                                      {entry.reason}
-                                    </div>
-                                  )}
-                                </div>
-                                <span className="text-red-500 shrink-0">
-                                  -{entry.pointsLost} pts
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              No scored categories reported point loss.
-                            </p>
-                          )}
-                        </div>
-                      </>
-                    )}
+                    <div className="space-y-2">
+                      {deductions
+                        .sort((a, b) => b.points - a.points)
+                        .map((deduction, i) => (
+                          <div
+                            key={i}
+                            className="flex items-start justify-between gap-4 text-sm py-1"
+                          >
+                            <span className="text-muted-foreground">
+                              {deduction.reason}
+                            </span>
+                            <span className="text-red-500 shrink-0">
+                              -{deduction.points} pts
+                            </span>
+                          </div>
+                        ))}
+                    </div>
                   </CardContent>
                 )}
               </Card>

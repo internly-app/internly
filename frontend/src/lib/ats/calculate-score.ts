@@ -1,97 +1,31 @@
 /**
- * Transparent ATS-style scoring utility.
+ * ATS Score Calculator
  *
- * Combines skill coverage, responsibility coverage, and education match
- * into a deterministic, explainable score with clear breakdowns.
+ * Scoring Philosophy:
+ * - Start at 100 points
+ * - Each deduction is explicit and traceable
+ * - No double-counting: each issue only reduces the score once
+ * - Deductions sum exactly to (100 - overallScore)
  *
- * All weights and logic are explicit - no hidden factors.
+ * Category Weight Caps (maximum points that can be lost per category):
+ * - Required Skills: 40 points max
+ * - Preferred Skills: 15 points max
+ * - Responsibilities/Experience: 30 points max
+ * - Education: 15 points max
  */
 
+import type { ParsedJobDescription } from "./parse-job-description";
+import type { NormalizedResume, EducationEntry } from "./normalize-resume";
 import type { SkillComparisonResult } from "./compare-skills";
 import type { ResponsibilityMatchingResult } from "./match-responsibilities";
-import type { ParsedJobDescription } from "./parse-job-description";
-import type { NormalizedResume } from "./normalize-resume";
-
-// ---------------------------------------------------------------------------
-// Weights (explicitly defined, fully transparent)
-// ---------------------------------------------------------------------------
-
-/**
- * Category weights - must sum to 100.
- * These determine how much each category contributes to the overall score.
- */
-export const CATEGORY_WEIGHTS = {
-  /** Required skills are critical for ATS filtering */
-  requiredSkills: 40,
-  /** Preferred skills provide bonus points */
-  preferredSkills: 15,
-  /** Responsibility coverage shows relevant experience */
-  responsibilities: 30,
-  /** Education requirements (if specified) */
-  education: 15,
-} as const;
-
-const MAX_SINGLE_REQUIRED_SKILL_DEDUCTION = 12;
-
-// Compile-time check that weights sum to 100
-const _weightSum: 100 = (CATEGORY_WEIGHTS.requiredSkills +
-  CATEGORY_WEIGHTS.preferredSkills +
-  CATEGORY_WEIGHTS.responsibilities +
-  CATEGORY_WEIGHTS.education) as 100;
-void _weightSum;
-
-/**
- * Responsibility coverage point values.
- */
-export const RESPONSIBILITY_POINTS = {
-  covered: 1.0, // Full points
-  weakly_covered: 0.5, // Half points
-  not_covered: 0.0, // No points
-} as const;
-
-// Responsibilities that are primarily learning/behavioral expectations should
-// not produce experience-based deductions for interns.
-const LEARNING_ORIENTED_RESPONSIBILITY_PATTERNS: RegExp[] = [
-  /learn\s+quickly/i,
-  /willing\s+to\s+learn/i,
-  /eager\s+to\s+learn/i,
-  /ask\s+questions/i,
-  /curious/i,
-  /growth\s+mindset/i,
-  /self-?starter/i,
-  /adapt/i,
-  /take\s+initiative/i,
-  /collaborat(e|ion)/i,
-  /communicat(e|ion)/i,
-];
-
-function isLearningOrientedResponsibility(text: string): boolean {
-  return LEARNING_ORIENTED_RESPONSIBILITY_PATTERNS.some((re) => re.test(text));
-}
-
-/**
- * If the JD doesn't explicitly require prior experience for a responsibility,
- * we avoid harsh deductions (especially for interns).
- *
- * We don't have the original JD responsibility phrasing/section tagging here,
- * so this is a conservative heuristic based on the responsibility phrasing.
- */
-function isExplicitExperienceRequirement(text: string): boolean {
-  return /\b(must|required|proven|demonstrated|hands-?on|experience)\b/i.test(
-    text
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export interface ScoreDeduction {
-  /** What caused the deduction */
   reason: string;
-  /** Points deducted (positive number) */
   points: number;
-  /** Category this deduction applies to */
   category:
     | "requiredSkills"
     | "preferredSkills"
@@ -99,221 +33,81 @@ export interface ScoreDeduction {
     | "education";
 }
 
-export interface CategoryScore {
-  /** Category name */
+export interface ResponsibilityScoreMatch {
+  responsibility: string;
+  status: "covered" | "partially_covered" | "not_covered";
+  matchedExperience?: string;
+}
+
+export interface CategoryScores {
+  requiredSkills: {
+    score: number;
+    maxScore: number;
+    matchedSkills: string[];
+    missingSkills: string[];
+  };
+  preferredSkills: {
+    score: number;
+    maxScore: number;
+    matchedSkills: string[];
+    missingSkills: string[];
+  };
+  responsibilities: {
+    score: number;
+    maxScore: number;
+    matches: ResponsibilityScoreMatch[];
+  };
+  education: {
+    score: number;
+    maxScore: number;
+    meetsRequirements: boolean;
+    details: string;
+  };
+}
+
+export interface CategoryBreakdown {
   name: string;
-  /** Points earned in this category */
-  earned: number;
-  /** Maximum possible points for this category */
-  possible: number;
-  /** Percentage score for this category (0-100) */
   percentage: number;
-  /** Weight applied to this category */
   weight: number;
-  /** Weighted contribution to overall score */
   weightedScore: number;
-  /** Specific deductions in this category */
-  deductions: ScoreDeduction[];
 }
 
 export interface ATSScoreResult {
-  /** Overall score from 0-100 */
   overallScore: number;
-  /** Letter grade (A, B, C, D, F) */
-  grade: "A" | "B" | "C" | "D" | "F";
-  /** Breakdown by category */
-  breakdown: {
-    requiredSkills: CategoryScore;
-    preferredSkills: CategoryScore;
-    responsibilities: CategoryScore;
-    education: CategoryScore;
-  };
-  /** All deductions that affected the score */
-  allDeductions: ScoreDeduction[];
-  /** Human-readable summary */
+  grade: string;
   summary: string;
+  categoryScores: CategoryScores;
+  deductions: ScoreDeduction[];
+  // Legacy fields for backward compatibility
+  breakdown: Record<string, CategoryBreakdown>;
+  allDeductions: ScoreDeduction[];
+}
+
+// Input type for calculateATSScore
+interface ScoreInput {
+  skillComparison: SkillComparisonResult;
+  responsibilityMatching: ResponsibilityMatchingResult;
+  jobDescription: ParsedJobDescription;
+  resume: NormalizedResume;
 }
 
 // ---------------------------------------------------------------------------
-// Education matching helpers
+// Constants
 // ---------------------------------------------------------------------------
 
-/**
- * Common degree level patterns for matching.
- */
-const DEGREE_PATTERNS = {
-  phd: /ph\.?d|doctorate|doctoral/i,
-  masters: /master'?s?|m\.?s\.?|m\.?a\.?|mba|m\.?eng/i,
-  bachelors: /bachelor'?s?|b\.?s\.?|b\.?a\.?|b\.?eng|undergraduate/i,
-  associates: /associate'?s?|a\.?s\.?|a\.?a\.?/i,
-  highSchool: /high\s*school|ged|diploma/i,
+// Category weight caps - maximum points that can be lost per category
+const CATEGORY_CAPS = {
+  requiredSkills: 40,
+  preferredSkills: 15,
+  responsibilities: 30,
+  education: 15,
 } as const;
 
-type DegreeLevel = keyof typeof DEGREE_PATTERNS;
+// Per-item deduction amounts
+const DEDUCTION_PER_MISSING_REQUIRED_SKILL = 8; // With cap of 40, allows ~5 missing skills to hit max
+const DEDUCTION_PER_MISSING_RESPONSIBILITY = 6; // With cap of 30, allows ~5 missing to hit max
 
-const DEGREE_HIERARCHY: DegreeLevel[] = [
-  "phd",
-  "masters",
-  "bachelors",
-  "associates",
-  "highSchool",
-];
-
-/**
- * Extract the highest degree level from a string.
- */
-function extractDegreeLevel(text: string): DegreeLevel | null {
-  for (const level of DEGREE_HIERARCHY) {
-    if (DEGREE_PATTERNS[level].test(text)) {
-      return level;
-    }
-  }
-  return null;
-}
-
-/**
- * Extract the minimum acceptable degree level from a JD requirement string.
- *
- * Fairness rule: if the JD says "Bachelor's OR Master's", a Bachelor's
- * is sufficient (minimum = bachelors), even though a master's is also valid.
- */
-function extractMinimumDegreeLevel(text: string): DegreeLevel | null {
-  const normalized = text.toLowerCase();
-
-  // Any typical "or" construct: "bachelor's or master's" / "bs or ms".
-  const hasOr = /\bor\b|\//i.test(text);
-  const mentioned: DegreeLevel[] = [];
-  for (const level of DEGREE_HIERARCHY) {
-    if (DEGREE_PATTERNS[level].test(normalized)) {
-      mentioned.push(level);
-    }
-  }
-
-  if (mentioned.length === 0) return null;
-
-  // If it's an "or" list, accept the lowest level mentioned.
-  if (hasOr && mentioned.length >= 2) {
-    return mentioned.reduce((lowest, current) => {
-      return DEGREE_HIERARCHY.indexOf(current) >
-        DEGREE_HIERARCHY.indexOf(lowest)
-        ? current
-        : lowest;
-    }, mentioned[0]);
-  }
-
-  // Otherwise fall back to the highest (most strict) level.
-  return mentioned.reduce((highest, current) => {
-    return DEGREE_HIERARCHY.indexOf(current) < DEGREE_HIERARCHY.indexOf(highest)
-      ? current
-      : highest;
-  }, mentioned[0]);
-}
-
-/**
- * Check if resume education meets JD requirements.
- * Returns a score from 0-1.
- */
-function calculateEducationMatch(
-  jdRequirements: string[],
-  resumeEducation: NormalizedResume["education"]
-): { score: number; deductions: ScoreDeduction[] } {
-  const deductions: ScoreDeduction[] = [];
-
-  // If no education requirements, give full credit
-  if (jdRequirements.length === 0) {
-    return { score: 1.0, deductions: [] };
-  }
-
-  // Extract minimum required degree level from JD
-  let requiredLevel: DegreeLevel | null = null;
-  for (const req of jdRequirements) {
-    const level = extractMinimumDegreeLevel(req);
-    if (level) {
-      // Take the highest required level
-      if (
-        !requiredLevel ||
-        DEGREE_HIERARCHY.indexOf(level) <
-          DEGREE_HIERARCHY.indexOf(requiredLevel)
-      ) {
-        requiredLevel = level;
-      }
-    }
-  }
-
-  // Extract candidate's highest degree level
-  let candidateLevel: DegreeLevel | null = null;
-  for (const edu of resumeEducation) {
-    if (edu.degree) {
-      const level = extractDegreeLevel(edu.degree);
-      if (level) {
-        if (
-          !candidateLevel ||
-          DEGREE_HIERARCHY.indexOf(level) <
-            DEGREE_HIERARCHY.indexOf(candidateLevel)
-        ) {
-          candidateLevel = level;
-        }
-      }
-    }
-  }
-
-  // If we couldn't parse requirements, give partial credit for having any education
-  if (!requiredLevel) {
-    if (resumeEducation.length > 0) {
-      return { score: 0.8, deductions: [] };
-    }
-    return { score: 0.5, deductions: [] };
-  }
-
-  // If candidate has no parseable education
-  if (!candidateLevel) {
-    if (resumeEducation.length > 0) {
-      // Has education but couldn't parse level
-      deductions.push({
-        reason: "Education level unclear or not specified",
-        points: 5,
-        category: "education",
-      });
-      return { score: 0.5, deductions };
-    }
-    deductions.push({
-      reason: `Missing required education: ${jdRequirements[0]}`,
-      points: 15,
-      category: "education",
-    });
-    return { score: 0, deductions };
-  }
-
-  // Compare levels
-  const requiredIndex = DEGREE_HIERARCHY.indexOf(requiredLevel);
-  const candidateIndex = DEGREE_HIERARCHY.indexOf(candidateLevel);
-
-  if (candidateIndex <= requiredIndex) {
-    // Candidate meets or exceeds requirement
-    return { score: 1.0, deductions: [] };
-  } else if (candidateIndex === requiredIndex + 1) {
-    // One level below (e.g., Bachelor's when Master's required)
-    deductions.push({
-      reason: `Education below preferred level (has ${candidateLevel}, prefers ${requiredLevel})`,
-      points: 7,
-      category: "education",
-    });
-    return { score: 0.5, deductions };
-  } else {
-    // Significantly below
-    deductions.push({
-      reason: `Education significantly below requirement (has ${candidateLevel}, requires ${requiredLevel})`,
-      points: 12,
-      category: "education",
-    });
-    return { score: 0.2, deductions };
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Field of study matching
-// ---------------------------------------------------------------------------
-
+// CS-related fields for education matching
 const CS_RELATED_FIELDS = [
   "computer science",
   "software engineering",
@@ -321,394 +115,841 @@ const CS_RELATED_FIELDS = [
   "information technology",
   "information systems",
   "data science",
+  "cybersecurity",
   "artificial intelligence",
   "machine learning",
-  "cybersecurity",
-  "informatics",
+  "web development",
+  "programming",
   "computing",
+  "informatics",
   "electrical engineering",
-  "electronics",
-  "electronics and communication",
-  "telecommunications",
-  "management engineering",
-  "engineering",
-  "systems engineering",
   "mathematics",
   "applied mathematics",
   "statistics",
   "physics",
+  "engineering",
+  "management engineering", // User specifically requested this count as CS-related
 ];
 
-/**
- * Check if a field of study is CS/tech related.
- */
-function isCSRelatedField(field: string | null): boolean {
-  if (!field) return false;
-  const normalized = field.toLowerCase();
-  return CS_RELATED_FIELDS.some(
-    (csField) =>
-      normalized.includes(csField) || csField.includes(normalized.split(" ")[0])
-  );
-}
-
-function dedupeDeductions(deductions: ScoreDeduction[]): ScoreDeduction[] {
-  const seen = new Set<string>();
-  const result: ScoreDeduction[] = [];
-  for (const d of deductions) {
-    const key = `${d.category}::${d.reason}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    result.push(d);
-  }
-  return result;
-}
-
 // ---------------------------------------------------------------------------
-// Main scoring function
+// Main Scoring Function
 // ---------------------------------------------------------------------------
 
-export interface CalculateATSScoreInput {
-  /** Skill comparison result from compareSkills() */
-  skillComparison: SkillComparisonResult;
-  /** Responsibility matching result from matchResponsibilities() */
-  responsibilityMatching: ResponsibilityMatchingResult;
-  /** Parsed job description (for education requirements) */
-  jobDescription: Pick<ParsedJobDescription, "educationRequirements">;
-  /** Normalized resume (for education data) */
-  resume: Pick<NormalizedResume, "education">;
-}
-
 /**
- * Calculate a transparent ATS-style score.
+ * Calculate ATS score from pre-computed skill comparison and responsibility matching.
  *
- * All scoring logic is deterministic with explicit weights.
- * No AI decides the weights - they are hardcoded and documented.
- *
- * @param input - Combined results from skill comparison and responsibility matching.
- * @returns Detailed score breakdown with explanations.
- *
- * @example
- * ```ts
- * const score = calculateATSScore({
- *   skillComparison: compareSkills(jd, resume),
- *   responsibilityMatching: await matchResponsibilities(jd, resume),
- *   jobDescription: parsedJD,
- *   resume: normalizedResume,
- * });
- *
- * console.log(`Score: ${score.overallScore}/100 (${score.grade})`);
- * console.log(score.breakdown.requiredSkills);
- * console.log(score.allDeductions);
- * ```
+ * The score is calculated by starting at 100 and subtracting deductions.
+ * Each deduction is explicit and traceable - no hidden category penalties.
  */
-export function calculateATSScore(
-  input: CalculateATSScoreInput
-): ATSScoreResult {
+export function calculateATSScore(input: ScoreInput): ATSScoreResult {
   const { skillComparison, responsibilityMatching, jobDescription, resume } =
     input;
   const allDeductions: ScoreDeduction[] = [];
 
-  // ---------------------------------------------------------------------------
-  // 1. Required Skills Score
-  // ---------------------------------------------------------------------------
-  const requiredSkillsDeductions: ScoreDeduction[] = [];
-  const { summary: skillSummary } = skillComparison;
+  // 1. Required Skills Analysis
+  const requiredSkillsResult = analyzeRequiredSkills(skillComparison);
+  allDeductions.push(...requiredSkillsResult.deductions);
 
-  // Special-case synthetic group tokens of the form:
-  // "At least one of: Python, Java, JavaScript"
-  const atLeastOneGroupPrefix = "at least one of:";
+  // 2. Preferred Skills Analysis (category-level only, no itemized deductions)
+  const preferredSkillsResult = analyzePreferredSkills(skillComparison);
+  allDeductions.push(...preferredSkillsResult.deductions);
 
-  let requiredSkillsPercentage = 100;
-  if (skillSummary.totalRequired > 0) {
-    requiredSkillsPercentage =
-      (skillSummary.matchedRequired / skillSummary.totalRequired) * 100;
-
-    const perSkill =
-      CATEGORY_WEIGHTS.requiredSkills / Math.max(1, skillSummary.totalRequired);
-    const perSkillDeduction = Math.min(
-      MAX_SINGLE_REQUIRED_SKILL_DEDUCTION,
-      Math.max(1, Math.round(perSkill))
-    );
-
-    // Add deduction for each missing required skill (capped per item).
-    for (const missingSkill of skillComparison.missing) {
-      const trimmed = missingSkill.trim();
-
-      // Handle interchangeable groups as a single, clearly explained deduction.
-      if (trimmed.toLowerCase().startsWith(atLeastOneGroupPrefix)) {
-        const options = trimmed
-          .slice(atLeastOneGroupPrefix.length)
-          .trim()
-          .replace(/\s+/g, " ");
-        const deduction: ScoreDeduction = {
-          reason: `Missing at least one of: ${options}`,
-          points: perSkillDeduction,
-          category: "requiredSkills",
-        };
-        requiredSkillsDeductions.push(deduction);
-        allDeductions.push(deduction);
-        continue;
-      }
-
-      const deduction: ScoreDeduction = {
-        reason: `Missing required skill: ${trimmed}`,
-        points: perSkillDeduction,
-        category: "requiredSkills",
-      };
-      requiredSkillsDeductions.push(deduction);
-      allDeductions.push(deduction);
-    }
-  }
-
-  const requiredSkillsScore: CategoryScore = {
-    name: "Required Skills",
-    earned: skillSummary.matchedRequired,
-    possible: skillSummary.totalRequired,
-    percentage: Math.round(requiredSkillsPercentage),
-    weight: CATEGORY_WEIGHTS.requiredSkills,
-    weightedScore:
-      (requiredSkillsPercentage / 100) * CATEGORY_WEIGHTS.requiredSkills,
-    deductions: requiredSkillsDeductions,
-  };
-
-  // ---------------------------------------------------------------------------
-  // 2. Preferred Skills Score (bonus)
-  // ---------------------------------------------------------------------------
-  const preferredSkillsDeductions: ScoreDeduction[] = [];
-
-  let preferredSkillsPercentage = 100;
-  if (skillSummary.totalPreferred > 0) {
-    preferredSkillsPercentage =
-      (skillSummary.matchedPreferred / skillSummary.totalPreferred) * 100;
-  }
-  // No deductions for missing preferred skills - they're just bonuses
-
-  const preferredSkillsScore: CategoryScore = {
-    name: "Preferred Skills",
-    earned: skillSummary.matchedPreferred,
-    possible: skillSummary.totalPreferred,
-    percentage: Math.round(preferredSkillsPercentage),
-    weight: CATEGORY_WEIGHTS.preferredSkills,
-    weightedScore:
-      (preferredSkillsPercentage / 100) * CATEGORY_WEIGHTS.preferredSkills,
-    deductions: preferredSkillsDeductions,
-  };
-
-  // ---------------------------------------------------------------------------
-  // 3. Responsibilities Score
-  // ---------------------------------------------------------------------------
-  const responsibilitiesDeductions: ScoreDeduction[] = [];
-  const totalResponsibilities =
-    responsibilityMatching.coveredResponsibilities.length +
-    responsibilityMatching.weaklyCovered.length +
-    responsibilityMatching.notCovered.length;
-
-  let responsibilitiesPercentage = 100;
-  if (totalResponsibilities > 0) {
-    const earnedPoints =
-      responsibilityMatching.coveredResponsibilities.length *
-        RESPONSIBILITY_POINTS.covered +
-      responsibilityMatching.weaklyCovered.length *
-        RESPONSIBILITY_POINTS.weakly_covered +
-      responsibilityMatching.notCovered.length *
-        RESPONSIBILITY_POINTS.not_covered;
-
-    responsibilitiesPercentage = (earnedPoints / totalResponsibilities) * 100;
-
-    // Deductions for not covered responsibilities
-    for (const item of responsibilityMatching.notCovered) {
-      // Don't penalize learning/behavioral expectations.
-      if (isLearningOrientedResponsibility(item.responsibility)) continue;
-      // Only penalize "no experience" when the responsibility reads like an
-      // explicit prior-experience requirement.
-      if (!isExplicitExperienceRequirement(item.responsibility)) continue;
-
-      const deduction: ScoreDeduction = {
-        reason: `No experience for: ${item.responsibility.slice(0, 60)}${
-          item.responsibility.length > 60 ? "..." : ""
-        }`,
-        points: Math.round(
-          CATEGORY_WEIGHTS.responsibilities / totalResponsibilities
-        ),
-        category: "responsibilities",
-      };
-      responsibilitiesDeductions.push(deduction);
-      allDeductions.push(deduction);
-    }
-
-    // Partial deductions for weakly covered
-    for (const item of responsibilityMatching.weaklyCovered) {
-      if (isLearningOrientedResponsibility(item.responsibility)) continue;
-      if (!isExplicitExperienceRequirement(item.responsibility)) continue;
-
-      const deduction: ScoreDeduction = {
-        reason: `Limited experience for: ${item.responsibility.slice(0, 60)}${
-          item.responsibility.length > 60 ? "..." : ""
-        }`,
-        points: Math.round(
-          (CATEGORY_WEIGHTS.responsibilities / totalResponsibilities) * 0.5
-        ),
-        category: "responsibilities",
-      };
-      responsibilitiesDeductions.push(deduction);
-      allDeductions.push(deduction);
-    }
-  }
-
-  const responsibilitiesScore: CategoryScore = {
-    name: "Responsibilities",
-    earned:
-      responsibilityMatching.coveredResponsibilities.length +
-      responsibilityMatching.weaklyCovered.length * 0.5,
-    possible: totalResponsibilities,
-    percentage: Math.round(responsibilitiesPercentage),
-    weight: CATEGORY_WEIGHTS.responsibilities,
-    weightedScore:
-      (responsibilitiesPercentage / 100) * CATEGORY_WEIGHTS.responsibilities,
-    deductions: responsibilitiesDeductions,
-  };
-
-  // ---------------------------------------------------------------------------
-  // 4. Education Score
-  // ---------------------------------------------------------------------------
-  const educationResult = calculateEducationMatch(
-    jobDescription.educationRequirements,
-    resume.education
+  // 3. Responsibilities/Experience Analysis
+  const responsibilitiesResult = analyzeResponsibilities(
+    responsibilityMatching
   );
+  allDeductions.push(...responsibilitiesResult.deductions);
 
-  // Check for CS-related field bonus/penalty
-  const hasCSRelatedField = resume.education.some((edu) =>
-    isCSRelatedField(edu.field)
-  );
-  let educationFieldAdjustment = 0;
-  if (
-    jobDescription.educationRequirements.length > 0 &&
-    !hasCSRelatedField &&
-    resume.education.length > 0
-  ) {
-    const deduction: ScoreDeduction = {
-      reason: "Degree not in a directly related field",
-      points: 3,
-      category: "education",
-    };
-    educationResult.deductions.push(deduction);
-    educationFieldAdjustment = -0.1;
-  }
-
-  const educationPercentage = Math.max(
-    0,
-    Math.min(100, (educationResult.score + educationFieldAdjustment) * 100)
-  );
-
-  // Gather deductions across categories, then de-dupe so the same reason
-  // doesn't appear multiple times in the UI.
+  // 4. Education Analysis (max one deduction)
+  const educationResult = analyzeEducation(resume, jobDescription);
   allDeductions.push(...educationResult.deductions);
 
-  const educationScore: CategoryScore = {
-    name: "Education",
-    earned: educationResult.score,
-    possible: 1,
-    percentage: Math.round(educationPercentage),
-    weight: CATEGORY_WEIGHTS.education,
-    weightedScore: (educationPercentage / 100) * CATEGORY_WEIGHTS.education,
-    deductions: educationResult.deductions,
+  // Calculate final score
+  const totalDeductions = allDeductions.reduce((sum, d) => sum + d.points, 0);
+  const overallScore = Math.max(0, 100 - totalDeductions);
+
+  // Build category scores for UI display
+  const categoryScores: CategoryScores = {
+    requiredSkills: {
+      score: Math.max(
+        0,
+        100 -
+          (requiredSkillsResult.categoryLoss / CATEGORY_CAPS.requiredSkills) *
+            100
+      ),
+      maxScore: 100,
+      matchedSkills: skillComparison.matched.required.map((m) => m.jdSkill),
+      missingSkills: skillComparison.missing,
+    },
+    preferredSkills: {
+      score: Math.max(
+        0,
+        100 -
+          (preferredSkillsResult.categoryLoss / CATEGORY_CAPS.preferredSkills) *
+            100
+      ),
+      maxScore: 100,
+      matchedSkills: skillComparison.matched.preferred.map((m) => m.jdSkill),
+      missingSkills: skillComparison.missingPreferred,
+    },
+    responsibilities: {
+      score: Math.max(
+        0,
+        100 -
+          (responsibilitiesResult.categoryLoss /
+            CATEGORY_CAPS.responsibilities) *
+            100
+      ),
+      maxScore: 100,
+      matches: responsibilitiesResult.matches,
+    },
+    education: {
+      score: Math.max(
+        0,
+        100 - (educationResult.categoryLoss / CATEGORY_CAPS.education) * 100
+      ),
+      maxScore: 100,
+      meetsRequirements: educationResult.meetsRequirements,
+      details: educationResult.details,
+    },
   };
 
-  const dedupedAllDeductions = dedupeDeductions(allDeductions);
+  // Log for debugging
+  if (process.env.NODE_ENV === "development") {
+    console.log("[ATS Score]", {
+      overallScore,
+      totalDeductions,
+      deductionCount: allDeductions.length,
+    });
+  }
 
-  // ---------------------------------------------------------------------------
-  // Calculate Overall Score
-  // ---------------------------------------------------------------------------
-  const overallScore = Math.round(
-    requiredSkillsScore.weightedScore +
-      preferredSkillsScore.weightedScore +
-      responsibilitiesScore.weightedScore +
-      educationScore.weightedScore
-  );
-
-  // Determine grade
-  let grade: ATSScoreResult["grade"];
-  if (overallScore >= 90) grade = "A";
-  else if (overallScore >= 80) grade = "B";
-  else if (overallScore >= 70) grade = "C";
-  else if (overallScore >= 60) grade = "D";
-  else grade = "F";
+  // Compute grade based on score
+  const grade = getGrade(overallScore);
 
   // Generate summary
-  const summaryParts: string[] = [];
+  const summary = generateSummary(overallScore, allDeductions, categoryScores);
 
-  if (requiredSkillsScore.percentage === 100) {
-    summaryParts.push("All required skills matched");
-  } else {
-    summaryParts.push(
-      `${skillSummary.matchedRequired}/${skillSummary.totalRequired} required skills matched`
-    );
-  }
-
-  if (responsibilitiesScore.percentage >= 75) {
-    summaryParts.push("strong experience alignment");
-  } else if (responsibilitiesScore.percentage >= 50) {
-    summaryParts.push("moderate experience alignment");
-  } else {
-    summaryParts.push("limited experience alignment");
-  }
-
-  if (educationScore.percentage >= 80) {
-    summaryParts.push("education requirements met");
-  } else if (educationScore.percentage >= 50) {
-    summaryParts.push("partial education match");
-  }
-
-  const summary = summaryParts.join("; ") + ".";
+  // Build legacy breakdown for backward compatibility
+  const breakdown: Record<string, CategoryBreakdown> = {
+    requiredSkills: {
+      name: "Required Skills",
+      percentage: Math.round(categoryScores.requiredSkills.score),
+      weight: CATEGORY_CAPS.requiredSkills,
+      weightedScore: Math.round(
+        (categoryScores.requiredSkills.score / 100) *
+          CATEGORY_CAPS.requiredSkills
+      ),
+    },
+    preferredSkills: {
+      name: "Preferred Skills",
+      percentage: Math.round(categoryScores.preferredSkills.score),
+      weight: CATEGORY_CAPS.preferredSkills,
+      weightedScore: Math.round(
+        (categoryScores.preferredSkills.score / 100) *
+          CATEGORY_CAPS.preferredSkills
+      ),
+    },
+    responsibilities: {
+      name: "Experience Alignment",
+      percentage: Math.round(categoryScores.responsibilities.score),
+      weight: CATEGORY_CAPS.responsibilities,
+      weightedScore: Math.round(
+        (categoryScores.responsibilities.score / 100) *
+          CATEGORY_CAPS.responsibilities
+      ),
+    },
+    education: {
+      name: "Education",
+      percentage: Math.round(categoryScores.education.score),
+      weight: CATEGORY_CAPS.education,
+      weightedScore: Math.round(
+        (categoryScores.education.score / 100) * CATEGORY_CAPS.education
+      ),
+    },
+  };
 
   return {
     overallScore,
     grade,
-    breakdown: {
-      requiredSkills: requiredSkillsScore,
-      preferredSkills: preferredSkillsScore,
-      responsibilities: responsibilitiesScore,
-      education: educationScore,
-    },
-    allDeductions: dedupedAllDeductions,
     summary,
+    categoryScores,
+    deductions: allDeductions,
+    // Legacy fields
+    breakdown,
+    allDeductions,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Category Analysis Functions
+// ---------------------------------------------------------------------------
+
+/**
+ * Required Skills Analysis
+ * - One deduction per missing required skill
+ * - Capped at CATEGORY_CAPS.requiredSkills total
+ */
+function analyzeRequiredSkills(skillComparison: SkillComparisonResult): {
+  deductions: ScoreDeduction[];
+  categoryLoss: number;
+} {
+  const deductions: ScoreDeduction[] = [];
+  let runningTotal = 0;
+
+  // Calculate deductions for missing skills, respecting cap
+  for (const skill of skillComparison.missing) {
+    const deductionAmount = Math.min(
+      DEDUCTION_PER_MISSING_REQUIRED_SKILL,
+      CATEGORY_CAPS.requiredSkills - runningTotal
+    );
+
+    if (deductionAmount > 0) {
+      deductions.push({
+        reason: `Missing required skill: ${skill}`,
+        points: deductionAmount,
+        category: "requiredSkills",
+      });
+      runningTotal += deductionAmount;
+    }
+
+    if (runningTotal >= CATEGORY_CAPS.requiredSkills) break;
+  }
+
+  return {
+    deductions,
+    categoryLoss: runningTotal,
   };
 }
 
 /**
- * Get a formatted score report.
+ * Preferred Skills Analysis
+ * - NO itemized deductions (user requested)
+ * - Only a single category-level deduction based on match percentage
+ * - Capped at CATEGORY_CAPS.preferredSkills
  */
-export function formatScoreReport(result: ATSScoreResult): string {
-  const lines: string[] = [
-    `ATS Score: ${result.overallScore}/100 (${result.grade})`,
-    "",
-    "Category Breakdown:",
-    `  Required Skills:    ${result.breakdown.requiredSkills.percentage}% (${result.breakdown.requiredSkills.earned}/${result.breakdown.requiredSkills.possible})`,
-    `  Preferred Skills:   ${result.breakdown.preferredSkills.percentage}% (${result.breakdown.preferredSkills.earned}/${result.breakdown.preferredSkills.possible})`,
-    `  Responsibilities:   ${result.breakdown.responsibilities.percentage}%`,
-    `  Education:          ${result.breakdown.education.percentage}%`,
-    "",
-    `Summary: ${result.summary}`,
-  ];
+function analyzePreferredSkills(skillComparison: SkillComparisonResult): {
+  deductions: ScoreDeduction[];
+  categoryLoss: number;
+} {
+  const deductions: ScoreDeduction[] = [];
 
-  if (result.allDeductions.length > 0) {
-    lines.push("");
-    lines.push("Key Deductions:");
-    // Show top 5 deductions
-    const topDeductions = result.allDeductions
-      .sort((a, b) => b.points - a.points)
-      .slice(0, 5);
-    for (const d of topDeductions) {
-      lines.push(`  - ${d.reason} (-${d.points} pts)`);
-    }
+  const totalPreferred = skillComparison.summary.totalPreferred;
+  if (totalPreferred === 0) {
+    return { deductions, categoryLoss: 0 };
   }
 
-  return lines.join("\n");
+  const matchedPreferred = skillComparison.summary.matchedPreferred;
+  const matchPercentage = matchedPreferred / totalPreferred;
+  const categoryLoss = Math.round(
+    (1 - matchPercentage) * CATEGORY_CAPS.preferredSkills
+  );
+
+  if (categoryLoss > 0) {
+    deductions.push({
+      reason: `Preferred skills: ${matchedPreferred}/${totalPreferred} matched`,
+      points: categoryLoss,
+      category: "preferredSkills",
+    });
+  }
+
+  return {
+    deductions,
+    categoryLoss,
+  };
 }
 
 /**
- * Get the weight configuration (for transparency/documentation).
+ * Responsibilities/Experience Analysis
+ * - Deduct for ALL missing or partially covered responsibilities
+ * - Only skip: learning-oriented soft skills and preferred traits
+ * - Be strict! Users need actionable feedback to improve
+ * - Each responsibility can only cause one deduction
+ * - Capped at CATEGORY_CAPS.responsibilities
  */
-export function getWeightConfiguration(): typeof CATEGORY_WEIGHTS {
-  return { ...CATEGORY_WEIGHTS };
+function analyzeResponsibilities(
+  responsibilityMatching: ResponsibilityMatchingResult
+): {
+  deductions: ScoreDeduction[];
+  categoryLoss: number;
+  matches: ResponsibilityScoreMatch[];
+} {
+  const deductions: ScoreDeduction[] = [];
+  const matches: ResponsibilityScoreMatch[] = [];
+  let runningTotal = 0;
+
+  // Process covered responsibilities
+  for (const r of responsibilityMatching.coveredResponsibilities) {
+    matches.push({
+      responsibility: r.responsibility,
+      status: "covered",
+      matchedExperience: r.explanation,
+    });
+  }
+
+  // Process weakly covered responsibilities
+  for (const r of responsibilityMatching.weaklyCovered) {
+    matches.push({
+      responsibility: r.responsibility,
+      status: "partially_covered",
+      matchedExperience: r.explanation,
+    });
+
+    // Skip preferred traits - they should not trigger deductions
+    if (isPreferredTrait(r.responsibility)) {
+      continue;
+    }
+
+    // Skip behavioral/learning expectations
+    if (isLearningOrientedResponsibility(r.responsibility)) {
+      continue;
+    }
+
+    // Deduct for partial coverage - we want to be strict
+    // Partial match = half the deduction of missing
+    const deductionAmount = Math.min(
+      Math.floor(DEDUCTION_PER_MISSING_RESPONSIBILITY / 2),
+      CATEGORY_CAPS.responsibilities - runningTotal
+    );
+    if (deductionAmount > 0) {
+      deductions.push({
+        reason: `Partial experience match: ${truncateText(
+          r.responsibility,
+          50
+        )}`,
+        points: deductionAmount,
+        category: "responsibilities",
+      });
+      runningTotal += deductionAmount;
+    }
+  }
+
+  // Process not covered responsibilities
+  for (const r of responsibilityMatching.notCovered) {
+    matches.push({
+      responsibility: r.responsibility,
+      status: "not_covered",
+      matchedExperience: undefined,
+    });
+
+    // Skip behavioral/learning expectations - these are soft skills, not hard requirements
+    if (isLearningOrientedResponsibility(r.responsibility)) {
+      continue;
+    }
+
+    // Skip preferred traits - they should not trigger deductions
+    if (isPreferredTrait(r.responsibility)) {
+      continue;
+    }
+
+    // Deduct for missing responsibilities - be strict!
+    // Only skip soft skills and preferred traits, everything else matters
+    const deductionAmount = Math.min(
+      DEDUCTION_PER_MISSING_RESPONSIBILITY,
+      CATEGORY_CAPS.responsibilities - runningTotal
+    );
+    if (deductionAmount > 0) {
+      deductions.push({
+        reason: `Missing experience: ${truncateText(r.responsibility, 50)}`,
+        points: deductionAmount,
+        category: "responsibilities",
+      });
+      runningTotal += deductionAmount;
+    }
+
+    if (runningTotal >= CATEGORY_CAPS.responsibilities) break;
+  }
+
+  return {
+    deductions,
+    categoryLoss: runningTotal,
+    matches,
+  };
 }
+
+/**
+ * Education Analysis
+ * - At most ONE deduction for education
+ * - Management Engineering counts as CS-related for software roles
+ * - Capped at CATEGORY_CAPS.education
+ */
+function analyzeEducation(
+  resume: NormalizedResume,
+  jobDescription: ParsedJobDescription
+): {
+  deductions: ScoreDeduction[];
+  categoryLoss: number;
+  meetsRequirements: boolean;
+  details: string;
+} {
+  const deductions: ScoreDeduction[] = [];
+
+  // If no education requirements, full points
+  const eduReqs = jobDescription.educationRequirements || [];
+  if (eduReqs.length === 0) {
+    return {
+      deductions,
+      categoryLoss: 0,
+      meetsRequirements: true,
+      details: "No specific education requirements",
+    };
+  }
+
+  // If no education on resume
+  const resumeEducation = resume.education || [];
+  if (resumeEducation.length === 0) {
+    deductions.push({
+      reason: "No education listed on resume",
+      points: CATEGORY_CAPS.education,
+      category: "education",
+    });
+    return {
+      deductions,
+      categoryLoss: CATEGORY_CAPS.education,
+      meetsRequirements: false,
+      details: "No education information provided",
+    };
+  }
+
+  // Check education requirements
+  const reqText = eduReqs.join(" ").toLowerCase();
+  const isSoftwareRole = isSoftwareEngineeringRole(jobDescription);
+
+  // Check if resume education meets requirements
+  let bestMatch = { level: 0, fieldMatch: false, details: "" };
+
+  for (const edu of resumeEducation) {
+    const eduText = buildEducationText(edu);
+
+    // Determine degree level
+    const level = getDegreeLevel(eduText);
+
+    // Check field match
+    const fieldMatch = isFieldMatch(
+      (edu.field || "").toLowerCase(),
+      reqText,
+      isSoftwareRole
+    );
+
+    if (
+      level > bestMatch.level ||
+      (level === bestMatch.level && fieldMatch && !bestMatch.fieldMatch)
+    ) {
+      bestMatch = {
+        level,
+        fieldMatch,
+        details: `${edu.degree || "Degree"} in ${
+          edu.field || "unspecified field"
+        } from ${edu.institution || "institution"}`,
+      };
+    }
+  }
+
+  // Determine required degree level
+  const requiredLevel = getRequiredDegreeLevel(reqText);
+
+  // Calculate education score
+  if (bestMatch.level >= requiredLevel && bestMatch.fieldMatch) {
+    // Fully meets requirements
+    return {
+      deductions,
+      categoryLoss: 0,
+      meetsRequirements: true,
+      details: bestMatch.details,
+    };
+  } else if (bestMatch.level >= requiredLevel) {
+    // Degree level OK but field doesn't match
+    const loss = Math.round(CATEGORY_CAPS.education * 0.5);
+    deductions.push({
+      reason: "Degree field does not match job requirements",
+      points: loss,
+      category: "education",
+    });
+    return {
+      deductions,
+      categoryLoss: loss,
+      meetsRequirements: false,
+      details: `${bestMatch.details} (field mismatch)`,
+    };
+  } else if (bestMatch.fieldMatch) {
+    // Field matches but degree level insufficient
+    const loss = Math.round(CATEGORY_CAPS.education * 0.5);
+    deductions.push({
+      reason: "Degree level below job requirements",
+      points: loss,
+      category: "education",
+    });
+    return {
+      deductions,
+      categoryLoss: loss,
+      meetsRequirements: false,
+      details: `${bestMatch.details} (level below requirement)`,
+    };
+  } else {
+    // Neither matches
+    deductions.push({
+      reason: "Education does not meet job requirements",
+      points: CATEGORY_CAPS.education,
+      category: "education",
+    });
+    return {
+      deductions,
+      categoryLoss: CATEGORY_CAPS.education,
+      meetsRequirements: false,
+      details: `${bestMatch.details} (does not meet requirements)`,
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper Functions
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if responsibility is just a learning/behavioral expectation
+ */
+function isLearningOrientedResponsibility(resp: string): boolean {
+  const respLower = resp.toLowerCase();
+  const learningPatterns = [
+    /^(learn|grow|develop|improve)\s+(new\s+)?skills?/i,
+    /^learn\s+quickly/i,
+    /willing\s+to\s+learn/i,
+    /eager\s+to\s+(learn|grow)/i,
+    /continuous\s+(learning|improvement)/i,
+    /stay\s+(up[- ]to[- ]date|current)/i,
+    /team\s+player/i,
+    /strong\s+(communication|interpersonal)/i,
+    /attention\s+to\s+detail/i,
+    /self[- ]motivated/i,
+    /work\s+independently/i,
+    /collaborate\s+with\s+team/i,
+    /fast[- ]paced\s+environment/i,
+    /problem[- ]solving\s+skills/i,
+    /ask\s+(good\s+)?questions/i,
+    /growth\s+mindset/i,
+    /adaptable/i,
+    /flexible/i,
+    /positive\s+attitude/i,
+    /take\s+initiative/i,
+    /proactive/i,
+  ];
+
+  return learningPatterns.some((pattern) => pattern.test(respLower));
+}
+
+/**
+ * Check if responsibility explicitly requires prior experience
+ * These are hard requirements that SHOULD generate deductions if missing.
+ */
+function isExplicitExperienceRequirement(resp: string): boolean {
+  const respLower = resp.toLowerCase();
+  const experiencePatterns = [
+    /\b(must|required|proven|demonstrated)\b.*\b(experience|expertise)\b/i,
+    /\bexperience\s+(with|in|using)\b/i,
+    /\bhands[- ]on\s+experience\b/i,
+    /\bprior\s+experience\b/i,
+    /\bprofessional\s+experience\b/i,
+    /\b\d+\+?\s*years?\s+(of\s+)?experience\b/i,
+    /\btrack\s+record\b/i,
+    /\bbackground\s+in\b/i,
+    /\bworked\s+(with|on)\b/i,
+    /\bbuilt\b.*\b(applications?|systems?|products?)\b/i,
+    /\bdeveloped\b.*\b(applications?|software|systems?)\b/i,
+  ];
+
+  // Don't treat preferred traits as explicit requirements
+  if (isPreferredTrait(resp)) {
+    return false;
+  }
+
+  return experiencePatterns.some((pattern) => pattern.test(respLower));
+}
+
+/**
+ * Check if responsibility is a "preferred" or "nice to have" trait.
+ * These should NOT generate deductions if missing - only guidance.
+ *
+ * Examples:
+ * - "Interest in machine learning"
+ * - "Exposure to cloud technologies"
+ * - "Familiarity with agile methodologies"
+ * - "Nice to have: experience with Docker"
+ * - "Bonus: knowledge of AWS"
+ */
+function isPreferredTrait(resp: string): boolean {
+  const respLower = resp.toLowerCase();
+  const preferredPatterns = [
+    // Interest/exposure language
+    /\binterest\s+in\b/i,
+    /\bexposure\s+to\b/i,
+    /\bfamiliarity\s+with\b/i,
+    /\bfamiliar\s+with\b/i,
+    /\bawareness\s+of\b/i,
+
+    // Explicit "nice to have" markers
+    /\bnice\s+to\s+have\b/i,
+    /\bbonus\b/i,
+    /\bplus\b/i,
+    /\bpreferred\b/i,
+    /\bdesirable\b/i,
+    /\badvantage\b/i,
+    /\bnot\s+required\b/i,
+
+    // Soft interest indicators
+    /\bpassion\s+for\b/i,
+    /\benthusiasm\s+for\b/i,
+    /\bcuriosity\s+about\b/i,
+    /\bwillingness\s+to\s+explore\b/i,
+    /\bopenness\s+to\b/i,
+
+    // Optional experience language
+    /\bsome\s+experience\b/i,
+    /\bbasic\s+(knowledge|understanding)\b/i,
+    /\bgeneral\s+understanding\b/i,
+  ];
+
+  return preferredPatterns.some((pattern) => pattern.test(respLower));
+}
+
+/**
+ * Check if this is a software engineering role
+ */
+function isSoftwareEngineeringRole(jd: ParsedJobDescription): boolean {
+  const softwareKeywords = [
+    "software",
+    "developer",
+    "engineer",
+    "programming",
+    "coding",
+    "frontend",
+    "backend",
+    "full stack",
+    "web",
+    "mobile",
+    "devops",
+    "sre",
+    "data engineer",
+    "computer science",
+    "computer engineering",
+  ];
+
+  const jdText = `${(jd.requiredSkills || []).join(" ")} ${(
+    jd.responsibilities || []
+  ).join(" ")} ${(jd.educationRequirements || []).join(" ")}`.toLowerCase();
+
+  return softwareKeywords.some((kw) => jdText.includes(kw));
+}
+
+/**
+ * Check if education field matches requirements
+ * Both field and requirements should be pre-lowercased.
+ */
+function isFieldMatch(
+  field: string,
+  requirements: string,
+  isSoftwareRole: boolean
+): boolean {
+  // Direct field mention
+  if (requirements.includes(field) && field.length > 0) {
+    return true;
+  }
+
+  // For software roles, check CS-related fields
+  if (isSoftwareRole) {
+    const hasRelatedRequirement =
+      requirements.includes("computer") ||
+      requirements.includes("software") ||
+      requirements.includes("engineering") ||
+      requirements.includes("technical") ||
+      requirements.includes("related field") ||
+      requirements.includes("stem");
+
+    if (hasRelatedRequirement && isCSRelatedField(field)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if field is CS-related
+ */
+function isCSRelatedField(field: string): boolean {
+  const fieldLower = field.toLowerCase();
+  return CS_RELATED_FIELDS.some(
+    (csField) => fieldLower.includes(csField) || csField.includes(fieldLower)
+  );
+}
+
+/**
+ * Build education text for degree level detection
+ */
+function buildEducationText(edu: EducationEntry): string {
+  return `${edu.degree || ""} ${edu.field || ""} ${
+    edu.institution || ""
+  }`.toLowerCase();
+}
+
+/**
+ * Get degree level (higher = better)
+ */
+function getDegreeLevel(eduText: string): number {
+  const text = eduText.toLowerCase();
+
+  if (
+    text.includes("phd") ||
+    text.includes("doctorate") ||
+    text.includes("doctoral")
+  ) {
+    return 5;
+  }
+  if (
+    text.includes("master") ||
+    text.includes("mba") ||
+    text.includes("m.s.") ||
+    text.includes("m.a.")
+  ) {
+    return 4;
+  }
+  if (
+    text.includes("bachelor") ||
+    text.includes("b.s.") ||
+    text.includes("b.a.") ||
+    text.includes("b.eng") ||
+    text.includes("undergraduate")
+  ) {
+    return 3;
+  }
+  if (
+    text.includes("associate") ||
+    text.includes("a.s.") ||
+    text.includes("a.a.")
+  ) {
+    return 2;
+  }
+  if (
+    text.includes("diploma") ||
+    text.includes("certificate") ||
+    text.includes("high school")
+  ) {
+    return 1;
+  }
+
+  return 3; // Default to bachelor's if unclear
+}
+
+/**
+ * Get required degree level from job requirements
+ * When "OR" alternatives are present, return the lowest acceptable level.
+ */
+function getRequiredDegreeLevel(reqText: string): number {
+  const text = reqText.toLowerCase();
+
+  // Check for "or" patterns - return the MINIMUM acceptable level
+  // e.g., "Bachelor's or Master's" means Bachelor's is acceptable
+  const hasOr = text.includes(" or ");
+
+  if (hasOr) {
+    // Parse levels and return minimum
+    const levels: number[] = [];
+    if (text.includes("phd") || text.includes("doctorate")) levels.push(5);
+    if (text.includes("master")) levels.push(4);
+    if (text.includes("bachelor") || text.includes("degree")) levels.push(3);
+    if (text.includes("associate")) levels.push(2);
+
+    if (levels.length > 0) {
+      return Math.min(...levels);
+    }
+  }
+
+  // No "or" pattern - return the highest mentioned level
+  if (text.includes("phd") || text.includes("doctorate")) {
+    return 5;
+  }
+  if (text.includes("master")) {
+    return 4;
+  }
+  if (text.includes("bachelor") || text.includes("degree")) {
+    return 3;
+  }
+  if (text.includes("associate")) {
+    return 2;
+  }
+
+  return 3; // Default requirement is bachelor's
+}
+
+/**
+ * Truncate text for display
+ */
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 3) + "...";
+}
+
+/**
+ * Get letter grade based on score
+ */
+function getGrade(score: number): string {
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  return "F";
+}
+
+/**
+ * Generate a human-readable summary of the score
+ */
+function generateSummary(
+  overallScore: number,
+  deductions: ScoreDeduction[],
+  categoryScores: CategoryScores
+): string {
+  if (overallScore >= 90) {
+    return "Excellent match! Your resume aligns very well with this job description.";
+  }
+
+  if (overallScore >= 80) {
+    return "Good match. Your resume covers most requirements with some room for improvement.";
+  }
+
+  if (overallScore >= 70) {
+    return "Moderate match. Consider addressing the gaps highlighted above.";
+  }
+
+  if (overallScore >= 60) {
+    const mainIssues: string[] = [];
+    const requiredMissing = deductions.filter(
+      (d) => d.category === "requiredSkills"
+    ).length;
+    const respIssues = deductions.filter(
+      (d) => d.category === "responsibilities"
+    ).length;
+
+    if (requiredMissing > 0) mainIssues.push("missing required skills");
+    if (respIssues > 0) mainIssues.push("experience gaps");
+    if (!categoryScores.education.meetsRequirements)
+      mainIssues.push("education mismatch");
+
+    if (mainIssues.length > 0) {
+      return `Below average match due to ${mainIssues.join(
+        " and "
+      )}. Review the deductions above for specific improvements.`;
+    }
+    return "Below average match. Review the deductions above for specific improvements.";
+  }
+
+  return "Significant gaps between your resume and job requirements. Consider tailoring your resume or looking for a closer match.";
+}
+
+// Export for testing
+export {
+  analyzeRequiredSkills,
+  analyzePreferredSkills,
+  analyzeResponsibilities,
+  analyzeEducation,
+  isCSRelatedField,
+  isExplicitExperienceRequirement,
+  isLearningOrientedResponsibility,
+};

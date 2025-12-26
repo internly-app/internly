@@ -35,85 +35,22 @@ function mockResponsibilityMatching(
   };
 }
 
-// Required skills: deductions should be capped (no single missing skill nukes the category)
-{
-  const skillComparison: SkillComparisonResult = {
-    ...mockSkillComparison(["Kubernetes"]),
-    summary: {
-      totalRequired: 1,
-      totalPreferred: 0,
-      matchedRequired: 0,
-      matchedPreferred: 0,
-      missingRequired: 1,
-      missingPreferred: 0,
-      extraSkills: 0,
-    },
-  };
-
-  const responsibilityMatching = mockResponsibilityMatching({
-    coveredResponsibilities: [],
-    weaklyCovered: [],
-    notCovered: [],
-  });
-
-  const score = calculateATSScore({
-    skillComparison,
-    responsibilityMatching,
-    jobDescription: { educationRequirements: [] },
-    resume: { education: [] },
-  });
-
-  const requiredDeductions = score.allDeductions.filter(
-    (d) => d.category === "requiredSkills"
-  );
-  assert.equal(requiredDeductions.length, 1);
-  assert(requiredDeductions[0].points <= 12);
-}
-
-// Interchangeable group token should produce a clear group deduction
-{
-  const skillComparison: SkillComparisonResult = {
-    ...mockSkillComparison(["At least one of: Python, Java, JavaScript"]),
-    summary: {
-      totalRequired: 1,
-      totalPreferred: 0,
-      matchedRequired: 0,
-      matchedPreferred: 0,
-      missingRequired: 1,
-      missingPreferred: 0,
-      extraSkills: 0,
-    },
-  };
-
-  const responsibilityMatching = mockResponsibilityMatching({
-    coveredResponsibilities: [],
-    weaklyCovered: [],
-    notCovered: [],
-  });
-
-  const score = calculateATSScore({
-    skillComparison,
-    responsibilityMatching,
-    jobDescription: { educationRequirements: [] },
-    resume: { education: [] },
-  });
-
-  const groupDeduction = score.allDeductions.find((d) =>
-    d.reason.toLowerCase().startsWith("missing at least one of:")
-  );
-
-  assert(groupDeduction, "Expected a group deduction explanation");
-}
-
 function mockJD(
-  educationRequirements: string[]
-): Pick<ParsedJobDescription, "educationRequirements"> {
-  return { educationRequirements };
+  educationRequirements: string[] = [],
+  extras: Partial<ParsedJobDescription> = {}
+): Partial<ParsedJobDescription> {
+  return {
+    requiredSkills: [],
+    preferredSkills: [],
+    responsibilities: [],
+    educationRequirements,
+    ...extras,
+  };
 }
 
 function mockResumeEducation(
   entries: Array<Partial<NormalizedResume["education"][number]>>
-): Pick<NormalizedResume, "education"> {
+): Partial<NormalizedResume> {
   return {
     education: entries.map((e) => ({
       institution: e.institution ?? "",
@@ -127,25 +64,115 @@ function mockResumeEducation(
 }
 
 function run() {
+  // Required skills: deductions should be capped (no single missing skill nukes the category)
+  {
+    const skillComparison: SkillComparisonResult = {
+      ...mockSkillComparison(["Kubernetes"]),
+      summary: {
+        totalRequired: 1,
+        totalPreferred: 0,
+        matchedRequired: 0,
+        matchedPreferred: 0,
+        missingRequired: 1,
+        missingPreferred: 0,
+        extraSkills: 0,
+      },
+    };
+
+    const responsibilityMatching = mockResponsibilityMatching();
+
+    const score = calculateATSScore({
+      skillComparison,
+      responsibilityMatching,
+      jobDescription: mockJD() as ParsedJobDescription,
+      resume: mockResumeEducation([]) as NormalizedResume,
+    });
+
+    const requiredDeductions = score.deductions.filter(
+      (d) => d.category === "requiredSkills"
+    );
+    assert.equal(
+      requiredDeductions.length,
+      1,
+      "Should have 1 deduction for 1 missing skill"
+    );
+    assert(
+      requiredDeductions[0].points <= 12,
+      "Single skill deduction should be capped reasonably"
+    );
+
+    // Verify deductions sum to score loss
+    const totalDeducted = score.deductions.reduce(
+      (sum, d) => sum + d.points,
+      0
+    );
+    assert.equal(
+      totalDeducted,
+      100 - score.overallScore,
+      "Deductions should sum to score loss"
+    );
+  }
+
+  // Interchangeable group token should produce a clear deduction
+  {
+    const skillComparison: SkillComparisonResult = {
+      ...mockSkillComparison(["At least one of: Python, Java, JavaScript"]),
+      summary: {
+        totalRequired: 1,
+        totalPreferred: 0,
+        matchedRequired: 0,
+        matchedPreferred: 0,
+        missingRequired: 1,
+        missingPreferred: 0,
+        extraSkills: 0,
+      },
+    };
+
+    const responsibilityMatching = mockResponsibilityMatching();
+
+    const score = calculateATSScore({
+      skillComparison,
+      responsibilityMatching,
+      jobDescription: mockJD() as ParsedJobDescription,
+      resume: mockResumeEducation([]) as NormalizedResume,
+    });
+
+    // Should have a deduction for the missing skill group
+    const requiredDeductions = score.deductions.filter(
+      (d) => d.category === "requiredSkills"
+    );
+    assert(
+      requiredDeductions.length > 0,
+      "Should have a deduction for missing skill group"
+    );
+  }
+
   // Bachelor's should satisfy "Bachelor's OR Master's" requirement.
   {
     const result = calculateATSScore({
       skillComparison: mockSkillComparison([]),
       responsibilityMatching: mockResponsibilityMatching(),
-      jobDescription: mockJD(["Bachelor's or Master's in Computer Science"]),
+      jobDescription: mockJD([
+        "Bachelor's or Master's in Computer Science",
+      ]) as ParsedJobDescription,
       resume: mockResumeEducation([
         { degree: "B.S.", field: "Computer Science" },
-      ]),
+      ]) as NormalizedResume,
     });
 
     assert.equal(
-      result.breakdown.education.percentage,
+      result.categoryScores.education.score,
       100,
       "Bachelor's should fully meet a Bachelor's or Master's requirement"
     );
+    assert.equal(
+      result.categoryScores.education.meetsRequirements,
+      true,
+      "Should meet education requirements"
+    );
   }
 
-  // Same deduction reason should not appear twice in allDeductions.
+  // Same deduction reason should not appear twice in deductions.
   {
     const result = calculateATSScore({
       skillComparison: mockSkillComparison(["React"]),
@@ -159,18 +186,18 @@ function run() {
           },
         ],
       }),
-      jobDescription: mockJD(["Bachelor's required"]),
-      resume: mockResumeEducation([{ degree: "B.A.", field: "History" }]),
+      jobDescription: mockJD(["Bachelor's required"]) as ParsedJobDescription,
+      resume: mockResumeEducation([
+        { degree: "B.A.", field: "History" },
+      ]) as NormalizedResume,
     });
 
-    const reasons = result.allDeductions.map(
-      (d) => `${d.category}:${d.reason}`
-    );
+    const reasons = result.deductions.map((d) => `${d.category}:${d.reason}`);
     const unique = new Set(reasons);
     assert.equal(
       unique.size,
       reasons.length,
-      "allDeductions should not contain duplicate reasons"
+      "deductions should not contain duplicate reasons"
     );
   }
 
@@ -188,11 +215,11 @@ function run() {
           },
         ],
       }),
-      jobDescription: mockJD([]),
-      resume: mockResumeEducation([]),
+      jobDescription: mockJD() as ParsedJobDescription,
+      resume: mockResumeEducation([]) as NormalizedResume,
     });
 
-    const responsibilityDeductions = result.allDeductions.filter(
+    const responsibilityDeductions = result.deductions.filter(
       (d) => d.category === "responsibilities"
     );
     assert.equal(
@@ -202,36 +229,183 @@ function run() {
     );
   }
 
-  // Explicit experience responsibilities should still create deductions.
+  // Regular responsibilities should create deductions (be strict!)
   {
     const result = calculateATSScore({
       skillComparison: mockSkillComparison([]),
       responsibilityMatching: mockResponsibilityMatching({
         notCovered: [
           {
-            responsibility: "Must have experience building REST APIs",
+            responsibility: "Build REST APIs",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            responsibility: "Write unit tests",
             coverage: "not_covered",
             explanation: "",
             relevantExperience: [],
           },
         ],
       }),
-      jobDescription: mockJD([]),
-      resume: mockResumeEducation([]),
+      jobDescription: mockJD() as ParsedJobDescription,
+      resume: mockResumeEducation([]) as NormalizedResume,
     });
 
-    const responsibilityDeductions = result.allDeductions.filter(
+    const responsibilityDeductions = result.deductions.filter(
       (d) => d.category === "responsibilities"
     );
-    assert.ok(
-      responsibilityDeductions.length >= 1,
-      "Explicit experience responsibilities should generate deductions"
+    assert.equal(
+      responsibilityDeductions.length,
+      2,
+      "Regular responsibilities should generate deductions - be strict!"
     );
   }
 
-  if (process.env.TEST_VERBOSE === "1") {
-    console.log("calculate-score tests: OK");
+  // Preferred traits (interest in, exposure to, nice to have) should NOT create deductions
+  {
+    const result = calculateATSScore({
+      skillComparison: mockSkillComparison([]),
+      responsibilityMatching: mockResponsibilityMatching({
+        notCovered: [
+          {
+            responsibility: "Interest in machine learning",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            responsibility: "Exposure to cloud technologies like AWS",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            responsibility: "Nice to have: experience with Docker",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            responsibility: "Familiarity with agile methodologies preferred",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            responsibility: "Bonus: knowledge of GraphQL",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+        ],
+      }),
+      jobDescription: mockJD() as ParsedJobDescription,
+      resume: mockResumeEducation([]) as NormalizedResume,
+    });
+
+    const responsibilityDeductions = result.deductions.filter(
+      (d) => d.category === "responsibilities"
+    );
+    assert.equal(
+      responsibilityDeductions.length,
+      0,
+      "Preferred traits (interest in, exposure to, nice to have, familiarity, bonus) should NOT generate deductions"
+    );
   }
+
+  // Mixed responsibilities: regular requirements should be penalized, preferred traits and soft skills should not
+  {
+    const result = calculateATSScore({
+      skillComparison: mockSkillComparison([]),
+      responsibilityMatching: mockResponsibilityMatching({
+        notCovered: [
+          {
+            // This is a regular responsibility - SHOULD generate deduction
+            responsibility: "Build and maintain REST APIs",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            // This is a regular responsibility - SHOULD generate deduction
+            responsibility: "Write comprehensive unit tests",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            // This is a learning-oriented soft skill - should NOT generate deduction
+            responsibility: "Eager to learn new technologies",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+          {
+            // This is a preferred trait - should NOT generate deduction
+            responsibility: "Some experience with GraphQL is a plus",
+            coverage: "not_covered",
+            explanation: "",
+            relevantExperience: [],
+          },
+        ],
+      }),
+      jobDescription: mockJD() as ParsedJobDescription,
+      resume: mockResumeEducation([]) as NormalizedResume,
+    });
+
+    const responsibilityDeductions = result.deductions.filter(
+      (d) => d.category === "responsibilities"
+    );
+    assert.equal(
+      responsibilityDeductions.length,
+      2,
+      "Regular responsibilities should generate deductions; soft skills and preferred traits should not"
+    );
+    assert.ok(
+      responsibilityDeductions.some((d) => d.reason.includes("REST APIs")),
+      "Should have deduction for REST APIs responsibility"
+    );
+    assert.ok(
+      responsibilityDeductions.some((d) => d.reason.includes("unit tests")),
+      "Should have deduction for unit tests responsibility"
+    );
+  }
+
+  // Management Engineering should be considered CS-related for software roles
+  {
+    const result = calculateATSScore({
+      skillComparison: mockSkillComparison([]),
+      responsibilityMatching: mockResponsibilityMatching(),
+      jobDescription: mockJD(
+        ["Bachelor's in Computer Science or related field"],
+        {
+          requiredSkills: ["TypeScript"],
+          responsibilities: ["Build software applications"],
+        }
+      ) as ParsedJobDescription,
+      resume: mockResumeEducation([
+        { degree: "B.S.", field: "Management Engineering" },
+      ]) as NormalizedResume,
+    });
+
+    assert.equal(
+      result.categoryScores.education.meetsRequirements,
+      true,
+      "Management Engineering should satisfy 'CS or related field' requirement"
+    );
+    const eduDeductions = result.deductions.filter(
+      (d) => d.category === "education"
+    );
+    assert.equal(
+      eduDeductions.length,
+      0,
+      "Should have no education deductions for Management Engineering in software role"
+    );
+  }
+
+  console.log("✅ calculate-score tests: OK");
 }
 
 run();
