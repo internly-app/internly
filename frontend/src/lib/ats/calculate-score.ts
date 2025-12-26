@@ -179,7 +179,8 @@ export function calculateATSScore(input: ScoreInput): ATSScoreResult {
         ? Math.max(
             0,
             100 -
-              (requiredSkillsResult.categoryLoss / CATEGORY_CAPS.requiredSkills) *
+              (requiredSkillsResult.categoryLoss /
+                CATEGORY_CAPS.requiredSkills) *
                 100
           )
         : -1, // -1 indicates N/A (no required skills in JD)
@@ -243,29 +244,33 @@ export function calculateATSScore(input: ScoreInput): ATSScoreResult {
   const breakdown: Record<string, CategoryBreakdown> = {
     requiredSkills: {
       name: "Required Skills",
-      percentage: categoryScores.requiredSkills.score === -1
-        ? -1
-        : Math.round(categoryScores.requiredSkills.score),
+      percentage:
+        categoryScores.requiredSkills.score === -1
+          ? -1
+          : Math.round(categoryScores.requiredSkills.score),
       weight: CATEGORY_CAPS.requiredSkills,
-      weightedScore: categoryScores.requiredSkills.score === -1
-        ? CATEGORY_CAPS.requiredSkills // Full points when N/A
-        : Math.round(
-            (categoryScores.requiredSkills.score / 100) *
-              CATEGORY_CAPS.requiredSkills
-          ),
+      weightedScore:
+        categoryScores.requiredSkills.score === -1
+          ? CATEGORY_CAPS.requiredSkills // Full points when N/A
+          : Math.round(
+              (categoryScores.requiredSkills.score / 100) *
+                CATEGORY_CAPS.requiredSkills
+            ),
     },
     preferredSkills: {
       name: "Preferred Skills",
-      percentage: categoryScores.preferredSkills.score === -1
-        ? -1
-        : Math.round(categoryScores.preferredSkills.score),
+      percentage:
+        categoryScores.preferredSkills.score === -1
+          ? -1
+          : Math.round(categoryScores.preferredSkills.score),
       weight: CATEGORY_CAPS.preferredSkills,
-      weightedScore: categoryScores.preferredSkills.score === -1
-        ? CATEGORY_CAPS.preferredSkills // Full points when N/A
-        : Math.round(
-            (categoryScores.preferredSkills.score / 100) *
-              CATEGORY_CAPS.preferredSkills
-          ),
+      weightedScore:
+        categoryScores.preferredSkills.score === -1
+          ? CATEGORY_CAPS.preferredSkills // Full points when N/A
+          : Math.round(
+              (categoryScores.preferredSkills.score / 100) *
+                CATEGORY_CAPS.preferredSkills
+            ),
     },
     responsibilities: {
       name: "Experience Alignment",
