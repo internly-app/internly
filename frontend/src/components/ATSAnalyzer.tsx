@@ -52,6 +52,61 @@ type AtsStageEvent = {
   status?: number;
 };
 
+type LoadingCheckpoint = {
+  atMs: number;
+  percent: number;
+  message: string;
+};
+
+// Deterministic loading cycles (frontend-only)
+// - Phase 1: fast ramp to ~35–45% within the first second
+// - Phase 2: slow/uneven increments to ~65–75%
+// - Phase 3: very slow movement (or pause) while waiting for backend
+
+const LOADING_CYCLES: ReadonlyArray<ReadonlyArray<LoadingCheckpoint>> = [
+  // Cycle A
+  [
+    { atMs: 0, percent: 0, message: "Preparing analysis" },
+    { atMs: 220, percent: 18, message: "Parsing resume structure" },
+    { atMs: 520, percent: 33, message: "Reading job description" },
+    { atMs: 900, percent: 42, message: "Extracting skills and experience" },
+    { atMs: 1700, percent: 51, message: "Evaluating requirements match" },
+    { atMs: 2600, percent: 62, message: "Comparing keywords" },
+    { atMs: 3600, percent: 71, message: "Calculating ATS score" },
+  ],
+  // Cycle B
+  [
+    { atMs: 0, percent: 0, message: "Preparing analysis" },
+    { atMs: 180, percent: 16, message: "Reading resume content" },
+    { atMs: 480, percent: 29, message: "Parsing resume structure" },
+    { atMs: 850, percent: 38, message: "Reading job description" },
+    { atMs: 1650, percent: 49, message: "Extracting skills and experience" },
+    { atMs: 2550, percent: 61, message: "Evaluating requirements match" },
+    { atMs: 3450, percent: 73, message: "Finalizing analysis" },
+  ],
+  // Cycle C
+  [
+    { atMs: 0, percent: 0, message: "Preparing analysis" },
+    { atMs: 260, percent: 20, message: "Parsing resume structure" },
+    { atMs: 560, percent: 34, message: "Reading job description" },
+    { atMs: 980, percent: 45, message: "Extracting skills and experience" },
+    { atMs: 1900, percent: 55, message: "Evaluating requirements match" },
+    { atMs: 2900, percent: 66, message: "Calculating ATS score" },
+    { atMs: 4200, percent: 75, message: "Finalizing analysis" },
+  ],
+];
+
+function pickCycleIndex(): number {
+  // Prefer crypto randomness when available, otherwise fallback to Math.random.
+  try {
+    const buf = new Uint32Array(1);
+    window.crypto.getRandomValues(buf);
+    return buf[0] % LOADING_CYCLES.length;
+  } catch {
+    return Math.floor(Math.random() * LOADING_CYCLES.length);
+  }
+}
+
 function usePrefersReducedMotion(): boolean {
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -129,12 +184,16 @@ export default function ATSAnalyzer() {
   );
   const [loadingStageIndex, setLoadingStageIndex] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  // serverReported progress and message are driven by backend stage events
-  const [serverProgress, setServerProgress] = useState<number>(0);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
+  const [activeCycleIndex, setActiveCycleIndex] = useState<number>(0);
+  const [backendDone, setBackendDone] = useState(false);
+  const [loadingAnimState, setLoadingAnimState] = useState<
+    "idle" | "enter" | "exit"
+  >("idle");
   const [resultAnimState, setResultAnimState] = useState<
     "idle" | "enter" | "settled"
   >("idle");
+  const [barsFilled, setBarsFilled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadingStages = [
@@ -146,56 +205,119 @@ export default function ATSAnalyzer() {
   ];
 
   useEffect(() => {
-    // The loading UI is driven by backend stage events. We smooth the UI
-    // progress toward the last server-reported value, but never advance
-    // beyond it. This satisfies "don't fake progress with timers alone"
-    // while keeping motion subtle.
+    // Deterministic loading loop driven by one of three predefined cycles.
+    // This intentionally does NOT reflect backend timing; it only provides
+    // a realistic, consistent UX while waiting for the request to finish.
     if (analysisState.status !== "loading") {
       setLoadingStageIndex(0);
       setLoadingProgress(0);
-      setServerProgress(0);
       setLoadingMessage("");
+      setBackendDone(false);
       return;
     }
 
+    const cycle = LOADING_CYCLES[activeCycleIndex] ?? LOADING_CYCLES[0];
+    const start = performance.now();
     let cancelled = false;
 
-    const tickMs = 90;
-    const interval = window.setInterval(() => {
+    // Phase 3: cap that we creep toward while waiting for backend, to avoid
+    // hitting 100% before the response.
+    const phase3Cap = Math.min(
+      78,
+      Math.max(68, cycle[cycle.length - 1]?.percent ?? 72)
+    );
+
+    const tick = () => {
       if (cancelled) return;
+
+      const elapsed = performance.now() - start;
+
+      // Find the last checkpoint we should be at.
+      let checkpointIndex = 0;
+      for (let i = 0; i < cycle.length; i++) {
+        if (elapsed >= cycle[i].atMs) checkpointIndex = i;
+      }
+
+      const cp = cycle[checkpointIndex];
+      // Update message only at checkpoints (not every frame)
+      setLoadingMessage((prev) => (prev === cp.message ? prev : cp.message));
+
+      // Map checkpoint index to a stable "stage" in the UI.
+      setLoadingStageIndex(() => {
+        if (checkpointIndex >= cycle.length - 1) return 4;
+        if (checkpointIndex >= Math.floor((cycle.length - 1) * 0.75)) return 3;
+        if (checkpointIndex >= Math.floor((cycle.length - 1) * 0.45)) return 2;
+        if (checkpointIndex >= 1) return 1;
+        return 0;
+      });
+
+      // Smoothly approach the current checkpoint percent, but never go backwards.
       setLoadingProgress((current) => {
-        if (prefersReducedMotion)
-          return Math.min(100, serverProgress || current);
-        // Smoothly approach serverProgress
-        const target = Math.max(current, serverProgress || current);
-        if (target <= current) return current;
-        const delta = Math.max(0.4, Math.min(3, (target - current) / 6));
-        const next = Math.min(target, current + delta);
+        const target = Math.max(current, cp.percent);
+
+        // If backend isn't done, prevent progress from going beyond phase3Cap.
+        const cappedTarget = backendDone ? target : Math.min(target, phase3Cap);
+
+        if (prefersReducedMotion) return Math.round(cappedTarget);
+        if (cappedTarget <= current) return current;
+
+        // Ease toward target in small steps (lightweight)
+        const delta = Math.max(
+          0.6,
+          Math.min(2.4, (cappedTarget - current) / 7)
+        );
+        const next = Math.min(cappedTarget, current + delta);
         return Math.round(next * 100) / 100;
       });
-    }, tickMs);
 
-    // Keep a loose mapping for stage index for legacy stage list display; the
-    // canonical source of truth for status text is `loadingMessage` which is
-    // set from backend stage events.
-    const stageInterval = window.setInterval(() => {
-      if (cancelled) return;
-      setLoadingStageIndex((prev) => {
-        // Map serverProgress ranges to stage indices (rough)
-        if (serverProgress >= 95) return Math.max(prev, 4);
-        if (serverProgress >= 70) return Math.max(prev, 3);
-        if (serverProgress >= 50) return Math.max(prev, 2);
-        if (serverProgress >= 25) return Math.max(prev, 1);
-        return Math.max(prev, 0);
-      });
-    }, 250);
+      // Phase 3 creep: very slow movement while waiting.
+      if (!backendDone) {
+        setLoadingProgress((current) => {
+          if (prefersReducedMotion) return current;
+          if (current >= phase3Cap) return current;
+          // tiny creep.
+          const next = Math.min(phase3Cap, current + 0.08);
+          return Math.round(next * 100) / 100;
+        });
+      }
+    };
+
+    tick();
+    const interval = window.setInterval(tick, prefersReducedMotion ? 180 : 90);
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
-      window.clearInterval(stageInterval);
     };
-  }, [analysisState.status, prefersReducedMotion, serverProgress]);
+  }, [
+    analysisState.status,
+    activeCycleIndex,
+    backendDone,
+    prefersReducedMotion,
+  ]);
+
+  useEffect(() => {
+    if (analysisState.status === "loading") {
+      if (prefersReducedMotion) {
+        setLoadingAnimState("enter");
+        return;
+      }
+
+      // Ensure fade-in triggers reliably.
+      setLoadingAnimState("idle");
+      const raf = window.requestAnimationFrame(() =>
+        setLoadingAnimState("enter")
+      );
+      return () => window.cancelAnimationFrame(raf);
+    }
+
+    if (analysisState.status === "success") {
+      setLoadingAnimState("exit");
+      return;
+    }
+
+    setLoadingAnimState("idle");
+  }, [analysisState.status, prefersReducedMotion]);
 
   useEffect(() => {
     if (analysisState.status === "success") {
@@ -207,16 +329,33 @@ export default function ATSAnalyzer() {
     if (analysisState.status === "success") {
       if (prefersReducedMotion) {
         setResultAnimState("settled");
+        setBarsFilled(true);
         return;
       }
 
       // First frame: set to enter; next tick: settle to trigger CSS transitions.
       setResultAnimState("enter");
-      const t = window.setTimeout(() => setResultAnimState("settled"), 20);
-      return () => window.clearTimeout(t);
+      setBarsFilled(false);
+
+      // Use rAF (not a timer) to ensure the initial 0% width is committed,
+      // then transition to the real percentage.
+      let raf1 = 0;
+      let raf2 = 0;
+      raf1 = window.requestAnimationFrame(() => {
+        raf2 = window.requestAnimationFrame(() => {
+          setResultAnimState("settled");
+          setBarsFilled(true);
+        });
+      });
+
+      return () => {
+        window.cancelAnimationFrame(raf1);
+        window.cancelAnimationFrame(raf2);
+      };
     }
 
     setResultAnimState("idle");
+    setBarsFilled(false);
   }, [analysisState.status, prefersReducedMotion]);
 
   const toggleSection = useCallback((section: string) => {
@@ -305,10 +444,14 @@ export default function ATSAnalyzer() {
   const handleAnalyze = useCallback(async () => {
     if (!file || !jobDescription.trim()) return;
 
+    const cycleIdx = pickCycleIndex();
+    setActiveCycleIndex(cycleIdx);
+    setBackendDone(false);
     setLoadingStageIndex(0);
-    setLoadingProgress(prefersReducedMotion ? 1 : 2);
-    setServerProgress(prefersReducedMotion ? 1 : 2);
-    setLoadingMessage("Uploading…");
+    setLoadingProgress(0);
+    setLoadingMessage(
+      LOADING_CYCLES[cycleIdx]?.[0]?.message ?? "Preparing analysis"
+    );
     setAnalysisState({ status: "loading" });
 
     try {
@@ -340,7 +483,13 @@ export default function ATSAnalyzer() {
       if (!isNdjson) {
         // JSON success path
         const result = (await response.json()) as { data: ATSAnalysisResponse };
-        setServerProgress(100);
+        setBackendDone(true);
+        // Smooth complete to 100
+        setLoadingMessage("Finalizing analysis");
+        setLoadingProgress((p) => Math.max(p, 92));
+        await new Promise((r) =>
+          window.setTimeout(r, prefersReducedMotion ? 0 : 220)
+        );
         setLoadingProgress(100);
         setAnalysisState({ status: "success", data: result.data });
         return;
@@ -391,26 +540,6 @@ export default function ATSAnalyzer() {
             throw new Error(msg);
           }
 
-          if (typeof evt.progress === "number") {
-            const p = Math.max(0, Math.min(100, evt.progress));
-            setServerProgress((prev) => Math.max(prev, p));
-          }
-          if (typeof evt.message === "string" && evt.message.trim()) {
-            setLoadingMessage(evt.message);
-          }
-
-          // keep a loose mapping for the legacy stage list
-          if (typeof evt.progress === "number") {
-            const p = evt.progress;
-            setLoadingStageIndex((prev) => {
-              if (p >= 95) return Math.max(prev, 4);
-              if (p >= 70) return Math.max(prev, 3);
-              if (p >= 50) return Math.max(prev, 2);
-              if (p >= 25) return Math.max(prev, 1);
-              return Math.max(prev, 0);
-            });
-          }
-
           if (evt.done && evt.data) {
             finalData = evt.data;
           }
@@ -421,8 +550,13 @@ export default function ATSAnalyzer() {
         throw new Error("Analysis did not complete. Please try again.");
       }
 
-      // Completion: let the progress UI go to 100% exactly when we have the final payload.
-      setServerProgress(100);
+      // Completion: smoothly animate to 100% once the backend is done.
+      setBackendDone(true);
+      setLoadingMessage("Finalizing analysis");
+      setLoadingProgress((p) => Math.max(p, 92));
+      await new Promise((r) =>
+        window.setTimeout(r, prefersReducedMotion ? 0 : 220)
+      );
       setLoadingProgress(100);
       setAnalysisState({ status: "success", data: finalData });
     } catch (err) {
@@ -455,7 +589,7 @@ export default function ATSAnalyzer() {
     (ringScore / 100) * ringCircumference
   } ${ringCircumference}`;
 
-  const showFilledBars = resultAnimState !== "enter";
+  const showFilledBars = prefersReducedMotion ? true : barsFilled;
 
   return (
     <div className="space-y-6">
@@ -559,7 +693,19 @@ export default function ATSAnalyzer() {
 
       {/* Loading */}
       {isLoading && (
-        <Card className="animate-in fade-in-0 duration-200">
+        <Card
+          className={
+            prefersReducedMotion
+              ? undefined
+              : `transition-opacity duration-200 ease-out ${
+                  loadingAnimState === "enter"
+                    ? "opacity-100"
+                    : loadingAnimState === "exit"
+                    ? "opacity-0"
+                    : "opacity-0"
+                }`
+          }
+        >
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -746,7 +892,7 @@ export default function ATSAnalyzer() {
             className={
               prefersReducedMotion
                 ? undefined
-                : `transition-all duration-200 ease-out delay-[40ms] ${
+                : `transition-all duration-200 ease-out delay-[80ms] ${
                     resultAnimState === "enter"
                       ? "opacity-0 translate-y-1"
                       : "opacity-100 translate-y-0"
@@ -911,7 +1057,7 @@ export default function ATSAnalyzer() {
             className={
               prefersReducedMotion
                 ? undefined
-                : `transition-all duration-200 ease-out delay-[80ms] ${
+                : `transition-all duration-200 ease-out delay-[140ms] ${
                     resultAnimState === "enter"
                       ? "opacity-0 translate-y-1"
                       : "opacity-100 translate-y-0"
@@ -1062,7 +1208,7 @@ export default function ATSAnalyzer() {
                     <span className="flex items-center gap-2">
                       {hasItemizedDeductions
                         ? "Points Deduction"
-                        : "Where points went"}
+                        : "Where Points Were Lost"}
                       {hasItemizedDeductions && (
                         <span className="text-xs text-muted-foreground font-normal">
                           ({analysisState.data.score.allDeductions.length}{" "}
