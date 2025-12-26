@@ -169,25 +169,34 @@ export function calculateATSScore(input: ScoreInput): ATSScoreResult {
   const overallScore = Math.max(0, 100 - totalDeductions);
 
   // Build category scores for UI display
+  // Handle edge case: if no required skills exist, score should be N/A (represented as -1)
+  const hasRequiredSkills = skillComparison.summary.totalRequired > 0;
+  const hasPreferredSkills = skillComparison.summary.totalPreferred > 0;
+
   const categoryScores: CategoryScores = {
     requiredSkills: {
-      score: Math.max(
-        0,
-        100 -
-          (requiredSkillsResult.categoryLoss / CATEGORY_CAPS.requiredSkills) *
-            100
-      ),
+      score: hasRequiredSkills
+        ? Math.max(
+            0,
+            100 -
+              (requiredSkillsResult.categoryLoss / CATEGORY_CAPS.requiredSkills) *
+                100
+          )
+        : -1, // -1 indicates N/A (no required skills in JD)
       maxScore: 100,
       matchedSkills: skillComparison.matched.required.map((m) => m.jdSkill),
       missingSkills: skillComparison.missing,
     },
     preferredSkills: {
-      score: Math.max(
-        0,
-        100 -
-          (preferredSkillsResult.categoryLoss / CATEGORY_CAPS.preferredSkills) *
-            100
-      ),
+      score: hasPreferredSkills
+        ? Math.max(
+            0,
+            100 -
+              (preferredSkillsResult.categoryLoss /
+                CATEGORY_CAPS.preferredSkills) *
+                100
+          )
+        : -1, // -1 indicates N/A (no preferred skills in JD)
       maxScore: 100,
       matchedSkills: skillComparison.matched.preferred.map((m) => m.jdSkill),
       missingSkills: skillComparison.missingPreferred,
@@ -230,24 +239,33 @@ export function calculateATSScore(input: ScoreInput): ATSScoreResult {
   const summary = generateSummary(overallScore, allDeductions, categoryScores);
 
   // Build legacy breakdown for backward compatibility
+  // Handle N/A scores (-1) by showing them as -1 in percentage (UI will handle display)
   const breakdown: Record<string, CategoryBreakdown> = {
     requiredSkills: {
       name: "Required Skills",
-      percentage: Math.round(categoryScores.requiredSkills.score),
+      percentage: categoryScores.requiredSkills.score === -1
+        ? -1
+        : Math.round(categoryScores.requiredSkills.score),
       weight: CATEGORY_CAPS.requiredSkills,
-      weightedScore: Math.round(
-        (categoryScores.requiredSkills.score / 100) *
-          CATEGORY_CAPS.requiredSkills
-      ),
+      weightedScore: categoryScores.requiredSkills.score === -1
+        ? CATEGORY_CAPS.requiredSkills // Full points when N/A
+        : Math.round(
+            (categoryScores.requiredSkills.score / 100) *
+              CATEGORY_CAPS.requiredSkills
+          ),
     },
     preferredSkills: {
       name: "Preferred Skills",
-      percentage: Math.round(categoryScores.preferredSkills.score),
+      percentage: categoryScores.preferredSkills.score === -1
+        ? -1
+        : Math.round(categoryScores.preferredSkills.score),
       weight: CATEGORY_CAPS.preferredSkills,
-      weightedScore: Math.round(
-        (categoryScores.preferredSkills.score / 100) *
-          CATEGORY_CAPS.preferredSkills
-      ),
+      weightedScore: categoryScores.preferredSkills.score === -1
+        ? CATEGORY_CAPS.preferredSkills // Full points when N/A
+        : Math.round(
+            (categoryScores.preferredSkills.score / 100) *
+              CATEGORY_CAPS.preferredSkills
+          ),
     },
     responsibilities: {
       name: "Experience Alignment",

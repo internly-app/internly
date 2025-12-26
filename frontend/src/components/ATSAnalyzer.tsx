@@ -888,30 +888,38 @@ export default function ATSAnalyzer() {
                 {/* Category Breakdown */}
                 <div className="flex-1 w-full space-y-3">
                   {Object.entries(analysisState.data.score.breakdown).map(
-                    ([key, category]) => (
-                      <div key={key} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            {category.name}
-                          </span>
-                          <span className="font-medium">
-                            {category.percentage}%
-                          </span>
+                    ([key, category]) => {
+                      const isNA = category.percentage === -1;
+                      const displayPercentage = isNA ? 0 : category.percentage;
+                      return (
+                        <div key={key} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              {category.name}
+                            </span>
+                            <span className="font-medium">
+                              {isNA ? "N/A" : `${category.percentage}%`}
+                            </span>
+                          </div>
+                          <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                            {isNA ? (
+                              <div className="h-full w-full bg-zinc-600/50" />
+                            ) : (
+                              <div
+                                className={`h-full ${getScoreColor(
+                                  displayPercentage
+                                )} transition-[width] duration-700 ease-out`}
+                                style={{
+                                  width: showFilledBars
+                                    ? `${displayPercentage}%`
+                                    : "0%",
+                                }}
+                              />
+                            )}
+                          </div>
                         </div>
-                        <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${getScoreColor(
-                              category.percentage
-                            )} transition-[width] duration-700 ease-out`}
-                            style={{
-                              width: showFilledBars
-                                ? `${category.percentage}%`
-                                : "0%",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )
+                      );
+                    }
                   )}
                 </div>
               </div>
@@ -1218,6 +1226,40 @@ export default function ATSAnalyzer() {
                         <div
                           key={`${item.responsibility}-${i}`}
                           className="pl-6 border-l-2 border-yellow-500/30 py-1"
+                        >
+                          <p className="text-sm font-medium">
+                            {item.responsibility}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                            {item.explanation}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                )}
+
+                {/* Not Covered */}
+                {analysisState.data.details.responsibilityCoverage.notCovered
+                  .length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-red-500 flex items-center gap-2">
+                      <XCircle className="size-4" />
+                      Not Covered
+                    </h4>
+                    {analysisState.data.details.responsibilityCoverage.notCovered
+                      .filter((item, idx, arr) => {
+                        const r = item.responsibility.trim();
+                        if (!r) return false;
+                        return (
+                          arr.findIndex(
+                            (x) => x.responsibility.trim() === r
+                          ) === idx
+                        );
+                      })
+                      .map((item, i) => (
+                        <div
+                          key={`${item.responsibility}-${i}`}
+                          className="pl-6 border-l-2 border-red-500/30 py-1"
                         >
                           <p className="text-sm font-medium">
                             {item.responsibility}
