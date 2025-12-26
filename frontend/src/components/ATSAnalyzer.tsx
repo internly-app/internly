@@ -1068,25 +1068,66 @@ export default function ATSAnalyzer() {
               className="cursor-pointer"
               onClick={() => toggleSection("responsibilities")}
             >
-              <CardTitle className="text-base font-medium flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  Experience Alignment
-                  <span className="text-xs text-muted-foreground font-normal">
-                    (
-                    {
-                      analysisState.data.details.responsibilityCoverage.covered
-                        .length
-                    }
-                    /{analysisState.data.details.parsedJD.responsibilityCount}{" "}
-                    covered)
-                  </span>
-                </span>
-                {expandedSections.has("responsibilities") ? (
-                  <ChevronUp className="size-4" />
-                ) : (
-                  <ChevronDown className="size-4" />
-                )}
-              </CardTitle>
+              {(() => {
+                const covered =
+                  analysisState.data.details.responsibilityCoverage.covered;
+                const weaklyCovered =
+                  analysisState.data.details.responsibilityCoverage
+                    .weaklyCovered;
+                const notCovered =
+                  analysisState.data.details.responsibilityCoverage.notCovered;
+
+                // Some LLM outputs can accidentally duplicate the same responsibility
+                // across buckets (or even within a bucket). We compute displayed counts
+                // based on the unique responsibility strings to avoid confusing totals
+                // like "5/4 covered".
+                const unique = (items: Array<{ responsibility: string }>) =>
+                  Array.from(
+                    new Set(
+                      items.map((x) => x.responsibility.trim()).filter(Boolean)
+                    )
+                  );
+
+                const uniqueCovered = unique(covered);
+                const uniqueWeakly = unique(weaklyCovered);
+                const uniqueNot = unique(notCovered);
+
+                // If a responsibility appears in multiple buckets, treat it as the
+                // strongest bucket for count purposes: covered > partially > not.
+                const coveredSet = new Set(uniqueCovered);
+                const weaklySet = new Set(
+                  uniqueWeakly.filter((r) => !coveredSet.has(r))
+                );
+                const notSet = new Set(
+                  uniqueNot.filter(
+                    (r) => !coveredSet.has(r) && !weaklySet.has(r)
+                  )
+                );
+
+                const coveredCount = coveredSet.size;
+                const totalUnique =
+                  coveredSet.size + weaklySet.size + notSet.size;
+                const totalFromJD =
+                  analysisState.data.details.parsedJD.responsibilityCount;
+
+                const denominator = Math.max(totalUnique, totalFromJD);
+
+                return (
+                  <CardTitle className="text-base font-medium flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      Experience Alignment
+                      <span className="text-xs text-muted-foreground font-normal">
+                        ({coveredCount}/{denominator} covered)
+                      </span>
+                    </span>
+                    {expandedSections.has("responsibilities") ? (
+                      <ChevronUp className="size-4" />
+                    ) : (
+                      <ChevronDown className="size-4" />
+                    )}
+                  </CardTitle>
+                );
+              })()}
             </CardHeader>
             {expandedSections.has("responsibilities") && (
               <CardContent className="pt-0 space-y-4">
@@ -1098,19 +1139,29 @@ export default function ATSAnalyzer() {
                       <CheckCircle2 className="size-4" />
                       Covered
                     </h4>
-                    {analysisState.data.details.responsibilityCoverage.covered.map(
-                      (item, i) => (
+                    {analysisState.data.details.responsibilityCoverage.covered
+                      .filter((item, idx, arr) => {
+                        const r = item.responsibility.trim();
+                        if (!r) return false;
+                        return (
+                          arr.findIndex(
+                            (x) => x.responsibility.trim() === r
+                          ) === idx
+                        );
+                      })
+                      .map((item, i) => (
                         <div
-                          key={i}
+                          key={`${item.responsibility}-${i}`}
                           className="pl-6 border-l-2 border-green-500/30 py-1"
                         >
-                          <p className="text-sm">{item.responsibility}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-sm font-medium">
+                            {item.responsibility}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {item.explanation}
                           </p>
                         </div>
-                      )
-                    )}
+                      ))}
                   </div>
                 )}
 
@@ -1122,19 +1173,29 @@ export default function ATSAnalyzer() {
                       <AlertCircle className="size-4" />
                       Partially Covered
                     </h4>
-                    {analysisState.data.details.responsibilityCoverage.weaklyCovered.map(
-                      (item, i) => (
+                    {analysisState.data.details.responsibilityCoverage.weaklyCovered
+                      .filter((item, idx, arr) => {
+                        const r = item.responsibility.trim();
+                        if (!r) return false;
+                        return (
+                          arr.findIndex(
+                            (x) => x.responsibility.trim() === r
+                          ) === idx
+                        );
+                      })
+                      .map((item, i) => (
                         <div
-                          key={i}
+                          key={`${item.responsibility}-${i}`}
                           className="pl-6 border-l-2 border-yellow-500/30 py-1"
                         >
-                          <p className="text-sm">{item.responsibility}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-sm font-medium">
+                            {item.responsibility}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {item.explanation}
                           </p>
                         </div>
-                      )
-                    )}
+                      ))}
                   </div>
                 )}
 
@@ -1146,19 +1207,29 @@ export default function ATSAnalyzer() {
                       <XCircle className="size-4" />
                       Not Covered
                     </h4>
-                    {analysisState.data.details.responsibilityCoverage.notCovered.map(
-                      (item, i) => (
+                    {analysisState.data.details.responsibilityCoverage.notCovered
+                      .filter((item, idx, arr) => {
+                        const r = item.responsibility.trim();
+                        if (!r) return false;
+                        return (
+                          arr.findIndex(
+                            (x) => x.responsibility.trim() === r
+                          ) === idx
+                        );
+                      })
+                      .map((item, i) => (
                         <div
-                          key={i}
+                          key={`${item.responsibility}-${i}`}
                           className="pl-6 border-l-2 border-red-500/30 py-1"
                         >
-                          <p className="text-sm">{item.responsibility}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-sm font-medium">
+                            {item.responsibility}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {item.explanation}
                           </p>
                         </div>
-                      )
-                    )}
+                      ))}
                   </div>
                 )}
               </CardContent>
@@ -1173,13 +1244,79 @@ export default function ATSAnalyzer() {
 
             if (!shouldShowExplainability) return null;
 
+            const explainabilityLabelForCategoryKey = (
+              key: string,
+              categoryName: string
+            ): string => {
+              // Keep labels consistent with the sections above.
+              if (key === "responsibilities") return "Experience alignment";
+              return categoryName;
+            };
+
+            const explainabilityReasonForCategoryKey = (
+              key: string
+            ): string | null => {
+              if (key === "preferredSkills") {
+                const missingPreferredCountLocal =
+                  analysisState.data.details.skillComparison.missingPreferred
+                    ?.length ?? 0;
+                if (missingPreferredCountLocal > 0) {
+                  return `Some preferred skills were missing (${missingPreferredCountLocal}).`;
+                }
+                return "Preferred skills are bonus points and can lower the score if not present.";
+              }
+
+              if (key === "responsibilities") {
+                const notCovered =
+                  analysisState.data.details.responsibilityCoverage?.notCovered
+                    ?.length ?? 0;
+                const weaklyCovered =
+                  analysisState.data.details.responsibilityCoverage
+                    ?.weaklyCovered?.length ?? 0;
+                if (notCovered + weaklyCovered > 0) {
+                  const parts: string[] = [];
+                  if (notCovered > 0) parts.push(`${notCovered} not covered`);
+                  if (weaklyCovered > 0)
+                    parts.push(`${weaklyCovered} partially covered`);
+                  return `Some job responsibilities weren't strongly supported by the resume (${parts.join(
+                    ", "
+                  )}).`;
+                }
+                return "Some responsibilities were only weakly supported by the resume.";
+              }
+
+              if (key === "education") {
+                // We intentionally keep this high-level; itemized details (e.g., exact degree mismatch)
+                // are only shown when the scorer provides explicit deductions.
+                return "Education alignment affected the score (if the job description specifies education requirements, your resume may not fully match them).";
+              }
+
+              if (key === "requiredSkills") {
+                const missingRequiredCount =
+                  analysisState.data.details.skillComparison.missingRequired
+                    ?.length ?? 0;
+                if (missingRequiredCount > 0) {
+                  return `Some required skills were missing (${missingRequiredCount}).`;
+                }
+                return "Required skill coverage affected the overall score.";
+              }
+
+              return null;
+            };
+
             const breakdownEntries = Object.entries(score.breakdown)
               .map(([key, category]) => {
                 const pointsLost = Math.max(
                   0,
                   Math.round(category.weight - category.weightedScore)
                 );
-                return { key, category, pointsLost };
+                return {
+                  key,
+                  category,
+                  pointsLost,
+                  label: explainabilityLabelForCategoryKey(key, category.name),
+                  reason: explainabilityReasonForCategoryKey(key),
+                };
               })
               .filter((x) => x.pointsLost > 0)
               .sort((a, b) => b.pointsLost - a.pointsLost);
@@ -1253,10 +1390,10 @@ export default function ATSAnalyzer() {
                     ) : (
                       <>
                         <p className="text-xs text-muted-foreground mb-3">
-                          This job description reduced your score mainly through
-                          category weighting (e.g., preferred skills), even
-                          though there weren&apos;t specific
-                          &quot;deduction&quot; items.
+                          Your score dropped due to category weighting (for
+                          example: missing preferred skills). In this view, we
+                          don&apos;t have item-by-item deductions, so we show
+                          the categories where points were lost.
                         </p>
 
                         {missingPreferredCount > 0 && (
@@ -1272,9 +1409,16 @@ export default function ATSAnalyzer() {
                                 key={entry.key}
                                 className="flex items-start justify-between gap-4 text-sm py-1"
                               >
-                                <span className="text-muted-foreground">
-                                  {entry.category.name}
-                                </span>
+                                <div className="min-w-0">
+                                  <div className="text-muted-foreground">
+                                    {entry.label}
+                                  </div>
+                                  {entry.reason && (
+                                    <div className="text-xs text-muted-foreground/80 mt-0.5">
+                                      {entry.reason}
+                                    </div>
+                                  )}
+                                </div>
                                 <span className="text-red-500 shrink-0">
                                   -{entry.pointsLost} pts
                                 </span>
