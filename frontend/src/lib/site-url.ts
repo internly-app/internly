@@ -11,7 +11,32 @@ export function getSiteUrl(): string {
     return fromEnv.replace(/\/+$/, "");
   }
 
-  // Safe fallback for local dev.
+  // Client-side fallback: derive origin from the current page.
+  // This avoids breaking production OAuth initiation due to env propagation issues.
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin.replace(/\/+$/, "");
+
+    // Never allow a production deployment to use a localhost origin.
+    if (process.env.NODE_ENV === "production") {
+      if (/^https?:\/\/localhost(:\d+)?$/i.test(origin) || /^https?:\/\/127\.0\.0\.1(:\d+)?$/i.test(origin)) {
+        throw new Error(
+          "Refusing to use a localhost site URL in production. Check NEXT_PUBLIC_SITE_URL and your deployment domain."
+        );
+      }
+    }
+
+    return origin;
+  }
+
+  // Server-side: in production we require NEXT_PUBLIC_SITE_URL to be set.
+  // (Used for generating absolute URLs in emails / server-generated links.)
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SITE_URL. Set it to your live site origin (e.g. https://internly.tech)."
+    );
+  }
+
+  // Safe fallback for local dev/test.
   return "http://localhost:3000";
 }
 
