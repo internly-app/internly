@@ -200,6 +200,9 @@ function isGenericCategorySkill(skill: string): boolean {
   const s = normalizeSkillName(skill);
   // Phrases that are categories rather than actual skills.
   const genericPhrases: RegExp[] = [
+    /^programming$/i, // Just "programming" alone
+    /^coding$/i, // Just "coding" alone
+    /^software\s+development$/i, // Just "software development" alone
     /^programming\s+language(s)?$/i,
     /^one\s+or\s+more\s+languages$/i,
     /^one\s+or\s+more\s+programming\s+languages$/i,

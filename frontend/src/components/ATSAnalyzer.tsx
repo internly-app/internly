@@ -58,81 +58,44 @@ type LoadingCheckpoint = {
   message: string;
 };
 
-// Deterministic loading cycles (frontend-only)
-// - Phase 1: fast ramp to ~35–45% within the first second
-// - Phase 2: slow/uneven increments with pauses to ~80–90%
-// - Phase 3: very slow creep toward ~92-95% while waiting for backend
+// Smooth, realistic loading progression
+// Gradual increases with occasional pauses, not jumpy
 
-const LOADING_CYCLES: ReadonlyArray<ReadonlyArray<LoadingCheckpoint>> = [
-  // Cycle A - has pauses at 28%, 52%, and 74%
-  [
-    { atMs: 0, percent: 0, message: "Preparing analysis" },
-    { atMs: 180, percent: 12, message: "Reading resume content" },
-    { atMs: 380, percent: 22, message: "Parsing resume structure" },
-    { atMs: 600, percent: 28, message: "Parsing resume structure" }, // pause
-    { atMs: 950, percent: 28, message: "Extracting text content" }, // hold
-    { atMs: 1150, percent: 38, message: "Reading job description" },
-    { atMs: 1550, percent: 48, message: "Extracting skills and experience" },
-    { atMs: 1900, percent: 52, message: "Extracting skills and experience" }, // pause
-    { atMs: 2400, percent: 52, message: "Analyzing requirements" }, // hold
-    { atMs: 2650, percent: 61, message: "Evaluating requirements match" },
-    { atMs: 3100, percent: 68, message: "Comparing keywords" },
-    { atMs: 3500, percent: 74, message: "Comparing keywords" }, // pause
-    { atMs: 4100, percent: 74, message: "Calculating alignment" }, // hold
-    { atMs: 4400, percent: 81, message: "Calculating ATS score" },
-    { atMs: 5000, percent: 86, message: "Finalizing analysis" },
-    { atMs: 5800, percent: 89, message: "Almost done" },
-  ],
-  // Cycle B - has pauses at 34%, 58%, and 78%
-  [
-    { atMs: 0, percent: 0, message: "Preparing analysis" },
-    { atMs: 200, percent: 15, message: "Reading resume content" },
-    { atMs: 450, percent: 26, message: "Parsing resume structure" },
-    { atMs: 700, percent: 34, message: "Reading job description" },
-    { atMs: 1100, percent: 34, message: "Reading job description" }, // pause
-    { atMs: 1400, percent: 34, message: "Analyzing job requirements" }, // hold
-    { atMs: 1650, percent: 45, message: "Extracting skills and experience" },
-    { atMs: 2050, percent: 52, message: "Evaluating requirements match" },
-    { atMs: 2450, percent: 58, message: "Evaluating requirements match" }, // pause
-    { atMs: 2950, percent: 58, message: "Cross-referencing experience" }, // hold
-    { atMs: 3250, percent: 67, message: "Comparing keywords" },
-    { atMs: 3700, percent: 73, message: "Calculating alignment" },
-    { atMs: 4100, percent: 78, message: "Calculating ATS score" },
-    { atMs: 4600, percent: 78, message: "Calculating ATS score" }, // pause
-    { atMs: 5000, percent: 84, message: "Finalizing analysis" },
-    { atMs: 5600, percent: 88, message: "Almost done" },
-  ],
-  // Cycle C - has pauses at 31%, 55%, and 72%
-  [
-    { atMs: 0, percent: 0, message: "Preparing analysis" },
-    { atMs: 160, percent: 10, message: "Reading resume content" },
-    { atMs: 340, percent: 19, message: "Parsing resume structure" },
-    { atMs: 580, percent: 31, message: "Reading job description" },
-    { atMs: 900, percent: 31, message: "Reading job description" }, // pause
-    { atMs: 1300, percent: 31, message: "Processing document" }, // hold
-    { atMs: 1500, percent: 42, message: "Extracting skills and experience" },
-    { atMs: 1900, percent: 49, message: "Evaluating requirements match" },
-    { atMs: 2300, percent: 55, message: "Evaluating requirements match" }, // pause
-    { atMs: 2700, percent: 55, message: "Matching experience bullets" }, // hold
-    { atMs: 3000, percent: 64, message: "Comparing keywords" },
-    { atMs: 3500, percent: 72, message: "Calculating alignment" },
-    { atMs: 3900, percent: 72, message: "Calculating alignment" }, // pause
-    { atMs: 4300, percent: 79, message: "Calculating ATS score" },
-    { atMs: 4800, percent: 85, message: "Finalizing analysis" },
-    { atMs: 5500, percent: 90, message: "Almost done" },
-  ],
+const LOADING_CHECKPOINTS: ReadonlyArray<LoadingCheckpoint> = [
+  // Gradual start
+  { atMs: 0, percent: 0, message: "Preparing analysis" },
+  { atMs: 400, percent: 5, message: "Reading resume" },
+  { atMs: 600, percent: 12, message: "Reading resume" },
+  { atMs: 800, percent: 14, message: "Reading resume" },
+  { atMs: 1200, percent: 19, message: "Parsing content" },
+  { atMs: 1600, percent: 24, message: "Extracting skills" },
+
+  // Small pause then continue
+  { atMs: 2200, percent: 26, message: "Extracting skills" },
+  { atMs: 2600, percent: 33, message: "Reading job description" },
+  { atMs: 3000, percent: 38, message: "Reading job description" },
+  { atMs: 3400, percent: 45, message: "Analyzing requirements" },
+
+  // Another small pause
+  { atMs: 4000, percent: 46, message: "Analyzing requirements" },
+  { atMs: 4400, percent: 52, message: "Matching experience" },
+  { atMs: 4800, percent: 58, message: "Matching experience" },
+  { atMs: 5200, percent: 63, message: "Comparing skills" },
+
+  // Slow down toward the end
+  { atMs: 5800, percent: 66, message: "Comparing skills" },
+  { atMs: 6400, percent: 71, message: "Calculating score" },
+  { atMs: 7000, percent: 74, message: "Calculating score" },
+  { atMs: 7800, percent: 79, message: "Finalizing" },
+
+  // Very slow at the end, waiting for backend
+  { atMs: 8600, percent: 81, message: "Finalizing" },
+  { atMs: 9500, percent: 84, message: "Almost done" },
+  { atMs: 11000, percent: 87, message: "Almost done" },
+  { atMs: 13000, percent: 89, message: "Almost done" },
+  { atMs: 16000, percent: 96, message: "Almost done" },
+  { atMs: 20000, percent: 98, message: "Almost done" },
 ];
-
-function pickCycleIndex(): number {
-  // Prefer crypto randomness when available, otherwise fallback to Math.random.
-  try {
-    const buf = new Uint32Array(1);
-    window.crypto.getRandomValues(buf);
-    return buf[0] % LOADING_CYCLES.length;
-  } catch {
-    return Math.floor(Math.random() * LOADING_CYCLES.length);
-  }
-}
 
 function usePrefersReducedMotion(): boolean {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -212,8 +175,6 @@ export default function ATSAnalyzer() {
   const [loadingStageIndex, setLoadingStageIndex] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
-  const [activeCycleIndex, setActiveCycleIndex] = useState<number>(0);
-  const [backendDone, setBackendDone] = useState(false);
   const [loadingAnimState, setLoadingAnimState] = useState<
     "idle" | "enter" | "exit"
   >("idle");
@@ -232,105 +193,65 @@ export default function ATSAnalyzer() {
   ];
 
   useEffect(() => {
-    // Deterministic loading loop driven by one of three predefined cycles.
-    // This intentionally does NOT reflect backend timing; it only provides
-    // a realistic, consistent UX while waiting for the request to finish.
+    // Smooth loading progression with gradual transitions
     if (analysisState.status !== "loading") {
       setLoadingStageIndex(0);
       setLoadingProgress(0);
       setLoadingMessage("");
-      setBackendDone(false);
       return;
     }
 
-    const cycle = LOADING_CYCLES[activeCycleIndex] ?? LOADING_CYCLES[0];
+    const checkpoints = LOADING_CHECKPOINTS;
     const start = performance.now();
     let cancelled = false;
-
-    // Phase 3: cap that we creep toward while waiting for backend, to avoid
-    // hitting 100% before the response. Goes up to ~92-95% for realistic feel.
-    const phase3Cap = Math.min(
-      94,
-      Math.max(91, cycle[cycle.length - 1]?.percent ?? 90)
-    );
 
     const tick = () => {
       if (cancelled) return;
 
       const elapsed = performance.now() - start;
 
-      // Find the last checkpoint we should be at.
-      let checkpointIndex = 0;
-      for (let i = 0; i < cycle.length; i++) {
-        if (elapsed >= cycle[i].atMs) checkpointIndex = i;
+      // Find current and next checkpoint for smooth interpolation
+      let cpIndex = 0;
+      for (let i = 0; i < checkpoints.length; i++) {
+        if (elapsed >= checkpoints[i].atMs) cpIndex = i;
       }
 
-      const cp = cycle[checkpointIndex];
-      // Update message only at checkpoints (not every frame)
-      setLoadingMessage((prev) => (prev === cp.message ? prev : cp.message));
+      const currentCp = checkpoints[cpIndex];
+      const nextCp = checkpoints[cpIndex + 1];
 
-      // Map checkpoint index to a stable "stage" in the UI.
-      setLoadingStageIndex(() => {
-        if (checkpointIndex >= cycle.length - 1) return 4;
-        if (checkpointIndex >= Math.floor((cycle.length - 1) * 0.75)) return 3;
-        if (checkpointIndex >= Math.floor((cycle.length - 1) * 0.45)) return 2;
-        if (checkpointIndex >= 1) return 1;
-        return 0;
-      });
+      // Update message
+      setLoadingMessage(currentCp.message);
 
-      // Smoothly approach the current checkpoint percent, but never go backwards.
-      setLoadingProgress((current) => {
-        const target = Math.max(current, cp.percent);
+      // Map to stage index for the UI dots
+      const stageProgress = cpIndex / (checkpoints.length - 1);
+      setLoadingStageIndex(Math.min(4, Math.floor(stageProgress * 5)));
 
-        // If backend isn't done, prevent progress from going beyond phase3Cap.
-        const cappedTarget = backendDone ? target : Math.min(target, phase3Cap);
+      // Smooth interpolation between checkpoints
+      if (nextCp) {
+        const segmentDuration = nextCp.atMs - currentCp.atMs;
+        const segmentElapsed = elapsed - currentCp.atMs;
+        const segmentProgress = Math.min(1, segmentElapsed / segmentDuration);
 
-        if (prefersReducedMotion) return Math.round(cappedTarget);
-        if (cappedTarget <= current) return current;
+        // Ease-out for smoother feel
+        const easedProgress = 1 - Math.pow(1 - segmentProgress, 2);
+        const interpolatedPercent =
+          currentCp.percent +
+          (nextCp.percent - currentCp.percent) * easedProgress;
 
-        // Ease toward target in small steps (lightweight)
-        const delta = Math.max(
-          0.6,
-          Math.min(2.4, (cappedTarget - current) / 7)
-        );
-        const next = Math.min(cappedTarget, current + delta);
-        return Math.round(next * 100) / 100;
-      });
-
-      // Phase 3 creep: slow movement with micro-pauses while waiting for backend.
-      // Creates realistic "processing" feel by occasionally pausing.
-      if (!backendDone) {
-        setLoadingProgress((current) => {
-          if (prefersReducedMotion) return current;
-          if (current >= phase3Cap) return current;
-
-          // Create micro-pauses: ~30% of ticks do nothing (simulates processing)
-          const tick = Math.floor(elapsed / 90);
-          const shouldPause = tick % 5 === 0 || tick % 7 === 0;
-          if (shouldPause && current > 85) return current; // more pauses near the end
-
-          // Variable creep speed: slower as we get closer to the cap
-          const remaining = phase3Cap - current;
-          const creepRate = remaining > 5 ? 0.12 : remaining > 2 ? 0.06 : 0.03;
-          const next = Math.min(phase3Cap, current + creepRate);
-          return Math.round(next * 100) / 100;
-        });
+        setLoadingProgress(Math.round(interpolatedPercent * 10) / 10);
+      } else {
+        setLoadingProgress(currentCp.percent);
       }
     };
 
     tick();
-    const interval = window.setInterval(tick, prefersReducedMotion ? 180 : 90);
+    const interval = window.setInterval(tick, 50); // Smoother updates
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [
-    analysisState.status,
-    activeCycleIndex,
-    backendDone,
-    prefersReducedMotion,
-  ]);
+  }, [analysisState.status]);
 
   useEffect(() => {
     if (analysisState.status === "loading") {
@@ -480,14 +401,9 @@ export default function ATSAnalyzer() {
   const handleAnalyze = useCallback(async () => {
     if (!file || !jobDescription.trim()) return;
 
-    const cycleIdx = pickCycleIndex();
-    setActiveCycleIndex(cycleIdx);
-    setBackendDone(false);
     setLoadingStageIndex(0);
     setLoadingProgress(0);
-    setLoadingMessage(
-      LOADING_CYCLES[cycleIdx]?.[0]?.message ?? "Preparing analysis"
-    );
+    setLoadingMessage(LOADING_CHECKPOINTS[0]?.message ?? "Preparing analysis");
     setAnalysisState({ status: "loading" });
 
     try {
@@ -519,12 +435,11 @@ export default function ATSAnalyzer() {
       if (!isNdjson) {
         // JSON success path
         const result = (await response.json()) as { data: ATSAnalysisResponse };
-        setBackendDone(true);
-        // Smooth complete to 100
-        setLoadingMessage("Finalizing analysis");
-        setLoadingProgress((p) => Math.max(p, 92));
+        // Jump to near-complete then 100%
+        setLoadingMessage("Finalizing");
+        setLoadingProgress(95);
         await new Promise((r) =>
-          window.setTimeout(r, prefersReducedMotion ? 0 : 220)
+          window.setTimeout(r, prefersReducedMotion ? 0 : 200)
         );
         setLoadingProgress(100);
         setAnalysisState({ status: "success", data: result.data });
@@ -586,12 +501,11 @@ export default function ATSAnalyzer() {
         throw new Error("Analysis did not complete. Please try again.");
       }
 
-      // Completion: smoothly animate to 100% once the backend is done.
-      setBackendDone(true);
-      setLoadingMessage("Finalizing analysis");
-      setLoadingProgress((p) => Math.max(p, 92));
+      // Jump to near-complete then 100%
+      setLoadingMessage("Finalizing");
+      setLoadingProgress(95);
       await new Promise((r) =>
-        window.setTimeout(r, prefersReducedMotion ? 0 : 220)
+        window.setTimeout(r, prefersReducedMotion ? 0 : 200)
       );
       setLoadingProgress(100);
       setAnalysisState({ status: "success", data: finalData });
@@ -808,6 +722,18 @@ export default function ATSAnalyzer() {
                 }`
           }
         >
+          {/* Encouragement note - shown at the top so people see it */}
+          <p className="text-sm text-muted-foreground flex items-start gap-2 bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+            <Info className="size-4 shrink-0 mt-0.5 text-blue-400" />
+            <span>
+              Missing some required or preferred skills does not mean you
+              shouldn&apos;t apply. Many students land internships from roles
+              they didn&apos;t think they&apos;d even get an interview for. This
+              tool is here to give you the best possible chance, not to filter
+              you out.
+            </span>
+          </p>
+
           {/* Score Overview */}
           <Card
             className={

@@ -128,7 +128,11 @@ const CS_RELATED_FIELDS = [
   "statistics",
   "physics",
   "engineering",
-  "management engineering", // User specifically requested this count as CS-related
+  "management engineering",
+  "applied science", // Bachelor of Applied Science (BASc) - common in engineering/tech programs
+  "systems design",
+  "system design",
+  "systems engineering",
 ];
 
 // ---------------------------------------------------------------------------
@@ -830,7 +834,9 @@ function getDegreeLevel(eduText: string): number {
     text.includes("master") ||
     text.includes("mba") ||
     text.includes("m.s.") ||
-    text.includes("m.a.")
+    text.includes("m.a.") ||
+    text.includes("msc") ||
+    text.includes("meng")
   ) {
     return 4;
   }
@@ -839,7 +845,11 @@ function getDegreeLevel(eduText: string): number {
     text.includes("b.s.") ||
     text.includes("b.a.") ||
     text.includes("b.eng") ||
-    text.includes("undergraduate")
+    text.includes("basc") || // Bachelor of Applied Science
+    text.includes("bsc") || // Bachelor of Science (no periods)
+    text.includes("beng") || // Bachelor of Engineering (no periods)
+    text.includes("undergraduate") ||
+    /\bb\.?a\.?sc\.?\b/.test(text) // B.A.Sc, BASc, etc.
   ) {
     return 3;
   }
@@ -870,14 +880,24 @@ function getRequiredDegreeLevel(reqText: string): number {
 
   // Check for "or" patterns - return the MINIMUM acceptable level
   // e.g., "Bachelor's or Master's" means Bachelor's is acceptable
-  const hasOr = text.includes(" or ");
+  const hasOr =
+    text.includes(" or ") || text.includes("/") || text.includes(",");
 
   if (hasOr) {
     // Parse levels and return minimum
     const levels: number[] = [];
     if (text.includes("phd") || text.includes("doctorate")) levels.push(5);
-    if (text.includes("master")) levels.push(4);
-    if (text.includes("bachelor") || text.includes("degree")) levels.push(3);
+    if (text.includes("master") || /\bms\b/.test(text) || /\bm\.s\./.test(text))
+      levels.push(4);
+    if (
+      text.includes("bachelor") ||
+      /\bbs\b/.test(text) ||
+      /\bb\.s\./.test(text) ||
+      /\bba\b/.test(text) ||
+      /\bb\.a\./.test(text) ||
+      text.includes("degree")
+    )
+      levels.push(3);
     if (text.includes("associate")) levels.push(2);
 
     if (levels.length > 0) {
@@ -889,10 +909,17 @@ function getRequiredDegreeLevel(reqText: string): number {
   if (text.includes("phd") || text.includes("doctorate")) {
     return 5;
   }
-  if (text.includes("master")) {
+  if (text.includes("master") || /\bms\b/.test(text) || /\bm\.s\./.test(text)) {
     return 4;
   }
-  if (text.includes("bachelor") || text.includes("degree")) {
+  if (
+    text.includes("bachelor") ||
+    /\bbs\b/.test(text) ||
+    /\bb\.s\./.test(text) ||
+    /\bba\b/.test(text) ||
+    /\bb\.a\./.test(text) ||
+    text.includes("degree")
+  ) {
     return 3;
   }
   if (text.includes("associate")) {
