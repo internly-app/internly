@@ -8,11 +8,12 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ReviewCard from "@/components/ReviewCard";
 import CompanyCard from "@/components/CompanyCard";
+import ATSAnalyzer from "@/components/ATSAnalyzer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/AuthProvider";
-import { FileText, Bookmark, ArrowRight } from "lucide-react";
+import { FileText, Bookmark, ArrowRight, FileBarChart2 } from "lucide-react";
 import type { ReviewWithDetails, CompanyWithStats } from "@/lib/types/database";
 
 // Animation variants - fade in only (no y movement for smoother loading)
@@ -38,12 +39,41 @@ const itemVariants = {
   },
 };
 
-type Tab = "reviews" | "saved";
+type Tab = "reviews" | "saved" | "ats";
+
+function parseTabFromHash(hash: string): Tab | null {
+  const cleaned = hash.replace(/^#/, "").trim().toLowerCase();
+  if (cleaned === "ats") return "ats";
+  if (cleaned === "saved") return "saved";
+  if (cleaned === "reviews") return "reviews";
+  return null;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("reviews");
+
+  // Keep the selected tab stable across refresh by syncing with URL hash.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const applyFromHash = () => {
+      const next = parseTabFromHash(window.location.hash);
+      if (next) setActiveTab(next);
+    };
+
+    applyFromHash();
+    window.addEventListener("hashchange", applyFromHash);
+    return () => window.removeEventListener("hashchange", applyFromHash);
+  }, []);
+
+  const setTab = (tab: Tab) => {
+    setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      window.location.hash = tab;
+    }
+  };
   // Initialize from cache if available to prevent loading flash
   const getCachedReviews = (): ReviewWithDetails[] => {
     try {
@@ -377,7 +407,7 @@ export default function ProfilePage() {
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 mb-6 sm:mb-8 max-w-5xl mx-auto">
           <Button
             variant={activeTab === "reviews" ? "default" : "outline"}
-            onClick={() => setActiveTab("reviews")}
+            onClick={() => setTab("reviews")}
             className="gap-2 flex-1 sm:flex-initial"
           >
             <FileText className="size-4" />
@@ -387,13 +417,22 @@ export default function ProfilePage() {
           </Button>
           <Button
             variant={activeTab === "saved" ? "default" : "outline"}
-            onClick={() => setActiveTab("saved")}
+            onClick={() => setTab("saved")}
             className="gap-2 flex-1 sm:flex-initial"
           >
             <Bookmark className="size-4" />
             <span className="hidden sm:inline">Saved Companies</span>
             <span className="sm:hidden">Saved</span>
             <span className="ml-1">({savedCompanies.length})</span>
+          </Button>
+          <Button
+            variant={activeTab === "ats" ? "default" : "outline"}
+            onClick={() => setTab("ats")}
+            className="gap-2 flex-1 sm:flex-initial"
+          >
+            <FileBarChart2 className="size-4" />
+            <span className="hidden sm:inline">ATS Analyzer</span>
+            <span className="sm:hidden">ATS</span>
           </Button>
         </div>
 
@@ -501,6 +540,19 @@ export default function ProfilePage() {
                 </motion.div>
               )}
             </>
+          )}
+
+          {/* ATS Analyzer Tab */}
+          {activeTab === "ats" && (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div variants={itemVariants}>
+                <ATSAnalyzer />
+              </motion.div>
+            </motion.div>
           )}
         </div>
       </motion.div>

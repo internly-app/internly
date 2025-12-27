@@ -1,8 +1,8 @@
 /**
  * Rate Limiting Utility
- * 
+ *
  * Simple in-memory rate limiting for API routes.
- * 
+ *
  * PRODUCTION NOTE:
  * - Current implementation uses in-memory storage (resets on server restart)
  * - For production with multiple servers/instances, use Redis or similar
@@ -60,6 +60,22 @@ export const RATE_LIMITS = {
   GENERAL: {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 100,
+  },
+  // ATS Analysis: expensive AI operations
+  // Short burst limit: 3 per minute (prevent rapid fire)
+  ATS_ANALYZE_BURST: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 3,
+  },
+  // Hourly limit: 20 analyses per hour
+  ATS_ANALYZE_HOURLY: {
+    windowMs: 60 * 60 * 1000, // 1 hour
+    maxRequests: 20,
+  },
+  // Daily limit: 50 analyses per day
+  ATS_ANALYZE_DAILY: {
+    windowMs: 24 * 60 * 60 * 1000, // 24 hours
+    maxRequests: 50,
   },
 } as const;
 
@@ -130,10 +146,14 @@ export function checkRateLimit(
       const blockDuration = 60 * 60 * 1000; // 1 hour
       blocklist.set(key, {
         blockedUntil: now + blockDuration,
-        reason: 'Repeated rate limit violations',
+        reason: "Repeated rate limit violations",
         violations: record.violations,
       });
-      console.warn(`[Rate Limit] Blocked ${key} for ${blockDuration / 1000}s due to ${record.violations} violations`);
+      console.warn(
+        `[Rate Limit] Blocked ${key} for ${blockDuration / 1000}s due to ${
+          record.violations
+        } violations`
+      );
     }
 
     return {
@@ -214,4 +234,3 @@ export function getIpAddress(request: Request): string | null {
   // Fallback (won't work in serverless, but good for development)
   return null;
 }
-
