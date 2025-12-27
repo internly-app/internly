@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { sanitizeText } from "@/lib/security/content-filter";
+import { buildSiteUrl } from "@/lib/site-url";
 
 interface AuthPanelProps {
   redirectTo?: string;
@@ -48,9 +49,7 @@ export function AuthPanel({
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${(
-            process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-          ).replace(/\/+$/, "")}/auth/callback`,
+          redirectTo: buildSiteUrl("/auth/callback"),
         },
       });
 
@@ -126,7 +125,7 @@ export function AuthPanel({
             data: {
               first_name: sanitizedFirstName,
             },
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://internly.tech'}/auth/callback`,
+            emailRedirectTo: buildSiteUrl("/auth/callback"),
           },
         });
 

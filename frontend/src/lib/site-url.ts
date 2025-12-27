@@ -11,7 +11,15 @@ export function getSiteUrl(): string {
     return fromEnv.replace(/\/+$/, "");
   }
 
-  // Safe fallback for local dev.
+  // Prevent shipping a build that can ever redirect users to localhost.
+  // In production, missing NEXT_PUBLIC_SITE_URL is a deployment misconfiguration.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SITE_URL. Set it to your live site origin (e.g. https://internly.tech)."
+    );
+  }
+
+  // Safe fallback for local dev/test.
   return "http://localhost:3000";
 }
 
