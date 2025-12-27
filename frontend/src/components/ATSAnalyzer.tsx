@@ -18,6 +18,10 @@ import {
   X,
 } from "lucide-react";
 import type { ATSAnalysisResponse } from "@/lib/ats/types";
+import type {
+  ScoreDeduction,
+  CategoryBreakdown,
+} from "@/lib/ats/calculate-score";
 
 // ---------------------------------------------------------------------------
 // Constants (keep in sync with server)
@@ -58,10 +62,8 @@ type LoadingCheckpoint = {
   message: string;
 };
 
-// Smooth, realistic loading progression
-// Gradual increases with occasional pauses, not jumpy
-
-const LOADING_CHECKPOINTS: ReadonlyArray<LoadingCheckpoint> = [
+// Base loading checkpoints - will be jittered per run for variation
+const BASE_LOADING_CHECKPOINTS: ReadonlyArray<LoadingCheckpoint> = [
   // Gradual start
   { atMs: 0, percent: 0, message: "Preparing analysis" },
   { atMs: 400, percent: 5, message: "Reading resume" },
@@ -96,6 +98,19 @@ const LOADING_CHECKPOINTS: ReadonlyArray<LoadingCheckpoint> = [
   { atMs: 16000, percent: 96, message: "Almost done" },
   { atMs: 20000, percent: 98, message: "Almost done" },
 ];
+
+/**
+ * Apply slight random jitter to loading checkpoints for variation between runs.
+ * Jitter is ±15% on timing, keeping the overall feel consistent but not robotic.
+ */
+function applyLoadingJitter(): LoadingCheckpoint[] {
+  const jitterFactor = 0.85 + Math.random() * 0.3; // 0.85 to 1.15
+  return BASE_LOADING_CHECKPOINTS.map((cp, idx) => ({
+    ...cp,
+    // Don't jitter the first checkpoint (always start at 0)
+    atMs: idx === 0 ? 0 : Math.round(cp.atMs * jitterFactor),
+  }));
+}
 
 function usePrefersReducedMotion(): boolean {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -201,7 +216,8 @@ export default function ATSAnalyzer() {
       return;
     }
 
-    const checkpoints = LOADING_CHECKPOINTS;
+    // Apply jitter once per loading session for natural variation
+    const checkpoints = applyLoadingJitter();
     const start = performance.now();
     let cancelled = false;
 
@@ -403,7 +419,9 @@ export default function ATSAnalyzer() {
 
     setLoadingStageIndex(0);
     setLoadingProgress(0);
-    setLoadingMessage(LOADING_CHECKPOINTS[0]?.message ?? "Preparing analysis");
+    setLoadingMessage(
+      BASE_LOADING_CHECKPOINTS[0]?.message ?? "Preparing analysis"
+    );
     setAnalysisState({ status: "loading" });
 
     try {
@@ -814,7 +832,7 @@ export default function ATSAnalyzer() {
                 {/* Category Breakdown */}
                 <div className="flex-1 w-full space-y-3">
                   {Object.entries(analysisState.data.score.breakdown).map(
-                    ([key, category]) => {
+                    ([key, category]: [string, CategoryBreakdown]) => {
                       const isNA = category.percentage === -1;
                       const displayPercentage = isNA ? 0 : category.percentage;
                       return (
@@ -1159,6 +1177,11 @@ export default function ATSAnalyzer() {
                           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {item.explanation}
                           </p>
+                          <p className="text-xs text-blue-400/80 mt-1.5 flex items-center gap-1">
+                            <span className="text-blue-400">💡</span>
+                            Add more specific details or metrics to strengthen
+                            this match.
+                          </p>
                         </div>
                       ))}
                   </div>
@@ -1193,6 +1216,12 @@ export default function ATSAnalyzer() {
                           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {item.explanation}
                           </p>
+                          <p className="text-xs text-blue-400/80 mt-1.5 flex items-center gap-1">
+                            <span className="text-blue-400">💡</span>
+                            Consider adding a project or experience that
+                            demonstrates this skill to strengthen your
+                            application.
+                          </p>
                         </div>
                       ))}
                   </div>
@@ -1204,7 +1233,7 @@ export default function ATSAnalyzer() {
           {/* Deductions / Explainability Section */}
           {(() => {
             const score = analysisState.data.score;
-            const deductions = score.deductions || [];
+            const deductions: ScoreDeduction[] = score.deductions || [];
             const shouldShowExplainability =
               score.overallScore < 100 && deductions.length > 0;
 
@@ -1212,7 +1241,8 @@ export default function ATSAnalyzer() {
 
             // Total points lost equals sum of deductions (guaranteed by new scoring)
             const totalPointsLost = deductions.reduce(
-              (sum, d) => sum + (Number.isFinite(d.points) ? d.points : 0),
+              (sum: number, d: ScoreDeduction) =>
+                sum + (Number.isFinite(d.points) ? d.points : 0),
               0
             );
 
@@ -1249,9 +1279,12 @@ export default function ATSAnalyzer() {
                 {expandedSections.has("deductions") && (
                   <CardContent className="pt-0">
                     <div className="space-y-2">
-                      {deductions
-                        .sort((a, b) => b.points - a.points)
-                        .map((deduction, i) => (
+                      {[...deductions]
+                        .sort(
+                          (a: ScoreDeduction, b: ScoreDeduction) =>
+                            b.points - a.points
+                        )
+                        .map((deduction: ScoreDeduction, i: number) => (
                           <div
                             key={i}
                             className="flex items-start justify-between gap-4 text-sm py-1"
