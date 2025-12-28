@@ -7,6 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { sanitizeText } from "@/lib/security/content-filter";
 import { buildSiteUrl } from "@/lib/site-url";
+import {
+  getSignInErrorMessage,
+  getSignUpErrorMessage,
+  getOAuthErrorMessage,
+} from "@/lib/auth-errors";
 
 interface AuthPanelProps {
   redirectTo?: string;
@@ -60,9 +65,7 @@ export function AuthPanel({
       // OAuth will redirect, so we don't need to do anything else
     } catch (err) {
       console.error("Google OAuth error", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to start Google sign in"
-      );
+      setError(getOAuthErrorMessage(err instanceof Error ? err : String(err)));
       setGoogleLoading(false);
     }
   };
@@ -102,7 +105,8 @@ export function AuthPanel({
         });
 
         if (signInError) {
-          throw new Error(signInError.message);
+          setError(getSignInErrorMessage(signInError.message));
+          return;
         }
 
         setMessage("Signed in successfully!");
@@ -130,12 +134,13 @@ export function AuthPanel({
         });
 
         if (signUpError) {
-          throw new Error(signUpError.message);
+          setError(getSignUpErrorMessage(signUpError.message));
+          return;
         }
 
         // If no session was created, email confirmation is required
         if (!data.session) {
-          setMessage("Check your email for a confirmation link to complete your signup.");
+          setMessage("Check your inbox for a verification link. If you don't see it, check your spam folder.");
           setFormStatus("idle");
           return;
         }
@@ -153,8 +158,12 @@ export function AuthPanel({
       }
     } catch (err) {
       console.error("Email auth error", err);
+      // Use appropriate error message based on mode
+      const errorMessage = err instanceof Error ? err.message : String(err);
       setError(
-        err instanceof Error ? err.message : "Unable to authenticate with email"
+        mode === "sign-in"
+          ? getSignInErrorMessage(errorMessage)
+          : getSignUpErrorMessage(errorMessage)
       );
     } finally {
       setFormStatus("idle");

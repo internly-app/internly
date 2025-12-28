@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getOAuthErrorMessage, getSessionErrorMessage } from "@/lib/auth-errors";
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -36,16 +37,9 @@ function AuthCallbackContent() {
           };
           console.error("OAuth error details:", fullError);
 
-          let userMessage = errorDescription || errorParam;
-          if (
-            errorParam === "server_error" &&
-            errorDescription?.includes("Unable to exchange external code")
-          ) {
-            userMessage =
-              "Google authentication failed. Please check that your Google OAuth credentials are correctly configured in Supabase.";
-          }
-
-          setError(userMessage);
+          // Convert technical OAuth errors to user-friendly messages
+          const rawError = errorDescription || errorParam;
+          setError(getOAuthErrorMessage(rawError));
           return;
         }
 
@@ -56,7 +50,7 @@ function AuthCallbackContent() {
 
         if (sessionError) {
           console.error("Session error:", sessionError);
-          setError(sessionError.message);
+          setError(getSessionErrorMessage(sessionError.message));
           return;
         }
 
@@ -68,7 +62,7 @@ function AuthCallbackContent() {
           } = await supabase.auth.getSession();
 
           if (retryError || !retrySession) {
-            setError("Failed to establish session. Please try again.");
+            setError("We couldn't complete your sign-in. Please try again.");
             return;
           }
         }
@@ -107,7 +101,7 @@ function AuthCallbackContent() {
         router.refresh();
       } catch (err) {
         console.error("Callback error:", err);
-        setError(err instanceof Error ? err.message : "Authentication failed");
+        setError(getSessionErrorMessage(err instanceof Error ? err.message : "Authentication failed"));
       }
     };
 
@@ -120,15 +114,23 @@ function AuthCallbackContent() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-destructive">
-              Authentication Error
+              Oops! Something went wrong
             </CardTitle>
-            <CardDescription className="text-destructive/80">
+            <CardDescription className="text-base mt-2">
               {error}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             <Button
               onClick={() => router.push("/")}
+              variant="outline"
+              className="w-full"
+            >
+              Try Again
+            </Button>
+            <Button
+              onClick={() => router.push("/")}
+              variant="ghost"
               className="w-full"
             >
               Back to Home
