@@ -1193,11 +1193,6 @@ export default function ATSAnalyzer() {
                           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {item.explanation}
                           </p>
-                          <p className="text-xs text-blue-400/80 mt-1.5 flex items-center gap-1">
-                            <span className="text-blue-400">💡</span>
-                            Add more specific details or metrics to strengthen
-                            this match.
-                          </p>
                         </div>
                       ))}
                   </div>
@@ -1231,12 +1226,6 @@ export default function ATSAnalyzer() {
                           </p>
                           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {item.explanation}
-                          </p>
-                          <p className="text-xs text-blue-400/80 mt-1.5 flex items-center gap-1">
-                            <span className="text-blue-400">💡</span>
-                            Consider adding a project or experience that
-                            demonstrates this skill to strengthen your
-                            application.
                           </p>
                         </div>
                       ))}

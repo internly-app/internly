@@ -85,3 +85,22 @@ function makeParsed(
     "Expected soft competency phrase to be removed from requiredSkills"
   );
 }
+
+// Regression: generic soft skills should not become hard required skills.
+{
+  const jd =
+    "We are looking for strong collaboration, problem-solving, and software design.";
+
+  const parsed = makeParsed({
+    requiredSkills: ["Software design", "Collaboration", "Problem-solving"],
+    preferredSkills: [],
+  });
+
+  const out = postProcessParsedJobDescription(jd, parsed);
+
+  assert.strictEqual(
+    out.requiredSkills.length,
+    0,
+    "Expected soft skills to be removed from requiredSkills"
+  );
+}

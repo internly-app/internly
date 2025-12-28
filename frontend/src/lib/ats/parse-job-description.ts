@@ -223,6 +223,31 @@ function isSoftCompetencyPhrase(skill: string): boolean {
   // same way as concrete tools/languages. We keep them out of requiredSkills
   // to avoid unfair penalties.
   const patterns: RegExp[] = [
+    // Common "soft" or competency-style requirements that should not be treated
+    // as hard skills (these belong more in responsibilities or general fit).
+    /^collaboration$/i,
+    /^collaborat(e|ion|ive)$/i,
+    /^problem[-\s]?solving$/i,
+    /^problem[-\s]?solver$/i,
+    /^communication$/i,
+    /^communication\s+skills$/i,
+    /^written\s+communication$/i,
+    /^verbal\s+communication$/i,
+    /^teamwork$/i,
+    /^work\s+ethic$/i,
+    /^adaptability$/i,
+    /^time\s+management$/i,
+    /^attention\s+to\s+detail$/i,
+    /^critical\s+thinking$/i,
+    /^ownership$/i,
+    /^leadership$/i,
+    /^mentorship$/i,
+    /^stakeholder\s+management$/i,
+    /^customer\s+focus$/i,
+    // Vague design competency — keep out of the skill lists.
+    /^software\s+design$/i,
+    /^system\s+design$/i,
+    /^design\s+patterns$/i,
     /\bstrong\s+foundation\b/i,
     /\bsolid\s+foundation\b/i,
     /\bfundamentals\b/i,

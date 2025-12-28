@@ -580,7 +580,7 @@ function analyzeResponsibilities(
       deductions.push({
         reason: `Partial experience match: ${truncateText(
           r.responsibility,
-          50
+          90
         )}`,
         points: deductionAmount,
         category: "responsibilities",
@@ -615,7 +615,7 @@ function analyzeResponsibilities(
     );
     if (deductionAmount > 0) {
       deductions.push({
-        reason: `Missing experience: ${truncateText(r.responsibility, 50)}`,
+        reason: `Missing experience: ${truncateText(r.responsibility, 90)}`,
         points: deductionAmount,
         category: "responsibilities",
       });
