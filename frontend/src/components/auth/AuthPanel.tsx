@@ -140,7 +140,7 @@ export function AuthPanel({
 
         // If no session was created, email confirmation is required
         if (!data.session) {
-          setMessage("Check your inbox for a confirmation link to complete your signup. If you don't see it, check your spam folder.");
+          setMessage("Check your inbox for a verification link. If you don't see it, check your spam folder.");
           setFormStatus("idle");
           return;
         }
