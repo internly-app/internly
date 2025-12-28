@@ -923,12 +923,20 @@ export default function ATSAnalyzer() {
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {analysisState.data.details.skillComparison.matchedRequired.map(
-                        (skill) => (
+                        (match) => (
                           <span
-                            key={skill}
+                            key={match.jdSkill}
                             className="px-2 py-1 text-xs rounded-md bg-green-500/10 text-green-500 border border-green-500/20"
+                            title={
+                              match.matchType !== "exact"
+                                ? `Matched via ${match.matchType}: "${match.resumeSkill}" on your resume`
+                                : undefined
+                            }
                           >
-                            {skill}
+                            {match.jdSkill}
+                            {match.matchType === "synonym" && (
+                              <span className="ml-1 opacity-70">≈</span>
+                            )}
                           </span>
                         )
                       )}
@@ -969,12 +977,20 @@ export default function ATSAnalyzer() {
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {analysisState.data.details.skillComparison.matchedPreferred.map(
-                        (skill) => (
+                        (match) => (
                           <span
-                            key={skill}
+                            key={match.jdSkill}
                             className="px-2 py-1 text-xs rounded-md bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                            title={
+                              match.matchType !== "exact"
+                                ? `Matched via ${match.matchType}: "${match.resumeSkill}" on your resume`
+                                : undefined
+                            }
                           >
-                            {skill}
+                            {match.jdSkill}
+                            {match.matchType === "synonym" && (
+                              <span className="ml-1 opacity-70">≈</span>
+                            )}
                           </span>
                         )
                       )}

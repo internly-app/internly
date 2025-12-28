@@ -521,11 +521,18 @@ export async function POST(
             score,
             details: {
               skillComparison: {
-                matchedRequired: skillComparison.matched.required.map(
-                  (m) => m.jdSkill
-                ),
+                // Include full match info (jdSkill, resumeSkill, matchType) for richer feedback
+                matchedRequired: skillComparison.matched.required.map((m) => ({
+                  jdSkill: m.jdSkill,
+                  resumeSkill: m.resumeSkill,
+                  matchType: m.matchType,
+                })),
                 matchedPreferred: skillComparison.matched.preferred.map(
-                  (m) => m.jdSkill
+                  (m) => ({
+                    jdSkill: m.jdSkill,
+                    resumeSkill: m.resumeSkill,
+                    matchType: m.matchType,
+                  })
                 ),
                 missingRequired: skillComparison.missing,
                 missingPreferred: skillComparison.missingPreferred,
