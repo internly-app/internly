@@ -11,7 +11,7 @@ type ErrorMapping = {
 const signInErrorMappings: ErrorMapping[] = [
   {
     pattern: /invalid login credentials/i,
-    message: "Incorrect email or password. Please try again.",
+    message: "Incorrect email or password. If you signed up with Google, use the Google button instead.",
   },
   {
     pattern: /email not confirmed/i,
@@ -40,6 +40,14 @@ const signInErrorMappings: ErrorMapping[] = [
   {
     pattern: /user not found/i,
     message: "No account found with this email. Please sign up first.",
+  },
+  {
+    pattern: /user.*banned|account.*disabled|account.*suspended/i,
+    message: "This account has been disabled. Please contact support if you think this is a mistake.",
+  },
+  {
+    pattern: /signups.*disabled|registration.*disabled/i,
+    message: "New accounts are not being accepted at this time.",
   },
 ];
 
@@ -75,6 +83,14 @@ const signUpErrorMappings: ErrorMapping[] = [
   {
     pattern: /timeout/i,
     message: "The request took too long. Please try again.",
+  },
+  {
+    pattern: /signups.*disabled|registration.*disabled/i,
+    message: "New accounts are not being accepted at this time.",
+  },
+  {
+    pattern: /email.*provider|smtp|sending.*email/i,
+    message: "We couldn't send the verification email. Please try again later.",
   },
 ];
 

@@ -138,6 +138,21 @@ export function AuthPanel({
           return;
         }
 
+        // Check if signup failed silently (no user returned)
+        if (!data.user) {
+          setError("Unable to create account. Please try again.");
+          setFormStatus("idle");
+          return;
+        }
+
+        // Check if user already exists (Supabase returns empty identities array)
+        // This happens when email is already registered (via email or OAuth)
+        if (data.user.identities?.length === 0) {
+          setError("An account with this email already exists. Try signing in instead, or use Google if you signed up that way.");
+          setFormStatus("idle");
+          return;
+        }
+
         // If no session was created, email confirmation is required
         if (!data.session) {
           setMessage("Check your inbox for a verification link. If you don't see it, check your spam folder.");
