@@ -61,15 +61,20 @@ function AuthConfirmContent() {
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // Redirect to the specified path or home
-        let finalRedirect = redirectTo;
+        let finalRedirect = "/";
         try {
-          finalRedirect = decodeURIComponent(redirectTo);
+          const decoded = decodeURIComponent(redirectTo);
+          // Handle full URLs by extracting just the pathname
+          if (decoded.startsWith("http://") || decoded.startsWith("https://")) {
+            const url = new URL(decoded);
+            finalRedirect = url.pathname || "/";
+          } else if (decoded.startsWith("/")) {
+            finalRedirect = decoded;
+          } else {
+            finalRedirect = "/" + decoded;
+          }
         } catch {
           finalRedirect = "/";
-        }
-
-        if (!finalRedirect.startsWith("/")) {
-          finalRedirect = "/" + finalRedirect;
         }
 
         router.push(finalRedirect);
