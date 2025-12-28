@@ -138,6 +138,13 @@ export function AuthPanel({
           return;
         }
 
+        // Check if user already exists (Supabase returns empty identities array)
+        if (data.user?.identities?.length === 0) {
+          setError("An account with this email already exists. Try signing in instead.");
+          setFormStatus("idle");
+          return;
+        }
+
         // If no session was created, email confirmation is required
         if (!data.session) {
           setMessage("Check your inbox for a verification link. If you don't see it, check your spam folder.");
