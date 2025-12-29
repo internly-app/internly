@@ -163,6 +163,10 @@ Rules:
 5. If years of experience is mentioned as a range (e.g., "3-5 years"), use the minimum. Return null if not specified.
 6. Keep skill names concise (e.g., "React" not "React.js framework experience").
 7. Responsibilities should be brief summaries, not full sentences.
+8. Hard-skill only rule (ATS fairness):
+  - requiredSkills/preferredSkills must contain concrete, resume-checkable items (languages, frameworks, libraries, databases, cloud/platform tools, build/deploy tools, testing tools).
+  - Exclude soft skills and vague competencies even if written as requirements (e.g., communication, collaboration, problem-solving, ownership, leadership).
+  - Exclude generic categories (e.g., "programming language", "software development") and broad CS fundamentals (e.g., "data structures and algorithms", "system design") from skill lists.
 8. Skill classification rules:
    - requiredSkills: Skills that are clearly expected for the role. Include skills that:
      * Are explicitly marked as "required", "must have", "need", "mandatory"
@@ -174,7 +178,11 @@ Rules:
      * Listed under "Preferred Qualifications" or similar sections
      * Mentioned as "exposure to" or "familiarity with"
    - When a JD lists technologies without clear required/preferred distinction, treat the first/primary ones as required and secondary ones as preferred.
-9. If the JD lists a tech stack or tools without qualification, classify the primary ones (first 3-5 mentioned, or those central to the role) as requiredSkills.`;
+9. If the JD lists a tech stack or tools without qualification, classify the primary ones (first 3-5 mentioned, or those central to the role) as requiredSkills.
+10. Token efficiency / concision:
+  - Prefer fewer, higher-signal items over exhaustive lists.
+  - Aim for: requiredSkills ≤ 15, preferredSkills ≤ 12, responsibilities ≤ 12, educationRequirements ≤ 6, senioritySignals ≤ 6.
+  - If there are many similar items, keep the most specific and most central to the role.`;
 
 // ---------------------------------------------------------------------------
 // Post-processing (deterministic guardrails)

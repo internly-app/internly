@@ -141,11 +141,17 @@ For each responsibility, determine coverage level:
 Rules:
 1. Be objective and evidence-based. Only cite experience actually present in the resume.
 2. For "relevantExperience", quote or closely paraphrase the actual resume bullets that support the responsibility.
-3. Keep explanations brief (1-2 sentences) and factual.
+  - Include at most 2 bullets per responsibility.
+  - Prefer the single strongest bullet rather than multiple weak ones.
+3. Keep explanations brief (1 sentence preferred, max 2) and factual.
+  - For "weakly_covered", say what part is missing/unclear in the resume (without inventing).
 4. Do NOT infer skills or experience not explicitly stated.
 5. Do NOT penalize for minor wording differences if the substance matches.
 6. Consider project experience and education achievements as valid experience.
-7. Each responsibility must appear in exactly one category.`;
+7. Each responsibility must appear in exactly one category.
+8. Avoid repetition:
+  - Do not reuse the same explanation template for many items.
+  - Do not repeat the same resume bullet across many responsibilities unless it is genuinely the best evidence.`;
 
 // ---------------------------------------------------------------------------
 // Helper: Extract all experience bullets from resume
