@@ -177,6 +177,37 @@ export const NormalizedResumeSchema = z.object({
     .describe(
       "Spoken/written languages if mentioned (e.g., 'English (fluent)'). Empty array if none."
     ),
+
+  resumeQualityFeedback: z
+    .object({
+      items: z
+        .array(
+          z.object({
+            title: z
+              .string()
+              .describe(
+                "Short label for the feedback item, e.g., 'Quantify impact' or 'Fix inconsistent dates'."
+              ),
+            detail: z
+              .string()
+              .describe(
+                "1–2 sentences, grounded in specific resume text. Must not invent facts."
+              ),
+            evidenceSnippets: z
+              .array(z.string())
+              .describe(
+                "Up to 2 short snippets copied from the resume that justify this feedback. Empty if none."
+              ),
+          })
+        )
+        .describe(
+          "0–6 concise feedback items. Keep them actionable and grounded in resume content."
+        ),
+    })
+    .nullable()
+    .describe(
+      "Optional, JD-agnostic resume quality feedback. Null if no safe feedback can be produced."
+    ),
 });
 
 export type NormalizedResume = z.infer<typeof NormalizedResumeSchema>;
@@ -400,6 +431,44 @@ const RESUME_JSON_SCHEMA = {
         description:
           "Spoken/written languages if mentioned (e.g., 'English (fluent)'). Empty array if none.",
       },
+
+      resumeQualityFeedback: {
+        type: ["object", "null"] as const,
+        description:
+          "Optional, JD-agnostic resume quality feedback. Null if no safe feedback can be produced.",
+        properties: {
+          items: {
+            type: "array" as const,
+            description:
+              "0–6 concise feedback items. Keep them actionable and grounded in resume content.",
+            items: {
+              type: "object" as const,
+              properties: {
+                title: {
+                  type: "string" as const,
+                  description:
+                    "Short label for the feedback item, e.g., 'Quantify impact' or 'Fix inconsistent dates'.",
+                },
+                detail: {
+                  type: "string" as const,
+                  description:
+                    "1–2 sentences, grounded in specific resume text. Must not invent facts.",
+                },
+                evidenceSnippets: {
+                  type: "array" as const,
+                  items: { type: "string" as const },
+                  description:
+                    "Up to 2 short snippets copied from the resume that justify this feedback. Empty if none.",
+                },
+              },
+              required: ["title", "detail", "evidenceSnippets"],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["items"],
+        additionalProperties: false,
+      },
     },
     required: [
       "contactInfo",
@@ -410,6 +479,7 @@ const RESUME_JSON_SCHEMA = {
       "projects",
       "certifications",
       "languages",
+      "resumeQualityFeedback",
     ],
     additionalProperties: false,
   },
@@ -428,10 +498,27 @@ Rules:
 4. Experience bullets should be concise summaries of accomplishments or responsibilities.
 5. Keep entries in the order they appear in the resume.
 6. Use null for missing optional fields, empty arrays for missing lists.
-7. Do NOT score, rate, or assess quality of the resume or candidate.
+7. Do NOT score, rate, or assess the candidate.
 8. Do NOT infer seniority level, years of experience, or skill proficiency.
 9. Extract URLs (LinkedIn, GitHub, portfolio) if explicitly present.
-10. For duration/dates, preserve the original format from the resume.`;
+10. For duration/dates, preserve the original format from the resume.
+
+Optional feedback rules (resumeQualityFeedback):
+- This feedback is JD-agnostic and must be grounded in the resume text only.
+- Focus strictly on resume quality: formatting consistency, clarity, readability, structure, and bullet strength.
+- Do NOT give career advice (e.g., networking, interviewing, applying) and do NOT recommend adding new projects, certifications, or experiences.
+- Do NOT invent missing sections, missing roles, metrics, or projects.
+- Do NOT claim a heading is a bullet (or vice versa) unless the text clearly indicates it.
+- Output should be concise and non-repetitive:
+  - Provide 0–6 items, but prefer 2–4 when there are clear, evidence-backed issues.
+  - Each title should be unique and specific (no near-duplicates) and should name the section it applies to (e.g., "Projects:", "Experience:").
+  - Avoid generic titles like "Improve formatting" unless you specify what is inconsistent (dates, bullets, spacing, punctuation, tense, etc.).
+  - Each detail should be 1 sentence (2 max if absolutely necessary) and must describe a concrete edit the candidate can make to existing text.
+  - Use direct, non-hedged language; avoid phrases like "could benefit", "consider", "try to".
+- Evidence requirements:
+  - If you cannot provide grounded feedback with evidence, set resumeQualityFeedback to null.
+  - Include up to 2 evidenceSnippets copied verbatim from the resume when possible.
+- Avoid generic advice (e.g., "add more metrics") unless evidence suggests it's broadly missing across multiple bullets.`;
 
 // ---------------------------------------------------------------------------
 // Main Function

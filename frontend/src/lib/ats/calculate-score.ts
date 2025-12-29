@@ -315,6 +315,7 @@ export function calculateATSScore(input: ScoreInput): ATSScoreResult {
  * Required Skills Analysis
  * - One deduction per missing required skill
  * - Capped at CATEGORY_CAPS.requiredSkills total
+ * - Includes context about related skills the resume DOES have
  */
 function analyzeRequiredSkills(skillComparison: SkillComparisonResult): {
   deductions: ScoreDeduction[];
@@ -322,6 +323,12 @@ function analyzeRequiredSkills(skillComparison: SkillComparisonResult): {
 } {
   const deductions: ScoreDeduction[] = [];
   let runningTotal = 0;
+
+  // Build list of all resume skills we matched for context
+  const matchedResumeSkills = [
+    ...skillComparison.matched.required.map((m) => m.resumeSkill),
+    ...skillComparison.matched.preferred.map((m) => m.resumeSkill),
+  ];
 
   // Calculate deductions for missing skills, respecting cap
   for (const skill of skillComparison.missing) {
@@ -331,8 +338,17 @@ function analyzeRequiredSkills(skillComparison: SkillComparisonResult): {
     );
 
     if (deductionAmount > 0) {
+      // Find related skills the candidate DOES have for better feedback
+      const relatedSkills = findRelatedSkills(skill, matchedResumeSkills);
+      const reason =
+        relatedSkills.length > 0
+          ? `Missing required skill: ${skill} (you have related: ${relatedSkills
+              .slice(0, 2)
+              .join(", ")})`
+          : `Missing required skill: ${skill}`;
+
       deductions.push({
-        reason: `Missing required skill: ${skill}`,
+        reason,
         points: deductionAmount,
         category: "requiredSkills",
       });
@@ -346,6 +362,129 @@ function analyzeRequiredSkills(skillComparison: SkillComparisonResult): {
     deductions,
     categoryLoss: runningTotal,
   };
+}
+
+/**
+ * Find related skills in the resume that might be relevant to a missing skill.
+ * Uses simple heuristics to find skills in the same category/ecosystem.
+ */
+function findRelatedSkills(
+  missingSkill: string,
+  resumeSkills: string[]
+): string[] {
+  const missing = missingSkill.toLowerCase();
+  const related: string[] = [];
+
+  // Define skill categories for finding related skills
+  const skillCategories: Record<string, string[]> = {
+    // Frontend frameworks
+    frontend: ["react", "vue", "angular", "svelte", "next", "nuxt", "gatsby"],
+    // Backend frameworks
+    backend: [
+      "node",
+      "express",
+      "django",
+      "flask",
+      "fastapi",
+      "spring",
+      "rails",
+      "laravel",
+      "nest",
+    ],
+    // Languages
+    languages: [
+      "javascript",
+      "typescript",
+      "python",
+      "java",
+      "c#",
+      "go",
+      "rust",
+      "ruby",
+      "php",
+      "kotlin",
+      "swift",
+    ],
+    // Databases
+    databases: [
+      "postgresql",
+      "mysql",
+      "mongodb",
+      "redis",
+      "elasticsearch",
+      "dynamodb",
+      "sqlite",
+      "sql server",
+    ],
+    // Cloud
+    cloud: [
+      "aws",
+      "gcp",
+      "azure",
+      "heroku",
+      "vercel",
+      "netlify",
+      "digitalocean",
+    ],
+    // DevOps/Containers
+    devops: [
+      "docker",
+      "kubernetes",
+      "terraform",
+      "ansible",
+      "jenkins",
+      "github actions",
+      "gitlab ci",
+      "ci/cd",
+    ],
+    // Testing
+    testing: [
+      "jest",
+      "mocha",
+      "pytest",
+      "junit",
+      "cypress",
+      "playwright",
+      "selenium",
+    ],
+    // Mobile
+    mobile: ["react native", "flutter", "swift", "kotlin", "ios", "android"],
+    // Data/ML
+    data: [
+      "pandas",
+      "numpy",
+      "tensorflow",
+      "pytorch",
+      "scikit-learn",
+      "machine learning",
+      "data science",
+    ],
+  };
+
+  // Find which category the missing skill belongs to
+  let missingCategory: string | null = null;
+  for (const [category, skills] of Object.entries(skillCategories)) {
+    if (skills.some((s) => missing.includes(s) || s.includes(missing))) {
+      missingCategory = category;
+      break;
+    }
+  }
+
+  if (!missingCategory) return [];
+
+  // Find resume skills in the same category
+  const categorySkills = skillCategories[missingCategory];
+  for (const resumeSkill of resumeSkills) {
+    const resume = resumeSkill.toLowerCase();
+    if (categorySkills.some((s) => resume.includes(s) || s.includes(resume))) {
+      // Don't include the missing skill itself
+      if (!resume.includes(missing) && !missing.includes(resume)) {
+        related.push(resumeSkill);
+      }
+    }
+  }
+
+  return related;
 }
 
 /**
@@ -441,7 +580,7 @@ function analyzeResponsibilities(
       deductions.push({
         reason: `Partial experience match: ${truncateText(
           r.responsibility,
-          50
+          90
         )}`,
         points: deductionAmount,
         category: "responsibilities",
@@ -476,7 +615,7 @@ function analyzeResponsibilities(
     );
     if (deductionAmount > 0) {
       deductions.push({
-        reason: `Missing experience: ${truncateText(r.responsibility, 50)}`,
+        reason: `Missing experience: ${truncateText(r.responsibility, 90)}`,
         points: deductionAmount,
         category: "responsibilities",
       });

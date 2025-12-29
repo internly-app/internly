@@ -16,6 +16,8 @@ import { compareSkills } from "@/lib/ats/compare-skills";
 import { matchResponsibilities } from "@/lib/ats/match-responsibilities";
 import { calculateATSScore } from "@/lib/ats/calculate-score";
 import { atsLogger } from "@/lib/ats/logger";
+import { buildScoreRecoveryPlan } from "@/lib/ats/score-recovery";
+import { postProcessResumeFeedback } from "@/lib/ats/resume-feedback-postprocess";
 import type { ATSAnalysisResponse } from "@/lib/ats/types";
 import type { ParsedJobDescription } from "@/lib/ats/parse-job-description";
 
@@ -506,64 +508,84 @@ export async function POST(
           push({
             stage: "scoring",
             message: "Calculating alignment score",
-            progress: 88,
+            progress: 85,
           });
+
           const score = calculateATSScore({
             skillComparison,
             responsibilityMatching,
             jobDescription: parsedJD,
             resume: normalizedResume,
           });
+
           push({ stage: "scored", message: "Score calculated", progress: 94 });
+
+          const details: ATSAnalysisResponse["details"] = {
+            skillComparison: {
+              // Include full match info (jdSkill, resumeSkill, matchType) for richer feedback
+              matchedRequired: skillComparison.matched.required.map((m) => ({
+                jdSkill: m.jdSkill,
+                resumeSkill: m.resumeSkill,
+                matchType: m.matchType,
+              })),
+              matchedPreferred: skillComparison.matched.preferred.map((m) => ({
+                jdSkill: m.jdSkill,
+                resumeSkill: m.resumeSkill,
+                matchType: m.matchType,
+              })),
+              missingRequired: skillComparison.missing,
+              missingPreferred: skillComparison.missingPreferred,
+              extraSkills: skillComparison.extra,
+            },
+            responsibilityCoverage: {
+              covered: responsibilityMatching.coveredResponsibilities.map(
+                (r) => ({
+                  responsibility: r.responsibility,
+                  explanation: r.explanation,
+                })
+              ),
+              weaklyCovered: responsibilityMatching.weaklyCovered.map((r) => ({
+                responsibility: r.responsibility,
+                explanation: r.explanation,
+              })),
+              notCovered: responsibilityMatching.notCovered.map((r) => ({
+                responsibility: r.responsibility,
+                explanation: r.explanation,
+              })),
+            },
+            parsedResume: {
+              name: normalizedResume.contactInfo.name,
+              skillCount:
+                normalizedResume.skills.technical.length +
+                normalizedResume.skills.soft.length +
+                normalizedResume.skills.other.length,
+              experienceCount: normalizedResume.experience.length,
+              educationCount: normalizedResume.education.length,
+            },
+            parsedJD: {
+              requiredSkillCount: parsedJD.requiredSkills.length,
+              preferredSkillCount: parsedJD.preferredSkills.length,
+              responsibilityCount: parsedJD.responsibilities.length,
+            },
+          };
+
+          // JD-agnostic resume quality feedback (Output B)
+          // Produced by normalizeResume in the *same* LLM call
+          // Does NOT affect score - purely advisory
+          const resumeFeedback = postProcessResumeFeedback(
+            normalizedResume,
+            normalizedResume.resumeQualityFeedback
+          );
+
+          // Job-specific recovery guidance derived from the score deductions
+          const scoreRecovery = buildScoreRecoveryPlan({ score, details });
 
           // Build final payload
           const response: ATSAnalysisResponse = {
             score,
-            details: {
-              skillComparison: {
-                matchedRequired: skillComparison.matched.required.map(
-                  (m) => m.jdSkill
-                ),
-                matchedPreferred: skillComparison.matched.preferred.map(
-                  (m) => m.jdSkill
-                ),
-                missingRequired: skillComparison.missing,
-                missingPreferred: skillComparison.missingPreferred,
-                extraSkills: skillComparison.extra,
-              },
-              responsibilityCoverage: {
-                covered: responsibilityMatching.coveredResponsibilities.map(
-                  (r) => ({
-                    responsibility: r.responsibility,
-                    explanation: r.explanation,
-                  })
-                ),
-                weaklyCovered: responsibilityMatching.weaklyCovered.map(
-                  (r) => ({
-                    responsibility: r.responsibility,
-                    explanation: r.explanation,
-                  })
-                ),
-                notCovered: responsibilityMatching.notCovered.map((r) => ({
-                  responsibility: r.responsibility,
-                  explanation: r.explanation,
-                })),
-              },
-              parsedResume: {
-                name: normalizedResume.contactInfo.name,
-                skillCount:
-                  normalizedResume.skills.technical.length +
-                  normalizedResume.skills.soft.length +
-                  normalizedResume.skills.other.length,
-                experienceCount: normalizedResume.experience.length,
-                educationCount: normalizedResume.education.length,
-              },
-              parsedJD: {
-                requiredSkillCount: parsedJD.requiredSkills.length,
-                preferredSkillCount: parsedJD.preferredSkills.length,
-                responsibilityCount: parsedJD.responsibilities.length,
-              },
-            },
+            details,
+            resumeFeedback,
+            scoreRecovery,
           };
 
           // Finalize
