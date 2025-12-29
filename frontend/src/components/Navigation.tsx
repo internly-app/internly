@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,38 +16,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/components/AuthProvider";
 
-interface NavigationProps {
-  animate?: boolean; // Only animate on landing page
-}
-
-export default function Navigation({ animate = false }: NavigationProps) {
+export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [isNavVisible, setIsNavVisible] = useState(!animate);
   const { user, loading: authLoading, signOut } = useAuth();
-  const shouldReduceMotion = useReducedMotion();
 
   // Ensure we're mounted before rendering portal (SSR safety)
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!animate) {
-      setIsNavVisible(true);
-      return;
-    }
-
-    if (shouldReduceMotion) {
-      setIsNavVisible(true);
-      return;
-    }
-
-    // Trigger the opacity transition after first paint.
-    const raf = requestAnimationFrame(() => setIsNavVisible(true));
-    return () => cancelAnimationFrame(raf);
-  }, [animate, shouldReduceMotion]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -127,9 +105,7 @@ export default function Navigation({ animate = false }: NavigationProps) {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/60 transition-opacity transition-colors ease-out ${
-        shouldReduceMotion ? "duration-0" : "duration-200"
-      } ${isNavVisible ? "opacity-100" : "opacity-0"} ${
+      className={`fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/60 transition-colors duration-300 ease-in-out ${
         isScrolled ? "bg-background/95 backdrop-blur-sm" : "bg-transparent"
       }`}
     >

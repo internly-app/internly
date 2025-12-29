@@ -26,11 +26,13 @@ export default async function Home() {
     // Fetch more than 3 to handle ties, then sort and take top 3
     const { data: reviews } = await supabaseAdmin
       .from("reviews")
-      .select(`
+      .select(
+        `
         *,
         company:companies(*),
         role:roles(*)
-      `)
+      `
+      )
       .order("like_count", { ascending: false })
       .limit(10); // Fetch more to handle ties properly
 
@@ -41,7 +43,9 @@ export default async function Home() {
         const likeDiff = (b.like_count || 0) - (a.like_count || 0);
         if (likeDiff !== 0) return likeDiff;
         // Tie-breaker: created_at (most recent first)
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
       });
 
       // Take top 3 and add user_has_liked flag
@@ -64,7 +68,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Navigation animate={true} />
+      <Navigation />
       <HeroSection reviews={heroReviews} />
       <LandingStats />
       <Footer />
