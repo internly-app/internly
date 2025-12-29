@@ -25,6 +25,12 @@ Internly helps students make better internship decisions by learning from real e
 - **Smart Search** - Fuzzy search with autocomplete for companies and technologies
 - **Sorting Options** - Sort by popularity (most liked) or most recent
 
+### ATS Resume Analyzer
+- **Job Match Score** - Compare your resume against a job description and get a clear match score
+- **Where Points Were Lost** - See what’s missing or weak, tied directly to scoring deductions
+- **Score Recovery Plan** - A prioritized, job-specific checklist to recover lost points
+- **Resume Quality Feedback** - JD-agnostic feedback on clarity, structure, and impact
+
 ### Share Your Experience
 - **Multi-Step Review Form** - Easy-to-use form to share your internship experience
 - **Rich Details** - Include location, technologies used, team name, work style, and more
@@ -34,12 +40,6 @@ Internly helps students make better internship decisions by learning from real e
 - **Like Reviews** - Upvote helpful reviews to surface the best content
 - **Save Companies** - Bookmark companies you're interested in
 - **Personal Profile** - Track your reviews and saved companies
-
-### ATS Resume Analyzer
-- **Job Match Score** - Compare your resume against a job description and get a clear match score
-- **Where Points Were Lost** - See what’s missing or weak, tied directly to scoring deductions
-- **Score Recovery Plan** - A prioritized, job-specific checklist to recover lost points
-- **Resume Quality Feedback** - JD-agnostic feedback on clarity, structure, and impact
 
 ---
 
