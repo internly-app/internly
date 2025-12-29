@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,12 +24,30 @@ export default function Navigation({ animate = false }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isNavVisible, setIsNavVisible] = useState(!animate);
   const { user, loading: authLoading, signOut } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
 
   // Ensure we're mounted before rendering portal (SSR safety)
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!animate) {
+      setIsNavVisible(true);
+      return;
+    }
+
+    if (shouldReduceMotion) {
+      setIsNavVisible(true);
+      return;
+    }
+
+    // Trigger the opacity transition after first paint.
+    const raf = requestAnimationFrame(() => setIsNavVisible(true));
+    return () => cancelAnimationFrame(raf);
+  }, [animate, shouldReduceMotion]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -108,24 +126,11 @@ export default function Navigation({ animate = false }: NavigationProps) {
   const userName = getUserDisplayName();
 
   return (
-    <motion.nav
-      initial={animate ? { y: -100, opacity: 0 } : false}
-      animate={animate ? { y: 0, opacity: 1 } : undefined}
-      transition={
-        animate
-          ? {
-              duration: 1.6,
-              ease: [0.4, 0, 0.2, 1],
-              delay: 0,
-            }
-          : undefined
-      }
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out border-b border-zinc-800/60 ${
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/60 transition-opacity transition-colors ease-out ${
+        shouldReduceMotion ? "duration-0" : "duration-200"
+      } ${isNavVisible ? "opacity-100" : "opacity-0"} ${
         isScrolled ? "bg-background/95 backdrop-blur-sm" : "bg-transparent"
-      } ${
-        isMobileMenuOpen
-          ? "md:translate-y-0 md:opacity-100 -translate-y-full opacity-0"
-          : "translate-y-0 opacity-100"
       }`}
     >
       <div className="max-w-[100rem] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 w-full">
@@ -489,6 +494,6 @@ export default function Navigation({ animate = false }: NavigationProps) {
           </AnimatePresence>,
           document.body
         )}
-    </motion.nav>
+    </nav>
   );
 }
