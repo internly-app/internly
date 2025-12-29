@@ -35,6 +35,12 @@ Internly helps students make better internship decisions by learning from real e
 - **Save Companies** - Bookmark companies you're interested in
 - **Personal Profile** - Track your reviews and saved companies
 
+### ATS Resume Analyzer
+- **Job Match Score** - Compare your resume against a job description and get a clear match score
+- **Where Points Were Lost** - See what’s missing or weak, tied directly to scoring deductions
+- **Score Recovery Plan** - A prioritized, job-specific checklist to recover lost points
+- **Resume Quality Feedback** - JD-agnostic feedback on clarity, structure, and impact
+
 ---
 
 ## Tech Stack
