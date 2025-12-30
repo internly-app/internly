@@ -235,7 +235,10 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
 
     // pdf-parse v2 uses class-based API
     // Pass the buffer directly as 'data'
-    parser = new PDFParse({ data: buffer });
+    // In serverless environments, relying on a separate pdf.js worker file can
+    // fail in production even when it works locally (file tracing/bundling).
+    // Disabling the worker keeps parsing in-process and is more reliable.
+    parser = new PDFParse({ data: buffer, disableWorker: true });
 
     // Get text from PDF
     const textResult = await parser.getText();
