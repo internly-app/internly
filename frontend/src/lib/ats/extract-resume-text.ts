@@ -10,33 +10,71 @@
 import path from "path";
 import { pathToFileURL } from "url";
 
-import { PDFParse } from "pdf-parse";
-import mammoth from "mammoth";
+// NOTE: pdf-parse and mammoth are imported lazily.
+// Importing them at module scope can crash serverless/production builds
+// before the API route handler runs, which then routes requests to /500.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PdfParseCtor = any;
+
+let pdfParseCtorPromise: Promise<PdfParseCtor> | null = null;
+let pdfWorkerConfigured = false;
+
+async function getPdfParseCtor(): Promise<PdfParseCtor> {
+  if (!pdfParseCtorPromise) {
+    pdfParseCtorPromise = (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mod: any = await import("pdf-parse");
+      const ctor = mod?.PDFParse ?? mod?.default?.PDFParse;
+      if (!ctor) {
+        throw new Error("pdf-parse: PDFParse export not found");
+      }
+      return ctor;
+    })();
+  }
+
+  const ctor = await pdfParseCtorPromise;
+
+  if (!pdfWorkerConfigured) {
+    pdfWorkerConfigured = true;
+    try {
+      if (typeof ctor.setWorker === "function") {
+        const workerPath = path.resolve(
+          process.cwd(),
+          "node_modules/pdf-parse/dist/worker/pdf.worker.mjs"
+        );
+        const workerUrl = pathToFileURL(workerPath).href;
+        ctor.setWorker(workerUrl);
+      }
+    } catch (e) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[PDF Parse] Failed to configure worker:", e);
+      }
+    }
+  }
+
+  return ctor;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mammothPromise: Promise<any> | null = null;
+
+async function getMammoth() {
+  if (!mammothPromise) {
+    mammothPromise = (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mod: any = await import("mammoth");
+      return mod?.default ?? mod;
+    })();
+  }
+  return mammothPromise;
+}
 
 // ---------------------------------------------------------------------------
 // PDF Worker Configuration for Next.js/Serverless
 // ---------------------------------------------------------------------------
 
-// Configure worker path for pdf-parse in Node.js environment.
-// pdf-parse v2 uses pdfjs-dist which requires a worker file.
-// In Node.js, we need to provide the full file:// URL to the worker.
-if (typeof PDFParse.setWorker === "function") {
-  try {
-    // The worker file is included in pdf-parse package at this location
-    const workerPath = path.resolve(
-      process.cwd(),
-      "node_modules/pdf-parse/dist/worker/pdf.worker.mjs"
-    );
-    // Convert to file:// URL as required by Node.js ESM loader
-    const workerUrl = pathToFileURL(workerPath).href;
-    PDFParse.setWorker(workerUrl);
-  } catch (e) {
-    // Worker configuration failed - PDF parsing will fail
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[PDF Parse] Failed to configure worker:", e);
-    }
-  }
-}
+// Worker configuration is now performed lazily in getPdfParseCtor().
 
 // ---------------------------------------------------------------------------
 // Types
@@ -186,9 +224,12 @@ function normalizeText(text: string): string {
  * Extract text from a PDF buffer.
  */
 async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
-  let parser: PDFParse | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let parser: any = null;
 
   try {
+    const PDFParse = await getPdfParseCtor();
+
     // pdf-parse v2 uses class-based API
     // Pass the buffer directly as 'data'
     parser = new PDFParse({ data: buffer });
@@ -283,7 +324,9 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
     // Clean up PDF parser resources
     if (parser) {
       try {
-        await parser.destroy();
+        if (typeof parser.destroy === "function") {
+          await parser.destroy();
+        }
       } catch {
         // Ignore cleanup errors
       }
@@ -301,6 +344,7 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
 async function extractFromDocx(buffer: Buffer): Promise<ExtractionResult> {
   try {
     // mammoth extracts text and ignores formatting
+    const mammoth = await getMammoth();
     const result = await mammoth.extractRawText({ buffer });
 
     if (!result.value || result.value.trim().length === 0) {
@@ -319,7 +363,7 @@ async function extractFromDocx(buffer: Buffer): Promise<ExtractionResult> {
     if (result.messages && result.messages.length > 0) {
       console.warn(
         "[extractFromDocx] Mammoth warnings:",
-        result.messages.map((m) => m.message)
+        result.messages.map((m: { message?: string }) => m.message)
       );
     }
 
