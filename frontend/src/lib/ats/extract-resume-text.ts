@@ -7,7 +7,6 @@
  * Supported formats: PDF, DOCX
  */
 
-import path from "path";
 import { pathToFileURL } from "url";
 
 // NOTE: pdf-parse and mammoth are imported lazily.
@@ -39,12 +38,16 @@ async function getPdfParseCtor(): Promise<PdfParseCtor> {
     pdfWorkerConfigured = true;
     try {
       if (typeof ctor.setWorker === "function") {
-        const workerPath = path.resolve(
-          process.cwd(),
-          "node_modules/pdf-parse/dist/worker/pdf.worker.mjs"
-        );
-        const workerUrl = pathToFileURL(workerPath).href;
-        ctor.setWorker(workerUrl);
+        // Use the official worker entry so Next/Vercel traces the worker file.
+        // This avoids production-only failures where a hardcoded node_modules path
+        // isn't present in the serverless bundle.
+        const worker = await import("pdf-parse/worker");
+        const workerPath =
+          typeof worker.getPath === "function" ? worker.getPath() : null;
+        if (workerPath) {
+          const workerUrl = pathToFileURL(workerPath).href;
+          ctor.setWorker(workerUrl);
+        }
       }
     } catch (e) {
       if (process.env.NODE_ENV !== "production") {
