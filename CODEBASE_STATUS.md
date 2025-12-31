@@ -1019,4 +1019,13 @@ npx tsc --noEmit    # Check types without compiling
 
 ---
 
+## ⚠️ Manual Patch Notice (pdf-parse)
+
+- A manual patch was applied to `node_modules/pdf-parse/index.js` to comment out the internal test/debug block that tries to read `./test/data/05-versions-space.pdf`.
+- This was necessary to prevent ENOENT errors in production/serverless environments, as the test code was being triggered by the build/runtime.
+- If you update or reinstall dependencies, you must re-apply this patch.
+- See chat/commit history for details.
+
+---
+
 **This document contains everything needed to understand and work with the Internly codebase.**
