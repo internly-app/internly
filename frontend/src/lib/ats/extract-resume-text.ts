@@ -24,8 +24,10 @@ async function getPdfParseCtor(): Promise<PdfParseCtor> {
     pdfParseCtorPromise = (async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mod: any = await import("pdf-parse");
+      console.log("[PDF Parse] Module keys:", Object.keys(mod));
       const ctor = mod?.PDFParse ?? mod?.default?.PDFParse;
       if (!ctor) {
+        console.error("[PDF Parse] PDFParse export not found. Module:", mod);
         throw new Error("pdf-parse: PDFParse export not found");
       }
       return ctor;
@@ -282,10 +284,8 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
       },
     };
   } catch (err) {
-    // Log the actual error for debugging (avoid noisy prod logs)
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[PDF Extraction Error]", err);
-    }
+    // Always log in production for debugging serverless issues
+    console.error("[PDF Extraction Error]", err);
 
     // pdf-parse throws on corrupt/invalid PDFs
     const message =
