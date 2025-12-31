@@ -7,8 +7,6 @@
  * Returns structured JSON only — no scoring or business logic.
  */
 
-import { PDFParse } from "pdf-parse";
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -104,18 +102,10 @@ function matchCanonicalSection(
  * @returns ParsedResume object.
  */
 export async function parseResumePdf(pdfBuffer: Buffer): Promise<ParsedResume> {
-  // Extract text using pdf-parse v2 class-based API
-  const parser = new PDFParse({ data: pdfBuffer });
-  let rawText: string;
-
-  try {
-    const textResult = await parser.getText();
-    rawText = normalizeWhitespace(textResult.text);
-  } finally {
-    await parser.destroy().catch(() => {
-      // Ignore cleanup errors
-    });
-  }
+  // Extract text using pdf-parse v1 API
+  const pdfParse = (await import("pdf-parse")).default;
+  const data = await pdfParse(pdfBuffer);
+  const rawText = normalizeWhitespace(data.text);
 
   // Split into lines for section detection
   const lines = rawText.split("\n");
