@@ -248,7 +248,7 @@ async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
 async function extractFromDocx(buffer: Buffer): Promise<ExtractionResult> {
   try {
     // mammoth extracts text and ignores formatting
-    const mammoth = await getMammoth();
+    const mammoth = (await getMammoth()) as typeof import("mammoth");
     const result = await mammoth.extractRawText({ buffer });
 
     if (!result.value || result.value.trim().length === 0) {
