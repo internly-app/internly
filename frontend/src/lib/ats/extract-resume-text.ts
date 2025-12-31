@@ -12,8 +12,8 @@ let mammothPromise: Promise<unknown> | null = null;
 async function getMammoth() {
   if (!mammothPromise) {
     mammothPromise = (async () => {
-      const mod: any = await import("mammoth");
-      return mod?.default ?? mod;
+      const mod: typeof import("mammoth") = await import("mammoth");
+      return mod;
     })();
   }
   return mammothPromise;
