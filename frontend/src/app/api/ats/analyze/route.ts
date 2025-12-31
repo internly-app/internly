@@ -319,21 +319,10 @@ export async function POST(
         }
       );
 
-      // User-friendly error messages for extraction failures
-      const extractionErrors: Record<string, string> = {
-        UNSUPPORTED_FILE_TYPE:
-          "This file type is not supported. Please upload a PDF or DOCX file.",
-        CORRUPT_FILE:
-          "The file appears to be corrupted or password-protected. Please try a different file.",
-        EMPTY_FILE:
-          "No text could be extracted from this file. Please ensure it's not a scanned image.",
-        EXTRACTION_FAILED:
-          "Failed to read the resume. Please try a different file format.",
-      };
-
+      // TEMPORARY: Return actual error for debugging production issues
+      // TODO: Remove this and restore user-friendly messages after debugging
       return errorResponse(
-        extractionErrors[extractionResult.error.code] ||
-          extractionResult.error.message,
+        `[DEBUG] ${extractionResult.error.code}: ${extractionResult.error.message}`,
         400
       );
     }
