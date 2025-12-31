@@ -23,7 +23,7 @@ async function getPdfParseCtor(): Promise<PdfParseCtor> {
   if (!pdfParseCtorPromise) {
     pdfParseCtorPromise = (async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mod: any = await import("pdf-parse");
+      const mod: any = await import("pdf-parse/node");
       console.log("[PDF Parse] Module keys:", Object.keys(mod));
       const ctor = mod?.PDFParse ?? mod?.default?.PDFParse;
       if (!ctor) {
