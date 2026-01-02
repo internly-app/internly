@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   // This avoids incorrect workspace-root inference when multiple lockfiles exist.
   turbopack: {
     root: configDir,
+    // Stub out canvas module - pdfjs-dist tries to require it but we only need text extraction
+    resolveAlias: {
+      canvas: { browser: "./empty-module.js" },
+    },
   },
   outputFileTracingRoot: configDir,
 
@@ -48,20 +52,6 @@ const nextConfig: NextConfig = {
       "@radix-ui/react-icons",
       "framer-motion",
     ],
-    // Mark canvas as external - pdfjs-dist tries to require it but we don't need it
-    serverComponentsExternalPackages: ["canvas"],
-  },
-
-  // Webpack config to handle canvas module
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Stub out the canvas module on the server
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        canvas: false,
-      };
-    }
-    return config;
   },
 
   // Headers for security and caching
