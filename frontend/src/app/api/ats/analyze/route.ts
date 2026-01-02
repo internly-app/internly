@@ -386,24 +386,47 @@ export async function POST(
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
 
+            // Log full error details for debugging
+            console.error("[ATS parse_jd ERROR]", {
+              error: msg,
+              stack: err instanceof Error ? err.stack : undefined,
+              hasApiKey: !!process.env.OPENAI_API_KEY,
+              apiKeyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) || "not-set",
+            });
+
             atsLogger.analysisFailure(
               { ...logContext, fileSize, fileType, jdLength, step: "parse_jd" },
               { message: msg }
             );
 
             const lowered = msg.toLowerCase();
-            const status =
+            const isQuotaError =
               lowered.includes("quota") ||
               lowered.includes("billing") ||
-              lowered.includes("429")
-                ? 503
-                : 500;
+              lowered.includes("429") ||
+              lowered.includes("rate limit");
+            const isApiKeyError =
+              lowered.includes("api key") ||
+              lowered.includes("authentication") ||
+              lowered.includes("unauthorized");
+
+            let userMessage: string;
+            let status: number;
+
+            if (isApiKeyError) {
+              userMessage = "AI service configuration error. Please contact support.";
+              status = 503;
+            } else if (isQuotaError) {
+              userMessage = "The AI service is temporarily unavailable. Please try again later.";
+              status = 503;
+            } else {
+              // Include partial error info for debugging (sanitized)
+              userMessage = `Failed to analyze the job description: ${msg.slice(0, 100)}`;
+              status = 500;
+            }
 
             push({
-              error:
-                status === 503
-                  ? "The AI service is temporarily unavailable. Please try again later."
-                  : "Failed to analyze the job description. Please check the format and try again.",
+              error: userMessage,
               status,
             });
             controller.close();
