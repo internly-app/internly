@@ -4,25 +4,26 @@
  * This bypasses pdf-parse to avoid the ENOENT error caused by its internal
  * test file loading in serverless environments (Vercel).
  *
- * Uses pdfjs-dist with disabled workers for serverless compatibility.
+ * Uses pdfjs-dist/legacy/build/pdf to avoid canvas dependency.
  */
 
-// Lazy-loaded pdfjs instance
-let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PdfjsLib = any;
+
+// Use dynamic import to get the correct module
+let pdfjsPromise: Promise<PdfjsLib> | null = null;
 
 /**
  * Get the pdfjs-dist module with proper configuration for serverless.
  */
-async function getPdfjs() {
+async function getPdfjs(): Promise<PdfjsLib> {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
-      const pdfjs = await import("pdfjs-dist");
+      // Import the legacy build which doesn't require canvas
+      const pdfjs = await import("pdfjs-dist/legacy/build/pdf");
 
       // Disable workers for serverless compatibility
-      // Workers require file system access which doesn't work reliably in Vercel
-      if (typeof window === "undefined") {
-        pdfjs.GlobalWorkerOptions.workerSrc = "";
-      }
+      pdfjs.GlobalWorkerOptions.workerSrc = "";
 
       return pdfjs;
     })();
@@ -91,12 +92,8 @@ export async function extractPdfText(
 
       // Concatenate text items with proper spacing
       const pageText = textContent.items
-        .map((item) => {
-          if ("str" in item) {
-            return item.str;
-          }
-          return "";
-        })
+        .filter((item: { str?: string }) => "str" in item && item.str)
+        .map((item: { str: string }) => item.str)
         .join(" ");
 
       textParts.push(pageText);
