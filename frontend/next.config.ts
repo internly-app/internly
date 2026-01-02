@@ -9,10 +9,6 @@ const nextConfig: NextConfig = {
   // This avoids incorrect workspace-root inference when multiple lockfiles exist.
   turbopack: {
     root: configDir,
-    // Stub out canvas module - pdfjs-dist tries to require it but we only need text extraction
-    resolveAlias: {
-      canvas: { browser: "./empty-module.js" },
-    },
   },
   outputFileTracingRoot: configDir,
 
@@ -53,6 +49,9 @@ const nextConfig: NextConfig = {
       "framer-motion",
     ],
   },
+
+  // Mark packages as external so they're not bundled (fixes canvas requirement)
+  serverExternalPackages: ["pdfjs-dist"],
 
   // Headers for security and caching
   async headers() {
