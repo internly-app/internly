@@ -212,7 +212,7 @@ export const reviewCreateSchema = z.object({
 
 export const reviewUpdateSchema = reviewCreateSchema
   .partial()
-  .omit({ company_id: true, role_id: true });
+  .omit({ company_id: true });
 
 export type ReviewCreate = z.infer<typeof reviewCreateSchema>;
 export type ReviewUpdate = z.infer<typeof reviewUpdateSchema>;

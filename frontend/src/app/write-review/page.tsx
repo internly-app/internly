@@ -81,8 +81,8 @@ function WriteReviewContent() {
             housing_stipend: review.housing_stipend?.toString() || "",
             perks: review.perks || "",
           });
-          // Skip to step 2 in edit mode (company/role already set)
-          setStep(2);
+          // Start at step 1 in edit mode (company locked, role editable)
+          setStep(1);
           setHasFetchedReview(true);
         } else {
           router.push("/profile");
@@ -172,6 +172,36 @@ function WriteReviewContent() {
     try {
       if (isEditMode && editId) {
         // Update existing review
+        let finalRoleId = formData.role_id;
+
+        // If role_id is empty (user typed a new role name), create/get the role
+        if (!finalRoleId && formData.roleName) {
+          const roleSlug = formData.roleName
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+            .replace(/-+/g, "-");
+
+          const roleResponse = await fetch("/api/roles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: formData.roleName.trim(),
+              company_id: formData.company_id,
+              slug: roleSlug,
+            }),
+          });
+
+          if (!roleResponse.ok) {
+            const error = await roleResponse.json();
+            throw new Error(error.error || "Failed to create role");
+          }
+
+          const role = await roleResponse.json();
+          finalRoleId = role.id;
+        }
+
         const parsedWage = parseFloat(formData.wage_hourly);
         const parsedHousingStipend = formData.housing_stipend
           ? parseFloat(formData.housing_stipend)
@@ -183,6 +213,7 @@ function WriteReviewContent() {
           : undefined;
 
         const updateData = {
+          role_id: finalRoleId,
           location: formData.location,
           term: formData.term,
           work_style: formData.work_style,
@@ -346,11 +377,10 @@ function WriteReviewContent() {
   };
 
   const canProceedFromStep1 =
-    isEditMode ||
-    (formData.companyName &&
-      formData.companyName.trim() &&
-      formData.roleName &&
-      formData.roleName.trim());
+    formData.companyName &&
+    formData.companyName.trim() &&
+    formData.roleName &&
+    formData.roleName.trim();
   // Easy-first flow:
   // 1) Company/role/term
   // 2) Work style + basics
@@ -425,19 +455,12 @@ function WriteReviewContent() {
         {/* Progress Indicator */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {(isEditMode
-              ? [
-                  { num: 2, label: "Role Details" },
-                  { num: 3, label: "Compensation" },
-                  { num: 4, label: "Experience & Interview" },
-                ]
-              : [
-                  { num: 1, label: "Position & Company" },
-                  { num: 2, label: "Role Details" },
-                  { num: 3, label: "Compensation" },
-                  { num: 4, label: "Experience & Interview" },
-                ]
-            ).map((s, index) => (
+            {[
+              { num: 1, label: "Position & Company" },
+              { num: 2, label: "Role Details" },
+              { num: 3, label: "Compensation" },
+              { num: 4, label: "Experience & Interview" },
+            ].map((s, index) => (
               <div key={s.num} className="flex flex-col items-center space-y-2">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
@@ -491,27 +514,40 @@ function WriteReviewContent() {
                     <Label htmlFor="company">
                       Company <span className="text-red-500">*</span>
                     </Label>
-                    <CompanyAutocomplete
-                      value={formData.company_id}
-                      onChange={(companyId, companyName) => {
-                        setFormData({
-                          ...formData,
-                          company_id: companyId,
-                          companyName: companyName,
-                          role_id: "", // Reset role when company changes
-                          roleName: "",
-                        });
-                        // Clear error when user selects
-                        if (fieldErrors.company_id) {
-                          setFieldErrors((prev) => ({
-                            ...prev,
-                            company_id: undefined,
-                          }));
-                        }
-                      }}
-                      placeholder="Type to search companies..."
-                      error={fieldErrors.company_id}
-                    />
+                    {isEditMode ? (
+                      <div className="relative">
+                        <Input
+                          value={formData.companyName}
+                          disabled
+                          className="bg-muted text-muted-foreground opacity-100"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Company cannot be changed when editing a review
+                        </p>
+                      </div>
+                    ) : (
+                      <CompanyAutocomplete
+                        value={formData.company_id}
+                        onChange={(companyId, companyName) => {
+                          setFormData({
+                            ...formData,
+                            company_id: companyId,
+                            companyName: companyName,
+                            role_id: "", // Reset role when company changes
+                            roleName: "",
+                          });
+                          // Clear error when user selects
+                          if (fieldErrors.company_id) {
+                            setFieldErrors((prev) => ({
+                              ...prev,
+                              company_id: undefined,
+                            }));
+                          }
+                        }}
+                        placeholder="Type to search companies..."
+                        error={fieldErrors.company_id}
+                      />
+                    )}
                   </div>
 
                   <div className="grid gap-2">
