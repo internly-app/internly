@@ -6,43 +6,138 @@ import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 // Comprehensive list of common technologies
 const TECHNOLOGY_OPTIONS = [
   // Languages
-  "JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "Go", "Rust",
-  "Ruby", "PHP", "Swift", "Kotlin", "Scala", "R", "MATLAB", "Dart",
+  "JavaScript",
+  "TypeScript",
+  "Python",
+  "Java",
+  "C++",
+  "C",
+  "C#",
+  "Go",
+  "Rust",
+  "Ruby",
+  "PHP",
+  "Swift",
+  "Kotlin",
+  "Scala",
+  "R",
+  "MATLAB",
+  "Dart",
+  "Verilog",
 
   // Frontend Frameworks & Libraries
-  "React", "Vue.js", "Angular", "Next.js", "Svelte", "Nuxt.js", "Remix",
-  "Gatsby", "Astro", "Solid.js", "Preact",
+  "React",
+  "Vue.js",
+  "Angular",
+  "Next.js",
+  "Svelte",
+  "Nuxt.js",
+  "Remix",
+  "Gatsby",
+  "Astro",
+  "Solid.js",
+  "Preact",
 
   // Backend Frameworks
-  "Node.js", "Express", "FastAPI", "Django", "Flask", "Spring Boot",
-  "ASP.NET", "Laravel", "Rails", "NestJS", "GraphQL", "REST API",
+  "Node.js",
+  "Express",
+  "FastAPI",
+  "Django",
+  "Flask",
+  "Spring Boot",
+  "ASP.NET",
+  "Laravel",
+  "Rails",
+  "NestJS",
+  "GraphQL",
+  "REST API",
 
   // Databases
-  "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite", "Oracle",
-  "Cassandra", "DynamoDB", "Firebase", "Supabase", "Prisma",
+  "PostgreSQL",
+  "MySQL",
+  "MongoDB",
+  "Redis",
+  "SQLite",
+  "Oracle",
+  "Cassandra",
+  "DynamoDB",
+  "Firebase",
+  "Supabase",
+  "Prisma",
 
   // Cloud & DevOps
-  "AWS", "Azure", "GCP", "Docker", "Kubernetes", "Terraform",
-  "Jenkins", "GitLab CI", "GitHub Actions", "CircleCI", "Ansible",
+  "AWS",
+  "Azure",
+  "GCP",
+  "Docker",
+  "Kubernetes",
+  "Terraform",
+  "Jenkins",
+  "GitLab CI",
+  "GitHub Actions",
+  "CircleCI",
+  "Ansible",
 
   // Tools & Platforms
-  "Git", "GitHub", "GitLab", "Jira", "Confluence", "Figma", "Adobe XD",
-  "Postman", "VS Code", "IntelliJ", "Vim", "Emacs",
+  "Git",
+  "GitHub",
+  "GitLab",
+  "Jira",
+  "Confluence",
+  "Figma",
+  "Adobe XD",
+  "Postman",
+  "VS Code",
+  "IntelliJ",
+  "Vim",
+  "Emacs",
 
   // Mobile
-  "React Native", "Flutter", "iOS", "Android", "Xamarin", "Ionic",
+  "React Native",
+  "Flutter",
+  "iOS",
+  "Android",
+  "Xamarin",
+  "Ionic",
 
   // Data & ML
-  "TensorFlow", "PyTorch", "Pandas", "NumPy", "Scikit-learn", "Jupyter",
-  "Apache Spark", "Hadoop", "Kafka", "Elasticsearch",
+  "TensorFlow",
+  "PyTorch",
+  "Pandas",
+  "NumPy",
+  "Scikit-learn",
+  "Jupyter",
+  "Apache Spark",
+  "Hadoop",
+  "Kafka",
+  "Elasticsearch",
 
   // Testing
-  "Jest", "Cypress", "Selenium", "Playwright", "Vitest", "Mocha",
-  "Chai", "Pytest", "JUnit",
+  "Jest",
+  "Cypress",
+  "Selenium",
+  "Playwright",
+  "Vitest",
+  "Mocha",
+  "Chai",
+  "Pytest",
+  "JUnit",
 
   // Other
-  "HTML", "CSS", "SASS", "Tailwind CSS", "Bootstrap", "Webpack", "Vite",
-  "NPM", "Yarn", "pnpm", "Linux", "Unix", "Bash", "Shell Scripting",
+  "HTML",
+  "CSS",
+  "SASS",
+  "Tailwind CSS",
+  "Bootstrap",
+  "Webpack",
+  "Vite",
+  "NPM",
+  "Yarn",
+  "pnpm",
+  "Linux",
+  "Unix",
+  "Bash",
+  "Shell Scripting",
 ].sort();
 
 interface TechnologyAutocompleteProps {
@@ -67,7 +162,10 @@ export function TechnologyAutocomplete({
   // Parse value string into array on mount/change
   useEffect(() => {
     if (value) {
-      const techs = value.split(",").map((t) => t.trim()).filter(Boolean);
+      const techs = value
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
       setSelectedTechs(techs);
     } else {
       setSelectedTechs([]);
@@ -77,24 +175,27 @@ export function TechnologyAutocomplete({
   // Filter suggestions based on input with fuzzy matching (exclude already selected)
   const filteredOptions = useMemo(() => {
     if (inputValue === "") {
-      return TECHNOLOGY_OPTIONS.filter(tech => !selectedTechs.includes(tech)).slice(0, 25);
+      return TECHNOLOGY_OPTIONS.filter(
+        (tech) => !selectedTechs.includes(tech)
+      ).slice(0, 25);
     }
 
     const query = inputValue.toLowerCase().trim();
-    const optionsWithScores = TECHNOLOGY_OPTIONS
-      .filter(tech => !selectedTechs.includes(tech))
+    const optionsWithScores = TECHNOLOGY_OPTIONS.filter(
+      (tech) => !selectedTechs.includes(tech)
+    )
       .map((tech) => {
         const lowerTech = tech.toLowerCase();
         const exactMatch = lowerTech.includes(query);
         const fuzzyScore = fuzzyMatch(query, lowerTech);
-        
+
         let score = 0;
         if (exactMatch) {
           score = 1.0;
         } else if (fuzzyScore > 0) {
           score = fuzzyScore;
         }
-        
+
         return { tech, score };
       })
       .filter(({ score }) => score > 0)
@@ -142,7 +243,11 @@ export function TechnologyAutocomplete({
       if (trimmed && !selectedTechs.includes(trimmed)) {
         handleSelect(trimmed);
       }
-    } else if (e.key === "Backspace" && inputValue === "" && selectedTechs.length > 0) {
+    } else if (
+      e.key === "Backspace" &&
+      inputValue === "" &&
+      selectedTechs.length > 0
+    ) {
       // Remove last tag on backspace when input is empty
       const lastTech = selectedTechs[selectedTechs.length - 1];
       handleRemove(lastTech);
@@ -171,12 +276,13 @@ export function TechnologyAutocomplete({
   return (
     <div className={`relative ${className}`}>
       {/* Input with tags */}
-      <div 
+      <div
         className="flex flex-wrap gap-2 px-3 py-1 border border-zinc-700 rounded-md bg-transparent text-foreground min-h-[36px] items-center transition-colors focus-within:border-zinc-600 [&:focus-within]:outline-none"
         onClick={() => {
           inputRef.current?.focus();
           setIsOpen(true);
-        }}>
+        }}
+      >
         {/* Selected tags */}
         {selectedTechs.map((tech) => (
           <span
@@ -222,15 +328,16 @@ export function TechnologyAutocomplete({
       </div>
 
       {/* Dropdown suggestions */}
-      {isOpen && (filteredOptions.length > 0 || (inputValue.trim() && !selectedTechs.includes(inputValue.trim()))) && (
-        <div
-          ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-card border border-border rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]"
-        >
-          {/* Show filtered technologies */}
-          {filteredOptions
-            .slice(0, 25)
-            .map((tech) => (
+      {isOpen &&
+        (filteredOptions.length > 0 ||
+          (inputValue.trim() &&
+            !selectedTechs.includes(inputValue.trim()))) && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-card border border-border rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]"
+          >
+            {/* Show filtered technologies */}
+            {filteredOptions.slice(0, 25).map((tech) => (
               <button
                 key={tech}
                 type="button"
@@ -241,24 +348,27 @@ export function TechnologyAutocomplete({
               </button>
             ))}
 
-          {/* Custom entry option */}
-          {inputValue.trim() &&
-            !TECHNOLOGY_OPTIONS.some(
-              (t) => t.toLowerCase() === inputValue.trim().toLowerCase()
-            ) &&
-            !selectedTechs.includes(inputValue.trim()) && (
-              <button
-                type="button"
-                onClick={() => handleSelect(inputValue.trim())}
-                className="w-full text-left px-4 py-2 text-sm text-card-foreground hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none border-t border-border cursor-pointer transition-colors"
-              >
-                <span className="font-medium">Add &quot;{inputValue.trim()}&quot;</span>
-                <span className="text-xs text-muted-foreground ml-2">(custom)</span>
-              </button>
-            )}
-        </div>
-      )}
+            {/* Custom entry option */}
+            {inputValue.trim() &&
+              !TECHNOLOGY_OPTIONS.some(
+                (t) => t.toLowerCase() === inputValue.trim().toLowerCase()
+              ) &&
+              !selectedTechs.includes(inputValue.trim()) && (
+                <button
+                  type="button"
+                  onClick={() => handleSelect(inputValue.trim())}
+                  className="w-full text-left px-4 py-2 text-sm text-card-foreground hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none border-t border-border cursor-pointer transition-colors"
+                >
+                  <span className="font-medium">
+                    Add &quot;{inputValue.trim()}&quot;
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (custom)
+                  </span>
+                </button>
+              )}
+          </div>
+        )}
     </div>
   );
 }
-
