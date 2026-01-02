@@ -50,6 +50,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Mark packages as external so they're not bundled (fixes canvas requirement)
+  serverExternalPackages: ["pdfjs-dist"],
+
   // Headers for security and caching
   async headers() {
     return [

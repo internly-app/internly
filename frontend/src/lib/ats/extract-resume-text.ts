@@ -7,7 +7,9 @@
  * Supported formats: PDF, DOCX
  */
 
-// NOTE: pdf-parse and mammoth are imported lazily for serverless compatibility.
+import { extractPdfText } from "./pdf-extractor";
+
+// NOTE: mammoth is imported lazily for serverless compatibility.
 let mammothPromise: Promise<unknown> | null = null;
 async function getMammoth() {
   if (!mammothPromise) {
@@ -18,12 +20,6 @@ async function getMammoth() {
   }
   return mammothPromise;
 }
-
-// ---------------------------------------------------------------------------
-// PDF Worker Configuration for Next.js/Serverless
-// ---------------------------------------------------------------------------
-
-// Worker configuration is now performed lazily in getPdfParseCtor().
 
 // ---------------------------------------------------------------------------
 // Types
@@ -170,72 +166,43 @@ function normalizeText(text: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Extract text from a PDF buffer.
+ * Extract text from a PDF buffer using pdfjs-dist directly.
+ * This bypasses pdf-parse to avoid ENOENT errors in serverless environments.
  */
 async function extractFromPdf(buffer: Buffer): Promise<ExtractionResult> {
-  try {
-    // pdf-parse@1.1.1: default import, function call, pass Buffer directly
-    const pdfParse = (await import("pdf-parse")).default;
-    const data = await pdfParse(buffer);
-    if (!data || !data.text || data.text.trim().length === 0) {
-      return {
-        success: false,
-        error: {
-          code: "EMPTY_FILE",
-          message:
-            "The PDF appears to be empty or contains only images/scanned content.",
-        },
-      };
-    }
-    const text = normalizeText(data.text);
-    // pdf-parse@1.1.1 does not provide page count reliably
-    return {
-      success: true,
-      data: {
-        text,
-        metadata: {
-          fileType: "pdf",
-          pageCount: null,
-          fileSizeBytes: buffer.length,
-        },
-      },
+  const result = await extractPdfText(buffer);
+
+  if (!result.success) {
+    // Map error codes to our ExtractionError format
+    const codeMap: Record<string, ExtractionError["code"]> = {
+      CORRUPT_FILE: "CORRUPT_FILE",
+      PASSWORD_PROTECTED: "CORRUPT_FILE",
+      EMPTY_FILE: "EMPTY_FILE",
+      EXTRACTION_FAILED: "EXTRACTION_FAILED",
     };
-  } catch (err) {
-    console.error("[PDF Extraction Error]", err);
-    const message =
-      err instanceof Error ? err.message : "Unknown PDF parsing error";
-    if (
-      message.includes("Invalid PDF") ||
-      message.includes("bad XRef") ||
-      message.includes("Missing") ||
-      message.includes("Invalid PDF structure")
-    ) {
-      return {
-        success: false,
-        error: {
-          code: "CORRUPT_FILE",
-          message: "The PDF file appears to be corrupt or malformed.",
-        },
-      };
-    }
-    if (message.includes("password") || message.includes("Password")) {
-      return {
-        success: false,
-        error: {
-          code: "CORRUPT_FILE",
-          message:
-            "The PDF is password-protected. Please remove the password and try again.",
-        },
-      };
-    }
+
     return {
       success: false,
       error: {
-        code: "EXTRACTION_FAILED",
-        message: `Failed to extract text from PDF: ${message}`,
+        code: codeMap[result.code] || "EXTRACTION_FAILED",
+        message: result.error,
       },
     };
   }
+
+  const text = normalizeText(result.text);
+
+  return {
+    success: true,
+    data: {
+      text,
+      metadata: {
+        fileType: "pdf",
+        pageCount: result.pageCount,
+        fileSizeBytes: buffer.length,
+      },
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
