@@ -30,6 +30,7 @@ function WriteReviewContent() {
   const [editingReview, setEditingReview] = useState<ReviewWithDetails | null>(
     null
   );
+  const [hasFetchedReview, setHasFetchedReview] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -38,9 +39,9 @@ function WriteReviewContent() {
     }
   }, [user, authLoading, router]);
 
-  // Fetch review data if in edit mode
+  // Fetch review data if in edit mode (only once)
   useEffect(() => {
-    if (!editId || !user) return;
+    if (!editId || !user || hasFetchedReview) return;
 
     const fetchReview = async () => {
       try {
@@ -82,6 +83,7 @@ function WriteReviewContent() {
           });
           // Skip to step 2 in edit mode (company/role already set)
           setStep(2);
+          setHasFetchedReview(true);
         } else {
           router.push("/profile");
         }
@@ -94,7 +96,7 @@ function WriteReviewContent() {
     };
 
     fetchReview();
-  }, [editId, user, router]);
+  }, [editId, user, router, hasFetchedReview]);
 
   // Form state - start at step 2 if editing
   const [step, setStep] = useState(isEditMode ? 2 : 1);
@@ -170,31 +172,40 @@ function WriteReviewContent() {
     try {
       if (isEditMode && editId) {
         // Update existing review
+        const parsedWage = parseFloat(formData.wage_hourly);
+        const parsedHousingStipend = formData.housing_stipend
+          ? parseFloat(formData.housing_stipend)
+          : undefined;
+        const parsedDuration = formData.duration_months
+          ? typeof formData.duration_months === "string"
+            ? parseInt(formData.duration_months)
+            : formData.duration_months
+          : undefined;
+
         const updateData = {
           location: formData.location,
           term: formData.term,
           work_style: formData.work_style,
-          duration_months: formData.duration_months
-            ? typeof formData.duration_months === "string"
-              ? parseInt(formData.duration_months)
-              : formData.duration_months
-            : undefined,
+          duration_months: parsedDuration,
           team_name: formData.team_name || undefined,
           technologies: formData.technologies || undefined,
-          overall_experience: formData.overall_experience,
-          wage_hourly: parseFloat(formData.wage_hourly),
+          overall_experience: formData.overall_experience || undefined,
+          wage_hourly: isNaN(parsedWage) ? undefined : parsedWage,
           wage_currency: formData.wage_currency || "CAD",
           housing_stipend_provided: formData.housing_stipend_provided,
           housing_stipend:
-            formData.housing_stipend_provided && formData.housing_stipend
-              ? parseFloat(formData.housing_stipend)
+            formData.housing_stipend_provided &&
+            parsedHousingStipend &&
+            !isNaN(parsedHousingStipend)
+              ? parsedHousingStipend
               : undefined,
           perks: formData.perks || undefined,
           interview_round_count: formData.interview_round_count
             ? parseInt(formData.interview_round_count)
             : 0,
-          interview_rounds_description: formData.interview_rounds_description,
-          interview_tips: formData.interview_tips,
+          interview_rounds_description:
+            formData.interview_rounds_description || undefined,
+          interview_tips: formData.interview_tips || undefined,
         };
 
         const response = await fetch(`/api/reviews/${editId}`, {
@@ -205,7 +216,9 @@ function WriteReviewContent() {
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Failed to update review");
+          throw new Error(
+            error.details || error.error || "Failed to update review"
+          );
         }
 
         router.push("/profile");

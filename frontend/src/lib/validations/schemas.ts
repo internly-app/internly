@@ -21,8 +21,14 @@ export const companyCreateSchema = z.object({
     .min(1, "Company name is required")
     .max(200)
     .transform((val) => sanitizeText(val))
-    .refine((val) => validateCompanyName(val).isValid, {
-      message: "Invalid company name",
+    .superRefine((val, ctx) => {
+      const validation = validateCompanyName(val);
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: validation.reason || "Invalid company name",
+        });
+      }
     }),
   slug: z
     .string()
@@ -40,8 +46,14 @@ export const roleCreateSchema = z.object({
     .min(1, "Role title is required")
     .max(200)
     .transform((val) => sanitizeText(val))
-    .refine((val) => validateRoleName(val).isValid, {
-      message: "Invalid role name",
+    .superRefine((val, ctx) => {
+      const validation = validateRoleName(val);
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: validation.reason || "Invalid role name",
+        });
+      }
     }),
   slug: z
     .string()
@@ -70,14 +82,17 @@ export const reviewCreateSchema = z.object({
     .max(200)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : val))
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const validation = validateRoleName(val); // Reuse role validation for team names
-        return validation.isValid;
-      },
-      { message: "Team name contains inappropriate content" }
-    ),
+    .superRefine((val, ctx) => {
+      if (!val) return;
+      const validation = validateRoleName(val); // Reuse role validation for team names
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            validation.reason || "Team name contains inappropriate content",
+        });
+      }
+    }),
   technologies: z
     .string()
     .max(500)
@@ -90,14 +105,18 @@ export const reviewCreateSchema = z.object({
     .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : val))
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const validation = validateReviewContent(val, "Overall experience");
-        return validation.isValid;
-      },
-      { message: "Overall experience contains inappropriate content" }
-    ),
+    .superRefine((val, ctx) => {
+      if (!val) return;
+      const validation = validateReviewContent(val, "Overall experience");
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            validation.reason ||
+            "Overall experience contains inappropriate content",
+        });
+      }
+    }),
   // Backwards-compatible fields (optional): older clients may still send these.
   // If they are provided, they must still pass validation.
   hardest: z
@@ -105,40 +124,48 @@ export const reviewCreateSchema = z.object({
     .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : val))
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const validation = validateReviewContent(val, "Hardest part");
-        return validation.isValid;
-      },
-      { message: "Hardest part contains inappropriate content" }
-    ),
+    .superRefine((val, ctx) => {
+      if (!val) return;
+      const validation = validateReviewContent(val, "Hardest part");
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            validation.reason || "Hardest part contains inappropriate content",
+        });
+      }
+    }),
   best: z
     .string()
     .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : val))
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const validation = validateReviewContent(val, "Best part");
-        return validation.isValid;
-      },
-      { message: "Best part contains inappropriate content" }
-    ),
+    .superRefine((val, ctx) => {
+      if (!val) return;
+      const validation = validateReviewContent(val, "Best part");
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            validation.reason || "Best part contains inappropriate content",
+        });
+      }
+    }),
   advice: z
     .string()
     .max(600)
     .optional()
     .transform((val) => (val ? sanitizeText(val) : undefined))
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const validation = validateReviewContent(val, "Advice");
-        return validation.isValid;
-      },
-      { message: "Advice contains inappropriate content" }
-    ),
+    .superRefine((val, ctx) => {
+      if (!val) return;
+      const validation = validateReviewContent(val, "Advice");
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: validation.reason || "Advice contains inappropriate content",
+        });
+      }
+    }),
 
   // Compensation (required)
   wage_hourly: z.number().positive("Hourly wage must be positive"),
@@ -153,26 +180,34 @@ export const reviewCreateSchema = z.object({
     .string()
     .max(600)
     .transform((val) => sanitizeText(val))
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const validation = validateReviewContent(val, "Interview description");
-        return validation.isValid;
-      },
-      { message: "Interview description contains inappropriate content" }
-    ),
+    .superRefine((val, ctx) => {
+      if (!val) return;
+      const validation = validateReviewContent(val, "Interview description");
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            validation.reason ||
+            "Interview description contains inappropriate content",
+        });
+      }
+    }),
   interview_tips: z
     .string()
     .max(400)
     .transform((val) => sanitizeText(val))
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const validation = validateReviewContent(val, "Interview tips");
-        return validation.isValid;
-      },
-      { message: "Interview tips contains inappropriate content" }
-    ),
+    .superRefine((val, ctx) => {
+      if (!val) return;
+      const validation = validateReviewContent(val, "Interview tips");
+      if (!validation.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            validation.reason ||
+            "Interview tips contains inappropriate content",
+        });
+      }
+    }),
 });
 
 export const reviewUpdateSchema = reviewCreateSchema
