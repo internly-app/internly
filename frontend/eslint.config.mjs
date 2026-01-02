@@ -20,6 +20,13 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  // Disable no-img-element for CompanyLogo - we intentionally use <img> for external URLs
+  {
+    files: ["**/CompanyLogo.tsx"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

@@ -197,7 +197,7 @@ export default function Navigation() {
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className="flex items-center gap-2 h-9 px-3 rounded-full bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer !outline-none border border-transparent hover:border-zinc-700 data-[state=open]:border-zinc-700 flex-shrink-0"
+                      className="flex items-center gap-2 h-9 px-3 rounded-full bg-muted hover:bg-zinc-700/60 data-[state=open]:bg-zinc-700/60 transition-colors duration-200 cursor-pointer !outline-none flex-shrink-0"
                       aria-label={`User menu for ${userName.full}`}
                     >
                       <div
@@ -230,7 +230,7 @@ export default function Navigation() {
                     align="end"
                     sideOffset={12}
                     collisionPadding={12}
-                    className="w-56 border border-zinc-700"
+                    className="w-56 border border-zinc-700 bg-zinc-900 shadow-none"
                   >
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
