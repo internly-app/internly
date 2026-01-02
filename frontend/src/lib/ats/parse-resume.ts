@@ -7,6 +7,8 @@
  * Returns structured JSON only — no scoring or business logic.
  */
 
+import { extractPdfText } from "./pdf-extractor";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -100,12 +102,17 @@ function matchCanonicalSection(
  *
  * @param pdfBuffer - The raw PDF file as a Buffer (e.g., from file upload).
  * @returns ParsedResume object.
+ * @throws Error if PDF extraction fails.
  */
 export async function parseResumePdf(pdfBuffer: Buffer): Promise<ParsedResume> {
-  // Extract text using pdf-parse v1 API
-  const pdfParse = (await import("pdf-parse")).default;
-  const data = await pdfParse(pdfBuffer);
-  const rawText = normalizeWhitespace(data.text);
+  // Extract text using pdfjs-dist directly (avoids pdf-parse ENOENT issues)
+  const extractionResult = await extractPdfText(pdfBuffer);
+
+  if (!extractionResult.success) {
+    throw new Error(extractionResult.error);
+  }
+
+  const rawText = normalizeWhitespace(extractionResult.text);
 
   // Split into lines for section detection
   const lines = rawText.split("\n");

@@ -331,10 +331,9 @@ export async function POST(
           "Failed to read the resume. Please try a different file format.",
       };
 
-      // TEMPORARY: Return actual error for debugging production issues
-      // TODO: Remove this and restore user-friendly messages after debugging
       return errorResponse(
-        `[DEBUG] ${extractionResult.error.code}: ${extractionResult.error.message}`,
+        extractionErrors[extractionResult.error.code] ||
+          extractionResult.error.message,
         400
       );
     }
