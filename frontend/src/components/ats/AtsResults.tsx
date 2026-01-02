@@ -60,7 +60,7 @@ export default function AtsResults({
       <p className="text-sm text-muted-foreground flex items-start gap-2 bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
         <Info className="size-4 shrink-0 mt-0.5 text-blue-400" />
         <span>
-          Missing some required or preferred skills does not mean you
+          Missing some required or preferred skills doesn&apos;t mean you
           shouldn&apos;t apply. Many students land internships from roles they
           didn&apos;t think they&apos;d even get an interview for. This tool is
           here to give you the best possible chance, not to filter you out.
