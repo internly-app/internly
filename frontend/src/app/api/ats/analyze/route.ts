@@ -391,7 +391,8 @@ export async function POST(
               error: msg,
               stack: err instanceof Error ? err.stack : undefined,
               hasApiKey: !!process.env.OPENAI_API_KEY,
-              apiKeyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) || "not-set",
+              apiKeyPrefix:
+                process.env.OPENAI_API_KEY?.slice(0, 7) || "not-set",
             });
 
             atsLogger.analysisFailure(
@@ -414,14 +415,19 @@ export async function POST(
             let status: number;
 
             if (isApiKeyError) {
-              userMessage = "AI service configuration error. Please contact support.";
+              userMessage =
+                "AI service configuration error. Please contact support.";
               status = 503;
             } else if (isQuotaError) {
-              userMessage = "The AI service is temporarily unavailable. Please try again later.";
+              userMessage =
+                "The AI service is temporarily unavailable. Please try again later.";
               status = 503;
             } else {
               // Include partial error info for debugging (sanitized)
-              userMessage = `Failed to analyze the job description: ${msg.slice(0, 100)}`;
+              userMessage = `Failed to analyze the job description: ${msg.slice(
+                0,
+                100
+              )}`;
               status = 500;
             }
 
