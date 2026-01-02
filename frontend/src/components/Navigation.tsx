@@ -230,7 +230,7 @@ export default function Navigation() {
                     align="end"
                     sideOffset={12}
                     collisionPadding={12}
-                    className="w-56 border border-zinc-700 bg-zinc-900"
+                    className="w-56 border border-zinc-700 bg-zinc-900 shadow-none"
                   >
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
