@@ -61,10 +61,9 @@ export default function ATSAnalyzer() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadingStages = [
-    "Reading resume content",
-    "Understanding job requirements",
-    "Comparing experience and skills",
-    "Evaluating alignment",
+    "Uploading resume",
+    "Extracting text",
+    "Analyzing vs job description",
     "Finalizing results",
   ];
 
@@ -91,28 +90,22 @@ export default function ATSAnalyzer() {
       }
 
       const currentCp = checkpoints[cpIndex];
-      const nextCp = checkpoints[cpIndex + 1];
 
-      setLoadingMessage((prev) => prev || currentCp.message);
+      // Calculate progress for internal state (even if not shown in UI)
+      setLoadingProgress(currentCp.percent);
 
-      const stageProgress = cpIndex / (checkpoints.length - 1);
-      setLoadingStageIndex(Math.min(4, Math.floor(stageProgress * 5)));
+      // Map time to stages (approximate duration mapping)
+      // 0-2s: Uploading
+      // 2-5s: Extracting
+      // 5-12s: Analyzing
+      // 12s+: Finalizing
+      let newStageIndex = 0;
+      if (elapsed > 2000) newStageIndex = 1;
+      if (elapsed > 5000) newStageIndex = 2;
+      if (elapsed > 12000) newStageIndex = 3;
 
-      if (nextCp) {
-        const segmentDuration = nextCp.atMs - currentCp.atMs;
-        const segmentElapsed = elapsed - currentCp.atMs;
-        const segmentProgress = Math.min(1, segmentElapsed / segmentDuration);
-        const easedProgress = 1 - Math.pow(1 - segmentProgress, 2);
-        const interpolatedPercent =
-          currentCp.percent +
-          (nextCp.percent - currentCp.percent) * easedProgress;
-
-        setLoadingProgress((prev) =>
-          Math.max(prev, Math.round(interpolatedPercent * 10) / 10)
-        );
-      } else {
-        setLoadingProgress((prev) => Math.max(prev, currentCp.percent));
-      }
+      setLoadingStageIndex(newStageIndex);
+      setLoadingMessage(loadingStages[newStageIndex]);
     };
 
     tick();
