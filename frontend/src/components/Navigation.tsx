@@ -168,6 +168,13 @@ export default function Navigation() {
               Companies
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
+            <Link
+              href="/ats"
+              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white cursor-pointer"
+            >
+              Resume ATS
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
+            </Link>
           </div>
 
           {/* Right Side - Write Review, Profile (Desktop Only) */}
@@ -378,6 +385,14 @@ export default function Navigation() {
                         className="block px-4 py-3 rounded-lg text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
                       >
                         <span className="relative">Companies</span>
+                        <span className="absolute bottom-2 left-4 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-[calc(100%-2rem)]"></span>
+                      </Link>
+                      <Link
+                        href="/ats"
+                        onClick={closeMobileMenu}
+                        className="block px-4 py-3 rounded-lg text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
+                      >
+                        <span className="relative">Resume ATS</span>
                         <span className="absolute bottom-2 left-4 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-[calc(100%-2rem)]"></span>
                       </Link>
                     </nav>
