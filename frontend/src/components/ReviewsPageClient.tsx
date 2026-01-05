@@ -56,7 +56,10 @@ export function ReviewsPageClient({
     (searchParams.get("sort") as "likes" | "recent") || initialSortBy
   );
   const [currentPage, setCurrentPage] = useState(() => {
-    const page = parseInt(searchParams.get("page") || initialPage.toString(), 10);
+    const page = parseInt(
+      searchParams.get("page") || initialPage.toString(),
+      10
+    );
     return page > 0 ? page : 1;
   });
 
@@ -65,11 +68,14 @@ export function ReviewsPageClient({
   const [total, setTotal] = useState(initialTotal);
 
   // Companies list for filter dropdown
-  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
+  const [companies, setCompanies] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
 
   // UI state
-  const [optimisticReview, setOptimisticReview] = useState<ReviewWithDetails | null>(null);
+  const [optimisticReview, setOptimisticReview] =
+    useState<ReviewWithDetails | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   // Debounce search query for client-side filtering (300ms delay)
@@ -87,7 +93,7 @@ export function ReviewsPageClient({
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await fetch("/api/companies");
+        const response = await fetch("/api/companies?has_reviews=true");
         if (response.ok) {
           const data = await response.json();
           setCompanies(data || []);
@@ -151,10 +157,13 @@ export function ReviewsPageClient({
 
     // Apply sorting
     if (sortBy === "likes") {
-      filtered = [...filtered].sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
+      filtered = [...filtered].sort(
+        (a, b) => (b.like_count || 0) - (a.like_count || 0)
+      );
     } else {
       filtered = [...filtered].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     }
 
@@ -165,11 +174,16 @@ export function ReviewsPageClient({
   const filteredReviews = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return filteredByFilters;
 
-    const sanitizedQuery = sanitizeText(debouncedSearchQuery).slice(0, 200).trim();
+    const sanitizedQuery = sanitizeText(debouncedSearchQuery)
+      .slice(0, 200)
+      .trim();
     if (!sanitizedQuery) return filteredByFilters;
 
     // Split query into words for better matching
-    const queryWords = sanitizedQuery.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+    const queryWords = sanitizedQuery
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
 
     // Score and filter reviews using fuzzy matching
     const reviewsWithScores = filteredByFilters
@@ -185,13 +199,13 @@ export function ReviewsPageClient({
         ].filter((field): field is string => Boolean(field));
 
         // Calculate match scores
-        const exactMatch = searchableTexts.some(text =>
+        const exactMatch = searchableTexts.some((text) =>
           text.toLowerCase().includes(sanitizedQuery.toLowerCase())
         );
 
         // For multi-word queries, check if all words are present
-        const allWordsMatch = queryWords.every(word =>
-          searchableTexts.some(text => text.toLowerCase().includes(word))
+        const allWordsMatch = queryWords.every((word) =>
+          searchableTexts.some((text) => text.toLowerCase().includes(word))
         );
 
         // Fuzzy match score
@@ -208,7 +222,9 @@ export function ReviewsPageClient({
         }
 
         // Bonus for company name matches
-        const companyMatch = review.company.name.toLowerCase().includes(sanitizedQuery.toLowerCase());
+        const companyMatch = review.company.name
+          .toLowerCase()
+          .includes(sanitizedQuery.toLowerCase());
         if (companyMatch) {
           score = Math.max(score, 0.9);
         }
@@ -225,7 +241,10 @@ export function ReviewsPageClient({
         if (sortBy === "likes") {
           return (b.review.like_count || 0) - (a.review.like_count || 0);
         }
-        return new Date(b.review.created_at).getTime() - new Date(a.review.created_at).getTime();
+        return (
+          new Date(b.review.created_at).getTime() -
+          new Date(a.review.created_at).getTime()
+        );
       })
       .map(({ review }) => review);
 
@@ -248,16 +267,27 @@ export function ReviewsPageClient({
   const totalPages = Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE);
   const hasNextPage = currentPage < totalPages;
   const hasPrevPage = currentPage > 1;
-  const hasActiveFilters = searchQuery || companyFilter || workStyleFilter || sortBy !== "recent";
+  const hasActiveFilters =
+    searchQuery || companyFilter || workStyleFilter || sortBy !== "recent";
 
   // ===== URL Sync & Filter Effects =====
 
   // Reset to page 1 when filters change (skip on initial mount)
-  const prevFiltersRef = useRef({ searchQuery: debouncedSearchQuery, companyFilter, workStyleFilter, sortBy });
+  const prevFiltersRef = useRef({
+    searchQuery: debouncedSearchQuery,
+    companyFilter,
+    workStyleFilter,
+    sortBy,
+  });
   const isFiltersInitialMountRef = useRef(true);
 
   useEffect(() => {
-    const currentFilters = { searchQuery: debouncedSearchQuery, companyFilter, workStyleFilter, sortBy };
+    const currentFilters = {
+      searchQuery: debouncedSearchQuery,
+      companyFilter,
+      workStyleFilter,
+      sortBy,
+    };
 
     // Skip on initial mount
     if (isFiltersInitialMountRef.current) {
@@ -270,7 +300,8 @@ export function ReviewsPageClient({
     const filtersChanged =
       prevFiltersRef.current.searchQuery !== currentFilters.searchQuery ||
       prevFiltersRef.current.companyFilter !== currentFilters.companyFilter ||
-      prevFiltersRef.current.workStyleFilter !== currentFilters.workStyleFilter ||
+      prevFiltersRef.current.workStyleFilter !==
+        currentFilters.workStyleFilter ||
       prevFiltersRef.current.sortBy !== currentFilters.sortBy;
 
     // Reset page if filters changed and not already on page 1
@@ -279,14 +310,32 @@ export function ReviewsPageClient({
     }
 
     prevFiltersRef.current = currentFilters;
-  }, [debouncedSearchQuery, companyFilter, workStyleFilter, sortBy, currentPage]);
+  }, [
+    debouncedSearchQuery,
+    companyFilter,
+    workStyleFilter,
+    sortBy,
+    currentPage,
+  ]);
 
   // Update URL when filters or page change (skip on initial mount)
-  const prevUrlParamsRef = useRef({ searchQuery: debouncedSearchQuery, companyFilter, workStyleFilter, sortBy, currentPage });
+  const prevUrlParamsRef = useRef({
+    searchQuery: debouncedSearchQuery,
+    companyFilter,
+    workStyleFilter,
+    sortBy,
+    currentPage,
+  });
   const isUrlInitialMountRef = useRef(true);
 
   useEffect(() => {
-    const currentParams = { searchQuery: debouncedSearchQuery, companyFilter, workStyleFilter, sortBy, currentPage };
+    const currentParams = {
+      searchQuery: debouncedSearchQuery,
+      companyFilter,
+      workStyleFilter,
+      sortBy,
+      currentPage,
+    };
 
     // Skip on initial mount
     if (isUrlInitialMountRef.current) {
@@ -299,25 +348,36 @@ export function ReviewsPageClient({
     const urlParamsChanged =
       prevUrlParamsRef.current.searchQuery !== currentParams.searchQuery ||
       prevUrlParamsRef.current.companyFilter !== currentParams.companyFilter ||
-      prevUrlParamsRef.current.workStyleFilter !== currentParams.workStyleFilter ||
+      prevUrlParamsRef.current.workStyleFilter !==
+        currentParams.workStyleFilter ||
       prevUrlParamsRef.current.sortBy !== currentParams.sortBy ||
       prevUrlParamsRef.current.currentPage !== currentParams.currentPage;
 
     // Update URL only if params changed
     if (urlParamsChanged) {
       const params = new URLSearchParams();
-      if (debouncedSearchQuery) params.set("search", sanitizeText(debouncedSearchQuery));
+      if (debouncedSearchQuery)
+        params.set("search", sanitizeText(debouncedSearchQuery));
       if (companyFilter) params.set("company", companyFilter);
       if (workStyleFilter) params.set("work_style", workStyleFilter);
       if (sortBy && sortBy !== "recent") params.set("sort", sortBy);
       if (currentPage > 1) params.set("page", currentPage.toString());
 
-      const newUrl = `/reviews${params.toString() ? `?${params.toString()}` : ""}`;
+      const newUrl = `/reviews${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
       router.replace(newUrl, { scroll: false });
     }
 
     prevUrlParamsRef.current = currentParams;
-  }, [debouncedSearchQuery, companyFilter, workStyleFilter, sortBy, currentPage, router]);
+  }, [
+    debouncedSearchQuery,
+    companyFilter,
+    workStyleFilter,
+    sortBy,
+    currentPage,
+    router,
+  ]);
 
   // ===== Event Handlers =====
 
@@ -350,7 +410,7 @@ export function ReviewsPageClient({
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
-      <motion.div 
+      <motion.div
         className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 sm:pb-12 w-full"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -358,9 +418,12 @@ export function ReviewsPageClient({
       >
         {/* Header */}
         <div className="mb-8 sm:mb-12 max-w-5xl mx-auto text-center">
-          <h1 className="text-heading-1 mb-4 text-foreground">Browse Reviews</h1>
+          <h1 className="text-heading-1 mb-4 text-foreground">
+            Browse Reviews
+          </h1>
           <p className="text-lg text-muted-foreground">
-            Discover real internship experiences from students. Filter by company, role, location, and more.
+            Discover real internship experiences from students. Filter by
+            company, role, location, and more.
           </p>
         </div>
 
@@ -418,8 +481,7 @@ export function ReviewsPageClient({
                             .map((company) => ({
                               value: company.id,
                               label: company.name,
-                            }))
-                      ),
+                            }))),
                     ]}
                     placeholder="All companies"
                     searchable={false}
@@ -459,14 +521,11 @@ export function ReviewsPageClient({
                     searchable={false}
                   />
                 </Field>
-                
+
                 {/* Clear Filters */}
                 <div className="flex items-end">
                   {hasActiveFilters && (
-                    <Button
-                      onClick={clearFilters}
-                      className="w-full"
-                    >
+                    <Button onClick={clearFilters} className="w-full">
                       <X className="size-4 mr-2" />
                       Clear Filters
                     </Button>
@@ -476,18 +535,26 @@ export function ReviewsPageClient({
             </FieldGroup>
           </CardContent>
         </Card>
-        
+
         {/* Results Count */}
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-5xl mx-auto">
           <p className="text-sm text-muted-foreground">
-            Showing <span className="font-semibold text-foreground">
+            Showing{" "}
+            <span className="font-semibold text-foreground">
               {debouncedSearchQuery
                 ? filteredReviews.length
-                : (currentPage - 1) * REVIEWS_PER_PAGE + 1}-{Math.min(currentPage * REVIEWS_PER_PAGE, filteredReviews.length)}
+                : (currentPage - 1) * REVIEWS_PER_PAGE + 1}
+              -
+              {Math.min(currentPage * REVIEWS_PER_PAGE, filteredReviews.length)}
             </span>{" "}
-            of <span className="font-semibold text-foreground">{filteredReviews.length}</span>{" "}
+            of{" "}
+            <span className="font-semibold text-foreground">
+              {filteredReviews.length}
+            </span>{" "}
             {filteredReviews.length === 1 ? "review" : "reviews"}
-            {debouncedSearchQuery && filteredReviews.length < total && ` (${total} total)`}
+            {debouncedSearchQuery &&
+              filteredReviews.length < total &&
+              ` (${total} total)`}
           </p>
         </div>
 
@@ -556,7 +623,9 @@ export function ReviewsPageClient({
                     return (
                       <Button
                         key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
                         size="sm"
                         onClick={() => handlePageChange(pageNum)}
                         className="min-w-[40px]"
@@ -586,4 +655,3 @@ export function ReviewsPageClient({
     </main>
   );
 }
-
