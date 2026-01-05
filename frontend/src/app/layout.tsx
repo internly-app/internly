@@ -74,6 +74,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased`}
+        suppressHydrationWarning
       >
         <AuthProvider>{children}</AuthProvider>
         <Analytics />

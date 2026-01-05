@@ -61,6 +61,24 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
   return (
     <AuroraBackground className="min-h-screen">
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-16 md:pb-24">
+        {/* New Feature Pill */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex justify-center mb-6"
+        >
+          <Link
+            href="/ats"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-colors duration-300 group cursor-pointer"
+          >
+            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground">
+              Check your resume ATS score
+            </span>
+            <ArrowRight className="size-3 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        </motion.div>
+
         {/* Hero Title - Fade from top */}
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
