@@ -50,8 +50,8 @@ export default function ATSPage() {
               Resume ATS Analyzer
             </h1>
             <p className="text-lg text-muted-foreground">
-              Get instant feedback on your resume&apos;s ATS compatibility, keywords,
-              and formatting.
+              Get instant feedback on your resume&apos;s ATS compatibility,
+              keywords, and formatting.
             </p>
           </div>
 
