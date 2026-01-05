@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import AtsErrorCard from "@/components/ats/AtsErrorCard";
 import AtsInputs from "@/components/ats/AtsInputs";
 import AtsLoadingCard from "@/components/ats/AtsLoadingCard";
@@ -36,6 +37,9 @@ type AtsStageEvent = {
 
 export default function ATSAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
+  const [persistedFileName, setPersistedFileName] = useState<string | null>(
+    null
+  );
   const [jobDescription, setJobDescription] = useState("");
   const [analysisState, setAnalysisState] = useState<AnalysisState>({
     status: "idle",
@@ -59,6 +63,7 @@ export default function ATSAnalyzer() {
   const [barsFilled, setBarsFilled] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const STORAGE_KEY = "ats_analysis_state";
 
   const loadingStages = [
     "Uploading resume",
@@ -66,6 +71,40 @@ export default function ATSAnalyzer() {
     "Analyzing vs job description",
     "Finalizing results",
   ];
+
+  // Hydrate state from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const { jobDescription: storedJd, data, fileName } = JSON.parse(stored);
+        if (storedJd && data) {
+          setJobDescription(storedJd);
+          setAnalysisState({ status: "success", data });
+          if (fileName) setPersistedFileName(fileName);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to hydrate ATS state:", err);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    // Listen for auth changes to clear storage on sign out
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        localStorage.removeItem(STORAGE_KEY);
+        setJobDescription("");
+        setFile(null);
+        setPersistedFileName(null);
+        setAnalysisState({ status: "idle" });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (analysisState.status !== "loading") {
@@ -246,11 +285,40 @@ export default function ATSAnalyzer() {
 
   const clearFile = useCallback(() => {
     setFile(null);
+    setPersistedFileName(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    // If we clear the file, we should probably clear the analysis too?
+    // Or just let them upload a new one.
+    // The user requirement says "Clear stored data only when user edits JD or clicks Analyze again."
+    // But if they clear the file, they probably intend to start over.
+    // Let's keep the analysis for now unless they upload a new file.
+  }, []);
+
+  const handleJobDescriptionChange = useCallback((value: string) => {
+    setJobDescription(value);
+    // Clear stored data when user edits JD
+    localStorage.removeItem(STORAGE_KEY);
   }, []);
 
   const handleAnalyze = useCallback(async () => {
-    if (!file || jobDescription.trim().length < MIN_JD_LENGTH) return;
+    if (
+      (!file && !persistedFileName) ||
+      jobDescription.trim().length < MIN_JD_LENGTH
+    )
+      return;
+
+    // If we have a persisted file but no actual file object, we can't re-analyze.
+    // The user must upload a file.
+    if (!file) {
+      setAnalysisState({
+        status: "error",
+        message: "Please upload your resume again to re-analyze.",
+      });
+      return;
+    }
+
+    // Clear stored data when starting new analysis
+    localStorage.removeItem(STORAGE_KEY);
 
     setLoadingStageIndex(0);
     setLoadingProgress(0);
@@ -292,6 +360,14 @@ export default function ATSAnalyzer() {
         );
         setLoadingProgress(100);
         setAnalysisState({ status: "success", data: result.data });
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            jobDescription: jobDescription.trim(),
+            data: result.data,
+            fileName: file?.name,
+          })
+        );
         return;
       }
 
@@ -358,6 +434,14 @@ export default function ATSAnalyzer() {
       setLoadingMessage("Finalizing");
       setLoadingProgress(100);
       setAnalysisState({ status: "success", data: finalData });
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          jobDescription: jobDescription.trim(),
+          data: finalData,
+          fileName: file?.name,
+        })
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : "Analysis failed.";
       setAnalysisState({ status: "error", message });
@@ -366,15 +450,17 @@ export default function ATSAnalyzer() {
 
   const isLoading = analysisState.status === "loading";
   const canAnalyze =
-    Boolean(file) && jobDescription.trim().length >= MIN_JD_LENGTH;
+    (Boolean(file) || Boolean(persistedFileName)) &&
+    jobDescription.trim().length >= MIN_JD_LENGTH;
 
   return (
     <div className="space-y-6">
       <AtsInputs
         file={file}
+        persistedFileName={persistedFileName}
         isLoading={isLoading}
         jobDescription={jobDescription}
-        onJobDescriptionChange={setJobDescription}
+        onJobDescriptionChange={handleJobDescriptionChange}
         minJdLength={MIN_JD_LENGTH}
         maxFileSizeDisplay={MAX_FILE_SIZE_DISPLAY}
         canAnalyze={canAnalyze}

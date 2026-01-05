@@ -5,6 +5,7 @@ import { Upload, FileText, CheckCircle2, X } from "lucide-react";
 
 type Props = {
   file: File | null;
+  persistedFileName?: string | null;
   isLoading: boolean;
   jobDescription: string;
   onJobDescriptionChange: (value: string) => void;
@@ -22,6 +23,7 @@ type Props = {
 
 export default function AtsInputs({
   file,
+  persistedFileName,
   isLoading,
   jobDescription,
   onJobDescriptionChange,
@@ -62,11 +64,11 @@ export default function AtsInputs({
                 disabled={isLoading}
               />
 
-              {file ? (
+              {file || persistedFileName ? (
                 <div className="flex items-center justify-center gap-3">
                   <CheckCircle2 className="size-5 text-green-500" />
                   <span className="text-sm font-medium truncate max-w-[240px]">
-                    {file.name}
+                    {file?.name || persistedFileName}
                   </span>
                   <Button
                     variant="ghost"

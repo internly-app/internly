@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -21,7 +21,7 @@ export default function AtsLoadingCard({
   return (
     <Card
       className={cn(
-        "w-full overflow-hidden border-zinc-200/50 dark:border-zinc-800/50 shadow-xl bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm",
+        "w-full overflow-hidden shadow-xl",
         !prefersReducedMotion && "transition-all duration-500 ease-out",
         loadingAnimState === "enter"
           ? "opacity-100 translate-y-0"
@@ -57,10 +57,21 @@ export default function AtsLoadingCard({
                       <motion.div
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="relative flex items-center justify-center"
+                        className="relative flex items-center justify-center w-full h-full"
                       >
-                        <div className="absolute inset-0 bg-primary/25 dark:bg-white/20 rounded-full animate-ping" />
-                        <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <motion.div
+                          className="absolute inset-0 bg-primary/20 dark:bg-white/20 rounded-full -z-10"
+                          animate={{
+                            scale: [1, 2],
+                            opacity: [0, 0.5, 0],
+                          }}
+                          transition={{
+                            duration: 2.5,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        />
+                        <Loader2 className="size-4 animate-spin text-primary relative z-10" />
                       </motion.div>
                     ) : (
                       <Circle className="size-4 text-muted-foreground/20" />
