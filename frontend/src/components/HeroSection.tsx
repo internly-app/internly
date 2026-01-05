@@ -70,8 +70,11 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
         >
           <Link
             href="/ats"
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-colors duration-300 group cursor-pointer"
+            className="inline-flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-colors duration-300 group cursor-pointer"
           >
+            <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] uppercase font-bold tracking-wider">
+              Recruiter Approved
+            </span>
             <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground">
               Check your resume ATS score
             </span>
