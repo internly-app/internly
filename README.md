@@ -1,12 +1,8 @@
 # 🎓 Internly
 
-> A platform where students share and explore real internship experiences to make informed career decisions.
-
----
-
 ## What is Internly?
 
-Internly helps students make better internship decisions by learning from real experiences. Browse detailed reviews from past interns about what they worked on, how they prepared for interviews, what they got paid, and what skills they needed.
+Internly helps students make better internship decisions by learning from real experiences. Students can share and explore real internship experiences while also analyzing their resume for ATS compatibility, experience alignment, a detailed score recovery plan and general resume feedback.
 
 **Key Value Propositions:**
 - **Transparent Compensation Data** - See actual hourly wages and benefits
