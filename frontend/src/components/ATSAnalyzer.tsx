@@ -35,6 +35,13 @@ type AtsStageEvent = {
   status?: number;
 };
 
+const LOADING_STAGES = [
+  "Uploading resume",
+  "Extracting text",
+  "Analyzing vs job description",
+  "Finalizing results",
+];
+
 export default function ATSAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
   const [persistedFileName, setPersistedFileName] = useState<string | null>(
@@ -64,13 +71,6 @@ export default function ATSAnalyzer() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const STORAGE_KEY = "ats_analysis_state";
-
-  const loadingStages = [
-    "Uploading resume",
-    "Extracting text",
-    "Analyzing vs job description",
-    "Finalizing results",
-  ];
 
   // Hydrate state from localStorage on mount
   useEffect(() => {
@@ -144,7 +144,7 @@ export default function ATSAnalyzer() {
       if (elapsed > 12000) newStageIndex = 3;
 
       setLoadingStageIndex(newStageIndex);
-      setLoadingMessage(loadingStages[newStageIndex]);
+      setLoadingMessage(LOADING_STAGES[newStageIndex]);
     };
 
     tick();
@@ -446,7 +446,7 @@ export default function ATSAnalyzer() {
       const message = err instanceof Error ? err.message : "Analysis failed.";
       setAnalysisState({ status: "error", message });
     }
-  }, [file, jobDescription, prefersReducedMotion]);
+  }, [file, jobDescription, prefersReducedMotion, persistedFileName]);
 
   const isLoading = analysisState.status === "loading";
   const canAnalyze =
@@ -477,7 +477,7 @@ export default function ATSAnalyzer() {
           prefersReducedMotion={prefersReducedMotion}
           loadingAnimState={loadingAnimState}
           loadingMessage={loadingMessage}
-          loadingStages={loadingStages}
+          loadingStages={LOADING_STAGES}
           loadingStageIndex={loadingStageIndex}
           loadingProgress={loadingProgress}
         />
