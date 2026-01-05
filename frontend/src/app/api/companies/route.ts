@@ -52,8 +52,11 @@ export async function POST(request: NextRequest) {
         {
           status: 429,
           headers: {
-            "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
-            "X-RateLimit-Limit": RATE_LIMITS.CREATE_COMPANY.maxRequests.toString(),
+            "Retry-After": Math.ceil(
+              (rateLimit.resetTime - Date.now()) / 1000
+            ).toString(),
+            "X-RateLimit-Limit":
+              RATE_LIMITS.CREATE_COMPANY.maxRequests.toString(),
             "X-RateLimit-Remaining": rateLimit.remaining.toString(),
             "X-RateLimit-Reset": rateLimit.resetTime.toString(),
           },
@@ -62,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // Validate request data
     let validatedData;
     try {
@@ -70,7 +73,13 @@ export async function POST(request: NextRequest) {
     } catch (validationError) {
       console.error("Company validation error:", validationError);
       return NextResponse.json(
-        { error: "Invalid company data", details: validationError instanceof Error ? validationError.message : "Validation failed" },
+        {
+          error: "Invalid company data",
+          details:
+            validationError instanceof Error
+              ? validationError.message
+              : "Validation failed",
+        },
         { status: 400 }
       );
     }
@@ -82,7 +91,8 @@ export async function POST(request: NextRequest) {
       .ilike("name", validatedData.name)
       .maybeSingle();
 
-    if (findError && findError.code !== 'PGRST116') { // PGRST116 = no rows returned (expected)
+    if (findError && findError.code !== "PGRST116") {
+      // PGRST116 = no rows returned (expected)
       console.error("Company find error:", findError);
       return NextResponse.json(
         { error: "Failed to check existing company" },
@@ -98,8 +108,12 @@ export async function POST(request: NextRequest) {
     const sanitizedData = {
       name: stripHTML(validatedData.name),
       slug: stripHTML(validatedData.slug),
-      website: validatedData.website ? sanitizeURL(validatedData.website) : null,
-      industry: validatedData.industry ? stripHTML(validatedData.industry) : null,
+      website: validatedData.website
+        ? sanitizeURL(validatedData.website)
+        : null,
+      industry: validatedData.industry
+        ? stripHTML(validatedData.industry)
+        : null,
     };
 
     // Try to fetch logo from LogoKit API (non-blocking, fails gracefully)
@@ -130,7 +144,7 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       console.error("Company insert error:", insertError);
       // Check for unique constraint violation (slug or name already exists)
-      if (insertError.code === '23505') {
+      if (insertError.code === "23505") {
         return NextResponse.json(
           { error: "Company already exists" },
           { status: 409 }
@@ -152,7 +166,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("POST /api/companies error:", error);
     return NextResponse.json(
-      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -177,14 +194,19 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
+    const hasReviews = searchParams.get("has_reviews") === "true";
 
-    let query = supabaseAdmin.from("companies").select("*");
+    // If hasReviews is true, we use inner join to filter companies that have reviews
+    let query = supabaseAdmin
+      .from("companies")
+      .select(hasReviews ? "*, reviews!inner(id)" : "*");
 
     if (search) {
       query = query.ilike("name", `%${search}%`);
     }
 
-    query = query.order("name").limit(20);
+    // If filtering by reviews, fetch more results for the dropdown
+    query = query.order("name").limit(hasReviews ? 1000 : 20);
 
     const { data: companies, error } = await query;
 
