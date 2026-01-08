@@ -20,7 +20,8 @@ async function getPdfjs(): Promise<PdfjsLib> {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
       // Import the legacy build which doesn't require canvas
-      const pdfjs = await import("pdfjs-dist/legacy/build/pdf");
+      // v4.x uses .mjs extension for ES modules
+      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
       // Disable workers for serverless compatibility
       pdfjs.GlobalWorkerOptions.workerSrc = "";

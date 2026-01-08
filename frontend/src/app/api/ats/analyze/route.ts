@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import {
   checkRateLimit,
   getClientIdentifier,
@@ -336,6 +336,70 @@ export async function POST(
           extractionResult.error.message,
         400
       );
+    }
+
+    // ---------------------------------------------------------------------------
+    // Save resume to Supabase Storage for admin review (fire-and-forget)
+    // This is non-critical - failures here should NOT block the ATS analysis
+    // ---------------------------------------------------------------------------
+    try {
+      // Validate file size again before upload (defense in depth)
+      if (fileSize > MAX_RESUME_SIZE_BYTES) {
+        console.warn("[ATS] Resume exceeds size limit, skipping storage save");
+      } else {
+        const adminClient = createServiceRoleClient();
+        const timestamp = Date.now();
+
+        // Sanitize filename: remove special chars, limit length to prevent path issues
+        const sanitizedFileName = resumeFile.name
+          .replace(/[^a-zA-Z0-9.-]/g, "_")
+          .slice(0, 100); // Limit filename length
+
+        const storagePath = `${userId}/${timestamp}_${sanitizedFileName}`;
+
+        // Upload file to storage
+        const { error: uploadError } = await adminClient.storage
+          .from("Resumes")
+          .upload(storagePath, resumeBuffer, {
+            contentType: fileType,
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error("[ATS] Storage upload failed:", {
+            code: uploadError.message,
+            userId,
+            fileSize,
+            fileType,
+          });
+        } else {
+          // Storage upload succeeded - now save metadata to database
+          const { error: dbError } = await adminClient
+            .from("uploaded_resumes")
+            .insert({
+              user_id: userId,
+              user_email: user.email || null,
+              file_name: resumeFile.name.slice(0, 255), // Limit for DB column
+              file_path: storagePath,
+              file_type: FILE_TYPE_NAMES[fileType] || fileType,
+              file_size: fileSize,
+              job_description_preview: jobDescriptionRaw.slice(0, 500),
+            });
+
+          if (dbError) {
+            console.error("[ATS] Database insert failed:", {
+              code: dbError.code,
+              message: dbError.message,
+              userId,
+            });
+            // Note: File is uploaded but not tracked in DB
+            // Admin can still see it in Storage, just not in the table
+          }
+        }
+      }
+    } catch (saveError) {
+      // Non-critical - log full error and continue with analysis
+      console.error("[ATS] Unexpected error saving resume:", saveError);
     }
 
     // ---------------------------------------------------------------------------
