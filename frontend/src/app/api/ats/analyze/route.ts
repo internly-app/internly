@@ -359,7 +359,7 @@ export async function POST(
 
         // Upload file to storage
         const { error: uploadError } = await adminClient.storage
-          .from("resumes")
+          .from("Resumes")
           .upload(storagePath, resumeBuffer, {
             contentType: fileType,
             upsert: false,
