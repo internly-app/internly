@@ -7,6 +7,7 @@ interface TermSelectProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  required?: boolean;
 }
 
 const SEASONS = [
@@ -30,6 +31,7 @@ export function TermSelect({
   value,
   onChange,
   disabled = false,
+  required = false,
 }: TermSelectProps) {
   const [season, setSeason] = useState("");
   const [year, setYear] = useState("");
@@ -78,6 +80,7 @@ export function TermSelect({
           placeholder="Season"
           disabled={disabled}
           searchable={false}
+          required={required}
         />
       </div>
       <div className="flex-1">
@@ -88,6 +91,7 @@ export function TermSelect({
           placeholder="Year"
           disabled={disabled}
           searchable={false}
+          required={required}
         />
       </div>
     </div>
