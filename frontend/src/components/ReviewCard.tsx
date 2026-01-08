@@ -291,11 +291,11 @@ export default function ReviewCard({
             </div>
 
             {/* Key Info Badges */}
-            <div className="flex flex-wrap items-center gap-2 mt-3 overflow-hidden">
+            <div className="flex flex-wrap items-center gap-1.5 mt-3 overflow-hidden">
               {review.work_style && (
                 <Badge
                   variant="outline"
-                  className={`text-xs flex-shrink-0 ${
+                  className={`text-xs flex-shrink-0 px-2 py-0.5 ${
                     workStyleBadge[review.work_style] || ""
                   }`}
                 >
@@ -303,17 +303,29 @@ export default function ReviewCard({
                     review.work_style.slice(1)}
                 </Badge>
               )}
-              <Badge variant="outline" className="text-xs flex-shrink-0">
-                {review.location}
+              {/* Truncate location if it's too long to prevent card overflow issues */}
+              <Badge
+                variant="outline"
+                className="text-xs flex-shrink-0 max-w-[80px] sm:max-w-[100px] px-2 py-0.5"
+                title={review.location}
+              >
+                <span className="truncate">{review.location}</span>
               </Badge>
               {review.duration_months && (
-                <Badge variant="outline" className="text-xs flex-shrink-0">
+                <Badge
+                  variant="outline"
+                  className="text-xs flex-shrink-0 px-2 py-0.5"
+                >
                   {review.duration_months}{" "}
                   {review.duration_months === 1 ? "mo" : "mos"}
                 </Badge>
               )}
-              <Badge variant="outline" className="text-xs flex-shrink-0">
-                {review.term}
+              <Badge
+                variant="outline"
+                className="text-xs flex-shrink-0 max-w-[80px] px-2 py-0.5"
+                title={review.term}
+              >
+                <span className="truncate">{review.term}</span>
               </Badge>
             </div>
           </CardHeader>

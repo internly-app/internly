@@ -1,77 +1,48 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+interface CompanyCarouselProps {
+  companies: string[];
+}
 
-// Placeholder company logos - will be replaced with actual company data
-const COMPANIES = [
-  "Google",
-  "Meta",
-  "Amazon",
-  "Microsoft",
-  "Apple",
-  "Netflix",
-  "Tesla",
-  "Spotify",
-  "Airbnb",
-  "Uber",
-  "LinkedIn",
-  "Salesforce",
-];
+export default function CompanyCarousel({ companies }: CompanyCarouselProps) {
+  // If no companies provided, don't render
+  if (companies.length === 0) return null;
 
-export default function CompanyCarousel() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    let scrollAmount = 0;
-    const scrollStep = 1;
-    const scrollInterval = 30;
-
-    const autoScroll = setInterval(() => {
-      scrollAmount += scrollStep;
-      if (scrollContainer.scrollWidth > 0 && scrollAmount >= scrollContainer.scrollWidth / 2) {
-        scrollAmount = 0;
-      }
-      scrollContainer.scrollLeft = scrollAmount;
-    }, scrollInterval);
-
-    return () => clearInterval(autoScroll);
-  }, []);
+  // Duplicate the list to create a seamless loop
+  // We need enough copies to ensure there's no gap when scrolling.
+  // 2 sets is usually enough if the list is long, but if it's short, we might need more.
+  // Since we fetch 15 companies, 2 sets is guaranteed to fill the screen (15 * ~150px > 1920px).
+  const displayCompanies = [...companies, ...companies];
 
   return (
-    <section className="py-16 px-6 overflow-hidden bg-background">
-      <div className="max-w-[100rem] mx-auto mb-12">
-        <h2 className="text-center text-sm font-medium tracking-wide uppercase text-muted-foreground">
-          Companies reviewed by students
+    <section className="py-12 sm:py-16 px-6 overflow-hidden bg-background border-t border-b border-border/40">
+      <div className="max-w-7xl mx-auto mb-8 sm:mb-12 text-center">
+        <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
+          Trusted by students at
         </h2>
       </div>
 
-      {/* Scrolling Container */}
       <div
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-hidden"
+        className="flex w-full overflow-hidden mask-gradient-x"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+          maskImage:
+            "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
         }}
       >
-        {/* Duplicate companies for infinite scroll effect */}
-        {[...COMPANIES, ...COMPANIES, ...COMPANIES].map((company, index) => (
-          <button
-            key={index}
-            className="flex-shrink-0 px-8 py-4 text-lg font-semibold whitespace-nowrap bg-muted rounded-md border border-border hover:bg-accent hover:border-primary hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
-            style={{ minWidth: "200px" }}
-            onClick={() => {
-              // Scroll to reviews section and filter by this company
-              const reviewsSection = document.getElementById("reviews");
-              reviewsSection?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            {company}
-          </button>
-        ))}
+        <div className="flex items-center gap-12 sm:gap-20 px-12 animate-marquee w-max">
+          {displayCompanies.map((name, index) => (
+            <div
+              key={`${name}-${index}`}
+              className="flex items-center justify-center min-w-[120px]"
+            >
+              <span className="text-xl sm:text-2xl font-serif text-muted-foreground/80 hover:text-foreground transition-colors duration-300">
+                {name}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

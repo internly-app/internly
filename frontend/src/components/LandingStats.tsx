@@ -21,50 +21,49 @@ export default async function LandingStats() {
     return null;
   }
 
-  // Step 1: Fetch minimal data for stats AND identify top companies in one query
-  const { data: allReviewsForStats } = await supabaseAdmin
-    .from("reviews")
-    .select("company_id, like_count")
-    .not("company_id", "is", null);
+  // Step 1: Parallel fetch for global stats and top companies identity
+  // Optimized: Use database sorting instead of fetching all reviews to group in JS
+  const [topCompaniesResult, globalStatsResult, companiesCountResult] =
+    await Promise.all([
+      // 1. Get top 6 companies by review count directly from DB
+      supabaseAdmin
+        .from("companies")
+        .select("id")
+        .order("review_count", { ascending: false })
+        .limit(6),
 
-  if (!allReviewsForStats || allReviewsForStats.length === 0) {
-    return null;
-  }
+      // 2. Get global review stats (like count for total calculation)
+      // Note: Summing likes still requires fetching the column, but it's lighter than fetching company_id too
+      supabaseAdmin.from("reviews").select("like_count"),
 
-  // Calculate total stats and identify top 6 companies simultaneously
-  const companiesWithReviewsSet = new Set<string>();
-  const companyReviewCounts = new Map<string, number>();
-  
-  allReviewsForStats.forEach((r) => {
-    if (r.company_id) {
-      companiesWithReviewsSet.add(r.company_id);
-      companyReviewCounts.set(r.company_id, (companyReviewCounts.get(r.company_id) || 0) + 1);
-    }
-  });
+      // 3. Get total companies count (lighter than extracting unique IDs from reviews)
+      supabaseAdmin
+        .from("companies")
+        .select("*", { count: "exact", head: true })
+        .gt("review_count", 0),
+    ]);
+
+  const topCompanyIds = topCompaniesResult.data?.map((c) => c.id) || [];
+  const allReviewsForStats = globalStatsResult.data || [];
 
   const totalReviews = allReviewsForStats.length;
-  const totalCompaniesWithReviews = companiesWithReviewsSet.size;
-  const totalLikes = allReviewsForStats.reduce((sum, review) => sum + (review.like_count || 0), 0);
-
-  // Get top 6 company IDs by review count
-  const topCompanyIds = Array.from(companyReviewCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-    .map(([id]) => id);
+  const totalLikes = allReviewsForStats.reduce(
+    (sum, r) => sum + (r.like_count || 0),
+    0
+  );
+  const totalCompaniesWithReviews = companiesCountResult.count || 0;
 
   if (topCompanyIds.length === 0) {
     return null;
   }
 
-  // Step 2: Fetch top companies and their reviews in parallel
+  // Step 2: Fetch full details for the identified top companies in parallel
   const [companiesResult, reviewsResult] = await Promise.all([
-    supabaseAdmin
-      .from("companies")
-      .select("*")
-      .in("id", topCompanyIds),
+    supabaseAdmin.from("companies").select("*").in("id", topCompanyIds),
     supabaseAdmin
       .from("reviews")
-      .select(`
+      .select(
+        `
         company_id,
         wage_hourly,
         wage_currency,
@@ -75,7 +74,8 @@ export default async function LandingStats() {
         technologies,
         interview_rounds_description,
         role:roles(title)
-      `)
+      `
+      )
       .in("company_id", topCompanyIds),
   ]);
 
@@ -104,7 +104,9 @@ export default async function LandingStats() {
       const reviewsWithRounds = companyReviews.filter(
         (r) => r.interview_round_count > 0
       );
-      const reviewsWithDuration = companyReviews.filter((r) => r.duration_months);
+      const reviewsWithDuration = companyReviews.filter(
+        (r) => r.duration_months
+      );
 
       const workStyleBreakdown = {
         onsite: companyReviews.filter((r) => r.work_style === "onsite").length,
@@ -162,16 +164,24 @@ export default async function LandingStats() {
             formatCounts["Technical"] = (formatCounts["Technical"] || 0) + 1;
           } else if (desc.includes("behavioral")) {
             formatCounts["Behavioral"] = (formatCounts["Behavioral"] || 0) + 1;
-          } else if (desc.includes("case study") || desc.includes("case-study")) {
+          } else if (
+            desc.includes("case study") ||
+            desc.includes("case-study")
+          ) {
             formatCounts["Case Study"] = (formatCounts["Case Study"] || 0) + 1;
           }
         }
       });
       const commonInterviewFormat =
-        Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+        Object.entries(formatCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+        null;
 
-      const cadWages = cadReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
-      const usdWages = usdReviews.map((r) => r.wage_hourly).filter((w): w is number => w !== null);
+      const cadWages = cadReviews
+        .map((r) => r.wage_hourly)
+        .filter((w): w is number => w !== null);
+      const usdWages = usdReviews
+        .map((r) => r.wage_hourly)
+        .filter((w): w is number => w !== null);
 
       return {
         ...company,
@@ -227,7 +237,11 @@ export default async function LandingStats() {
                   Companies with the most internship reviews
                 </p>
               </div>
-              <Button asChild variant="outline" className="hidden sm:flex gap-2 group">
+              <Button
+                asChild
+                variant="outline"
+                className="hidden sm:flex gap-2 group"
+              >
                 <Link href="/companies">
                   View All
                   <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -258,7 +272,9 @@ export default async function LandingStats() {
             Ready to find your next internship?
           </h2>
           <p className="text-muted-foreground mb-8 text-lg">
-            Browse reviews from students who&apos;ve been there. See what interviews are really like, what you&apos;ll get paid, and what you&apos;ll actually work on.
+            Browse reviews from students who&apos;ve been there. See what
+            interviews are really like, what you&apos;ll get paid, and what
+            you&apos;ll actually work on.
           </p>
           <Button asChild size="lg" className="gap-2 group">
             <Link href="/reviews">
@@ -271,4 +287,3 @@ export default async function LandingStats() {
     </>
   );
 }
-
