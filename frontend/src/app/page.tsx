@@ -14,62 +14,72 @@ const HeroSection = dynamic(() => import("@/components/HeroSection"), {
 });
 
 const Footer = dynamic(() => import("@/components/Footer"));
+// Import carousel component (must be client component since it uses refs/intervals)
+const CompanyCarousel = dynamic(() => import("@/components/CompanyCarousel"));
 
-// ISR: Revalidate every hour for static content
-export const revalidate = 3600;
+// ISR: Revalidate every 60 seconds (1 minute) to ensure stats are fresh
+export const revalidate = 60;
 
 export default async function Home() {
+  const supabaseAdmin = createServiceRoleClient();
+
   // Fetch top 3 most liked reviews for hero section
   let heroReviews: ReviewWithDetails[] = [];
-  try {
-    const supabaseAdmin = createServiceRoleClient();
-    // Fetch more than 3 to handle ties, then sort and take top 3
-    const { data: reviews } = await supabaseAdmin
-      .from("reviews")
-      .select(
-        `
-        *,
-        company:companies(*),
-        role:roles(*)
-      `
-      )
-      .order("like_count", { ascending: false })
-      .limit(10); // Fetch more to handle ties properly
+  // Fetch popular companies (top 15 by review count)
+  let popularCompanies: string[] = [];
 
-    if (reviews && reviews.length > 0) {
-      // Sort with tie-breaking: if like_count is equal, use created_at (most recent first)
+  try {
+    const [reviewsResult, companiesResult] = await Promise.all([
+      // 1. Fetch top reviews
+      supabaseAdmin
+        .from("reviews")
+        .select(`*, company:companies(*), role:roles(*)`)
+        .order("like_count", { ascending: false })
+        .limit(10), // Fetch more to handle ties
+
+      // 2. Fetch companies sorted by review count
+      supabaseAdmin
+        .from("companies")
+        .select("name, review_count")
+        .order("review_count", { ascending: false })
+        .limit(15),
+    ]);
+
+    // Process reviews
+    const reviews = reviewsResult.data || [];
+    if (reviews.length > 0) {
       const sortedReviews = reviews.sort((a, b) => {
-        // Primary sort: like_count (descending)
         const likeDiff = (b.like_count || 0) - (a.like_count || 0);
         if (likeDiff !== 0) return likeDiff;
-        // Tie-breaker: created_at (most recent first)
         return (
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
       });
 
-      // Take top 3 and add user_has_liked flag
       const top3Reviews = sortedReviews
         .slice(0, 3)
         .map((r) => ({ ...r, user_has_liked: false }));
 
-      // Reorder: Most liked goes in center (position 1), second most liked on left (position 0), third on right (position 2)
-      // This ensures the most prominent card (center) shows the most liked review
       if (top3Reviews.length === 3) {
         heroReviews = [top3Reviews[1], top3Reviews[0], top3Reviews[2]];
       } else {
         heroReviews = top3Reviews;
       }
     }
+
+    // Process companies
+    popularCompanies = (companiesResult.data || [])
+      .map((c) => c.name)
+      .filter(Boolean); // Filter out any null/empty names
   } catch (error) {
-    console.error("Failed to fetch hero reviews:", error);
-    // Continue with empty array - HeroSection will handle it
+    console.error("Failed to fetch home page data:", error);
   }
 
   return (
     <main className="min-h-screen flex flex-col">
       <Navigation />
       <HeroSection reviews={heroReviews} />
+      <CompanyCarousel companies={popularCompanies} />
       <LandingStats />
       <Footer />
     </main>

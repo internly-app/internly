@@ -195,7 +195,22 @@ function WriteReviewContent() {
 
           if (!roleResponse.ok) {
             const error = await roleResponse.json();
-            throw new Error(error.error || "Failed to create role");
+
+            let details = error.details;
+            if (typeof details === "string") {
+              try {
+                const parsed = JSON.parse(details);
+                if (
+                  Array.isArray(parsed) &&
+                  parsed.length > 0 &&
+                  parsed[0].message
+                ) {
+                  details = parsed[0].message;
+                }
+              } catch {}
+            }
+
+            throw new Error(details || error.error || "Failed to create role");
           }
 
           const role = await roleResponse.json();
@@ -247,9 +262,19 @@ function WriteReviewContent() {
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(
-            error.details || error.error || "Failed to update review"
-          );
+          let details = error.details;
+          try {
+            const parsed = JSON.parse(details);
+            if (
+              Array.isArray(parsed) &&
+              parsed.length > 0 &&
+              parsed[0].message
+            ) {
+              details = parsed[0].message;
+            }
+          } catch {}
+
+          throw new Error(details || error.error || "Failed to update review");
         }
 
         router.push("/profile");
@@ -278,9 +303,27 @@ function WriteReviewContent() {
 
           if (!companyResponse.ok) {
             const error = await companyResponse.json();
+
+            // Try to parse Zod error details to get a clean message
+            let cleanMessage = error.details;
+            if (typeof error.details === "string") {
+              try {
+                const parsed = JSON.parse(error.details);
+                if (
+                  Array.isArray(parsed) &&
+                  parsed.length > 0 &&
+                  parsed[0].message
+                ) {
+                  cleanMessage = parsed[0].message;
+                }
+              } catch {
+                // Use original details if parsing fails
+              }
+            }
+
             const errorMessage = error.error || "Failed to create company";
-            const errorDetails = error.details ? `: ${error.details}` : "";
-            throw new Error(`${errorMessage}${errorDetails}`);
+            const finalMessage = cleanMessage ? cleanMessage : errorMessage;
+            throw new Error(finalMessage);
           }
 
           const newCompany = await companyResponse.json();
@@ -310,7 +353,22 @@ function WriteReviewContent() {
 
         if (!roleResponse.ok) {
           const error = await roleResponse.json();
-          throw new Error(error.error || "Failed to create role");
+
+          let details = error.details;
+          if (typeof details === "string") {
+            try {
+              const parsed = JSON.parse(details);
+              if (
+                Array.isArray(parsed) &&
+                parsed.length > 0 &&
+                parsed[0].message
+              ) {
+                details = parsed[0].message;
+              }
+            } catch {}
+          }
+
+          throw new Error(details || error.error || "Failed to create role");
         }
 
         const role = await roleResponse.json();

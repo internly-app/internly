@@ -18,14 +18,14 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
-  
+
   // Track if initial auth load has completed to prevent refetch on tab focus
   const authInitializedRef = useRef(false);
 
   useEffect(() => {
     // Wait for auth to finish loading before fetching reviews
     if (authLoading) return;
-    
+
     // Mark auth as initialized after first load - prevents refetch on tab focus
     if (!authInitializedRef.current) {
       authInitializedRef.current = true;
@@ -49,7 +49,7 @@ export function useReviews(query: Partial<ReviewsQuery> = {}) {
         // This prevents unnecessary refetches on tab focus while still allowing fresh data
         // The API sets appropriate cache headers (60s for authenticated, 300s for anonymous)
         const response = await fetch(`/api/reviews?${params.toString()}`, {
-          cache: 'default',
+          cache: "default",
         });
 
         if (!response.ok) {
@@ -108,12 +108,14 @@ export function useCreateReview() {
       let response;
       try {
         response = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reviewData),
-      });
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(reviewData),
+        });
       } catch {
-        throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
+        throw new Error(
+          "Network error: Unable to connect to server. Please check your internet connection."
+        );
       }
 
       if (!response.ok) {
@@ -124,7 +126,26 @@ export function useCreateReview() {
           if (errorData.error) {
             errorMsg = errorData.error;
           } else if (errorData.details) {
-            errorMsg = `${errorData.error || "Validation error"}: ${errorData.details}`;
+            let details = errorData.details;
+            // Parse Zod error details to get clean message
+            try {
+              const parsed = JSON.parse(details);
+              if (
+                Array.isArray(parsed) &&
+                parsed.length > 0 &&
+                parsed[0].message
+              ) {
+                details = parsed[0].message;
+              }
+            } catch {
+              // Ignore parse errors
+            }
+
+            // If we extracted a clean message, use it directly. Otherwise use existing format.
+            errorMsg =
+              details !== errorData.details
+                ? details
+                : `${errorData.error || "Validation error"}: ${details}`;
           } else if (response.status === 401) {
             errorMsg = "Please sign in to create a review";
           } else if (response.status === 409) {
@@ -148,7 +169,8 @@ export function useCreateReview() {
       const review = await response.json();
       return review;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage =
+        err instanceof Error ? err.message : "An unexpected error occurred";
       setError(errorMessage);
       throw err;
     } finally {
@@ -169,10 +191,12 @@ export function useLikeReview() {
       let response;
       try {
         response = await fetch(`/api/reviews/${reviewId}/like`, {
-        method: "POST",
-      });
+          method: "POST",
+        });
       } catch {
-        throw new Error("Network error: Unable to connect to server. Please check your internet connection.");
+        throw new Error(
+          "Network error: Unable to connect to server. Please check your internet connection."
+        );
       }
 
       if (!response.ok) {
