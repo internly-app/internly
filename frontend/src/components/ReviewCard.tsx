@@ -27,6 +27,7 @@ interface ReviewCardProps {
   showEditButton?: boolean; // If true, shows edit button (for My Reviews page)
   expanded?: boolean; // Controlled expanded state (optional)
   onExpandedChange?: (reviewId: string, expanded: boolean) => void; // Notify parent of expand/collapse
+  forceTruncate?: boolean; // If true, truncates long badges (e.g., location) for landing page
 }
 
 export default function ReviewCard({
@@ -36,6 +37,7 @@ export default function ReviewCard({
   showEditButton,
   expanded,
   onExpandedChange,
+  forceTruncate = false,
 }: ReviewCardProps) {
   const { user, loading: authLoading } = useAuth();
   const isControlled = typeof expanded === "boolean";
@@ -306,10 +308,14 @@ export default function ReviewCard({
               {/* Truncate location if it's too long to prevent card overflow issues */}
               <Badge
                 variant="outline"
-                className="text-xs flex-shrink-0 max-w-[80px] sm:max-w-[100px] px-2 py-0.5"
-                title={review.location}
+                className={`text-xs flex-shrink-0 px-2 py-0.5 ${
+                  forceTruncate ? "max-w-[80px] sm:max-w-[100px]" : ""
+                }`}
+                title={review.location} // Show full location on hover
               >
-                <span className="truncate">{review.location}</span>
+                <span className={forceTruncate ? "truncate" : ""}>
+                  {review.location}
+                </span>
               </Badge>
               {review.duration_months && (
                 <Badge
@@ -322,10 +328,14 @@ export default function ReviewCard({
               )}
               <Badge
                 variant="outline"
-                className="text-xs flex-shrink-0 max-w-[80px] px-2 py-0.5"
+                className={`text-xs flex-shrink-0 px-2 py-0.5 ${
+                  forceTruncate ? "max-w-[80px]" : ""
+                }`}
                 title={review.term}
               >
-                <span className="truncate">{review.term}</span>
+                <span className={forceTruncate ? "truncate" : ""}>
+                  {review.term}
+                </span>
               </Badge>
             </div>
           </CardHeader>
