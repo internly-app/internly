@@ -120,24 +120,6 @@ export function LocationAutocomplete({
     setIsOpen(false);
   };
 
-  const handleInputChange = (newValue: string) => {
-    setSearchQuery(newValue);
-    setIsOpen(true);
-    onChange(newValue); // Allow free typing to update parent immediately if desired, or wait for select
-    // TechnologyAutocomplete waits for selection, but for a single input location, usually we want to allow typing "San F"
-    // However, if we want to ensure they "pick one" or "create custom", maybe we should only call onChange on select?
-    // User request says "Apply the same process ... to add a new location if it is not included".
-    // TechnologyAutocomplete adds tags. This is single value.
-    // If I type "My City", and don't click "Add My City", what happens?
-    // In standard inputs, value is updated.
-    // The previous implementation updated "Other" input.
-    // Let's stick to updating parent on select to be safe and explicit, or update parent on change?
-    // If I update parent on change, then `value` prop changes, which triggers `useEffect` to set `searchQuery`.
-    // In `TechnologyAutocomplete`, passing value back happens on select.
-    // But this is an autocomplete INPUT. The input value IS the location essentially.
-    // Let's update parent on change AND allows selecting from dropdown to autocomplete.
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -157,7 +139,9 @@ export function LocationAutocomplete({
       <Input
         value={searchQuery}
         onChange={(e) => {
-          setSearchQuery(e.target.value);
+          const newValue = e.target.value;
+          setSearchQuery(newValue);
+          onChange(newValue);
           setIsOpen(true);
           // We don't call onChange here to avoid "custom" values being set before the user confirms?
           // Actually, for a text input, we usually want it to be controlled.

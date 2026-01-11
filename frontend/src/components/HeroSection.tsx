@@ -214,7 +214,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                       </div>
                       <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
                         <ReviewCard
-                          review={cardData.right}
+                          review={cardData.left}
                           compact={true}
                           forceTruncate={true}
                         />
@@ -293,7 +293,11 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         />
                       </div>
                       <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
-                        <ReviewCard review={cardData.center} compact={true} />
+                        <ReviewCard
+                          review={cardData.center}
+                          compact={true}
+                          forceTruncate={true}
+                        />
                       </div>
                     </div>
                   </div>
