@@ -37,7 +37,8 @@ const COMMON_LOCATIONS = [
   "Waterloo, ON",
   "Ottawa, ON",
   "London, UK",
-  "Other",
+  "London, ON",
+  "Cambridge, MA",
 ];
 
 interface LocationAutocompleteProps {
@@ -57,21 +58,11 @@ export function LocationAutocomplete({
 }: LocationAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isOtherSelected, setIsOtherSelected] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Check if current value is "Other" or custom location
+  // Sync state with prop
   useEffect(() => {
-    const isCommonLocation = COMMON_LOCATIONS.includes(value);
-    setIsOtherSelected(!isCommonLocation && value !== "");
-
-    // If it's a common location or empty, show the location name
-    // If it's custom, show the custom value
-    if (isCommonLocation || value === "") {
-      setSearchQuery(value);
-    } else {
-      setSearchQuery(value);
-    }
+    setSearchQuery(value);
   }, [value]);
 
   // Close dropdown when clicking outside
@@ -94,6 +85,9 @@ export function LocationAutocomplete({
     if (!searchQuery.trim()) return COMMON_LOCATIONS;
 
     const query = searchQuery.toLowerCase().trim();
+    // If the query is exactly a common location, we still want to show it (and others)
+    // But specific logic to "hide" unrelated ones comes from fuzzy match.
+
     const locationsWithScores = COMMON_LOCATIONS.map((location) => {
       const lowerLocation = location.toLowerCase();
       const exactMatch = lowerLocation.includes(query);
@@ -121,35 +115,40 @@ export function LocationAutocomplete({
   }, [searchQuery]);
 
   const handleSelect = (location: string) => {
-    if (location === "Other") {
-      setIsOtherSelected(true);
-      setSearchQuery("");
-      onChange("");
-      setIsOpen(false);
-    } else {
-      setIsOtherSelected(false);
-      setSearchQuery(location);
-      onChange(location);
-      setIsOpen(false);
-    }
+    setSearchQuery(location);
+    onChange(location);
+    setIsOpen(false);
   };
 
   const handleInputChange = (newValue: string) => {
     setSearchQuery(newValue);
-
-    if (isOtherSelected) {
-      // If "Other" is selected, update the actual value
-      onChange(newValue);
-    } else {
-      // If searching through common locations, open dropdown
-      setIsOpen(true);
-    }
+    setIsOpen(true);
+    onChange(newValue); // Allow free typing to update parent immediately if desired, or wait for select
+    // TechnologyAutocomplete waits for selection, but for a single input location, usually we want to allow typing "San F"
+    // However, if we want to ensure they "pick one" or "create custom", maybe we should only call onChange on select?
+    // User request says "Apply the same process ... to add a new location if it is not included".
+    // TechnologyAutocomplete adds tags. This is single value.
+    // If I type "My City", and don't click "Add My City", what happens?
+    // In standard inputs, value is updated.
+    // The previous implementation updated "Other" input.
+    // Let's stick to updating parent on select to be safe and explicit, or update parent on change?
+    // If I update parent on change, then `value` prop changes, which triggers `useEffect` to set `searchQuery`.
+    // In `TechnologyAutocomplete`, passing value back happens on select.
+    // But this is an autocomplete INPUT. The input value IS the location essentially.
+    // Let's update parent on change AND allows selecting from dropdown to autocomplete.
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && isOtherSelected) {
-      // Allow custom entry when "Other" is selected
-      onChange(searchQuery);
+    if (e.key === "Enter") {
+      e.preventDefault();
+      // Select the first option if available, or the current text if it's custom
+      if (filteredLocations.length > 0) {
+        handleSelect(filteredLocations[0]);
+      } else if (searchQuery.trim()) {
+        handleSelect(searchQuery.trim());
+      }
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
     }
   };
 
@@ -157,44 +156,65 @@ export function LocationAutocomplete({
     <div className="relative" ref={containerRef}>
       <Input
         value={searchQuery}
-        onChange={(e) => handleInputChange(e.target.value)}
-        onFocus={() => !isOtherSelected && setIsOpen(true)}
+        onChange={(e) => {
+          setSearchQuery(e.target.value);
+          setIsOpen(true);
+          // We don't call onChange here to avoid "custom" values being set before the user confirms?
+          // Actually, for a text input, we usually want it to be controlled.
+          // But here we want to encourage picking from list or explicitly adding.
+          // However, if I don't call onChange, the parent form state doesn't have the value.
+          // The previous "Other" implementation:
+          //   onChange(newValue) was called if isOtherSelected was true.
+          // So for custom locations, it was updating live.
+          // For common locations, it was updating live too?
+          // No, `handleSelect` called `onChange`.
+          // Let's update live.
+          onChange(e.target.value);
+        }}
+        onFocus={() => setIsOpen(true)}
         onKeyDown={handleKeyDown}
-        placeholder={isOtherSelected ? "Enter custom location..." : placeholder}
+        placeholder={placeholder}
         disabled={disabled}
         required={required}
         autoComplete="off"
       />
 
-      {isOpen && !isOtherSelected && (
+      {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-card border border-zinc-700 rounded-md shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] max-h-60 overflow-y-auto no-scrollbar">
-          {filteredLocations.length > 0 ? (
-            filteredLocations.map((location) => (
+          {filteredLocations.map((location) => (
+            <button
+              key={location}
+              onClick={() => handleSelect(location)}
+              className="w-full px-3 py-2 text-left text-sm hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none cursor-pointer transition-colors duration-200"
+            >
+              {location}
+            </button>
+          ))}
+
+          {/* Custom option if not exact match */}
+          {searchQuery.trim() &&
+            !COMMON_LOCATIONS.some(
+              (l) => l.toLowerCase() === searchQuery.trim().toLowerCase()
+            ) && (
               <button
-                key={location}
-                onClick={() => handleSelect(location)}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none cursor-pointer transition-colors duration-200 first:rounded-t-md last:rounded-b-md"
+                key="custom-add"
+                onClick={() => handleSelect(searchQuery.trim())}
+                className="w-full px-3 py-2 text-left text-sm hover:bg-[#333333] hover:text-foreground focus:bg-[#333333] focus:text-foreground focus:outline-none border-t border-zinc-700 cursor-pointer transition-colors duration-200"
               >
-                {location === "Other" ? (
-                  <span className="text-muted-foreground">
-                    Other (custom location)
-                  </span>
-                ) : (
-                  location
-                )}
+                <span className="font-medium">
+                  Add &quot;{searchQuery.trim()}&quot;
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  (custom)
+                </span>
               </button>
-            ))
-          ) : (
+            )}
+
+          {filteredLocations.length === 0 && !searchQuery.trim() && (
             <div className="px-3 py-2 text-sm text-muted-foreground">
-              No locations found
+              Type to search...
             </div>
           )}
-        </div>
-      )}
-
-      {isOtherSelected && (
-        <div className="mt-1 text-xs text-muted-foreground">
-          Custom location - type any city/location
         </div>
       )}
     </div>
