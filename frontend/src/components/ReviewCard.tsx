@@ -206,7 +206,7 @@ export default function ReviewCard({
             }
           }}
         >
-          <CardHeader className="pb-3 flex-shrink-0">
+          <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-3 flex-shrink-0">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 {/* Company Logo */}
@@ -342,14 +342,14 @@ export default function ReviewCard({
 
           {/* Preview text - only show when collapsed */}
           {!isExpanded && (
-            <CardContent className="pt-0 pb-3 flex-shrink-0 min-h-0">
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 pb-3 sm:pb-3 flex-shrink-0 min-h-0">
               <p className="text-sm text-muted-foreground line-clamp-2 break-words overflow-hidden">
                 {stripHTML(review.best)}
               </p>
             </CardContent>
           )}
 
-          <CardFooter className="flex items-center justify-end pt-0 pb-3 flex-shrink-0 mt-auto">
+          <CardFooter className="flex items-center justify-end p-4 sm:p-6 pt-0 sm:pt-0 pb-3 sm:pb-3 flex-shrink-0 mt-auto">
             {/* Expand/Collapse indicator */}
             <div className="text-muted-foreground" aria-hidden="true">
               {isExpanded ? (
@@ -362,7 +362,7 @@ export default function ReviewCard({
 
           {/* Expanded Content */}
           {isExpanded && (
-            <CardContent className="pt-0 pb-4 px-4 space-y-4">
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 pb-4 space-y-4">
               <div className="border-t border-zinc-700 mb-4" />
 
               {/* Technologies */}
