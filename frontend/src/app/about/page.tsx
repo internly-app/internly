@@ -3,7 +3,14 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Search, Edit, Users, Building2 } from "lucide-react";
+import {
+  ArrowRight,
+  Search,
+  Edit,
+  Users,
+  Building2,
+  FileText,
+} from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +45,7 @@ export default function AboutPage() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <motion.div 
+      <motion.div
         className="flex-1 max-w-3xl mx-auto px-6 py-24"
         variants={containerVariants}
         initial="hidden"
@@ -54,7 +61,8 @@ export default function AboutPage() {
         {/* What is Internly */}
         <motion.div className="mb-12 text-center" variants={itemVariants}>
           <p className="text-xl text-muted-foreground">
-            Students share detailed internship reviews: what they actually worked on, interview processes, compensation, and honest advice.
+            Students share detailed internship reviews: what they actually
+            worked on, interview processes, compensation, and honest advice.
           </p>
         </motion.div>
 
@@ -62,15 +70,36 @@ export default function AboutPage() {
         <motion.div variants={itemVariants}>
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-2xl">How to Maximize Your Success</CardTitle>
+              <CardTitle className="text-2xl">
+                How to Maximize Your Success
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex gap-4">
                 <Search className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">1. Research Before Applying</h3>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    1. Research Before Applying
+                  </h3>
                   <p className="text-muted-foreground">
-                    Search for companies you&apos;re interested in. Learn what technologies they use, how they interview, and what past interns actually worked on. Tailor your applications accordingly.
+                    Search for companies you&apos;re interested in. Learn what
+                    technologies they use, how they interview, and what past
+                    interns actually worked on. Tailor your applications
+                    accordingly.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <FileText className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    2. Optimize for ATS
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Don&apos;t let a bot reject you. Use our free Resume Scanner
+                    to check your resume against job descriptions and ensure
+                    you&apos;re hitting the right keywords.
                   </p>
                 </div>
               </div>
@@ -78,9 +107,13 @@ export default function AboutPage() {
               <div className="flex gap-4">
                 <Users className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">2. Prepare Strategically</h3>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    3. Prepare Strategically
+                  </h3>
                   <p className="text-muted-foreground">
-                    Use interview tips and preparation advice from students who got the roles you want. Focus on the skills and topics they mention.
+                    Use interview tips and preparation advice from students who
+                    got the roles you want. Focus on the skills and topics they
+                    mention.
                   </p>
                 </div>
               </div>
@@ -88,9 +121,12 @@ export default function AboutPage() {
               <div className="flex gap-4">
                 <Edit className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">3. Share Your Experience</h3>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    4. Share Your Experience
+                  </h3>
                   <p className="text-muted-foreground">
-                    After your internship, write a detailed review. Help the next person and build the community that helped you.
+                    After your internship, write a detailed review. Help the
+                    next person and build the community that helped you.
                   </p>
                 </div>
               </div>
@@ -102,25 +138,39 @@ export default function AboutPage() {
         <motion.div variants={itemVariants}>
           <Card className="mb-12">
             <CardHeader>
-              <CardTitle className="text-2xl">What Makes Us Different</CardTitle>
+              <CardTitle className="text-2xl">
+                What Makes Us Different
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span><strong>No corporate BS:</strong> Real reviews from students who actually did the work</span>
+                  <span>
+                    <strong>No corporate BS:</strong> Real reviews from students
+                    who actually did the work
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span><strong>Actionable details:</strong> Specific technologies, interview questions, and preparation tips</span>
+                  <span>
+                    <strong>Actionable details:</strong> Specific technologies,
+                    interview questions, and preparation tips
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span><strong>Transparent:</strong> Compensation data, work culture, and honest pros/cons</span>
+                  <span>
+                    <strong>Transparent:</strong> Compensation data, work
+                    culture, and honest pros/cons
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span><strong>Student-focused:</strong> Built by students who understand your challenges</span>
+                  <span>
+                    <strong>Student-focused:</strong> Built by students who
+                    understand your challenges
+                  </span>
                 </li>
               </ul>
             </CardContent>
@@ -128,7 +178,10 @@ export default function AboutPage() {
         </motion.div>
 
         {/* CTA */}
-        <motion.div className="text-center bg-muted/30 rounded-lg p-8" variants={itemVariants}>
+        <motion.div
+          className="text-center bg-muted/30 rounded-lg p-8"
+          variants={itemVariants}
+        >
           <h2 className="text-2xl font-semibold mb-4 text-foreground">
             Start Using Internly
           </h2>
@@ -151,6 +204,12 @@ export default function AboutPage() {
                 <Building2 className="size-4" />
               </Link>
             </Button>
+            <Button variant="outline" asChild className="gap-2 group">
+              <Link href="/ats">
+                Scan Resume
+                <FileText className="size-4" />
+              </Link>
+            </Button>
           </div>
         </motion.div>
       </motion.div>
@@ -158,4 +217,3 @@ export default function AboutPage() {
     </main>
   );
 }
-
