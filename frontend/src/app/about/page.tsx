@@ -185,26 +185,26 @@ export default function AboutPage() {
           <h2 className="text-2xl font-semibold mb-4 text-foreground">
             Start Using Internly
           </h2>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
-            <Button asChild className="gap-2 group">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+            <Button asChild className="gap-2 group w-full">
               <Link href="/write-review">
                 Write a Review
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
             </Button>
-            <Button variant="outline" asChild className="gap-2 group">
+            <Button variant="outline" asChild className="gap-2 group w-full">
               <Link href="/reviews">
                 Browse Reviews
                 <Search className="size-4" />
               </Link>
             </Button>
-            <Button variant="outline" asChild className="gap-2 group">
+            <Button variant="outline" asChild className="gap-2 group w-full">
               <Link href="/companies">
                 Browse Companies
                 <Building2 className="size-4" />
               </Link>
             </Button>
-            <Button variant="outline" asChild className="gap-2 group">
+            <Button variant="outline" asChild className="gap-2 group w-full">
               <Link href="/ats">
                 Scan Resume
                 <FileText className="size-4" />
