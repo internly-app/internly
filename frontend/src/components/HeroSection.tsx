@@ -414,10 +414,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
               });
             }}
           >
-            <span className="text-xs uppercase tracking-widest text-muted-foreground/60 transition-colors group-hover:text-foreground/80">
-              Scroll
-            </span>
-            <ArrowDown className="w-5 h-5 text-muted-foreground/60 transition-colors group-hover:text-foreground/80" />
+            <ArrowDown className="w-6 h-6 text-muted-foreground/60 transition-colors group-hover:text-foreground/80" />
           </motion.div>
         </motion.div>
       </div>
