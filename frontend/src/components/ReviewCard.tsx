@@ -76,7 +76,7 @@ export default function ReviewCard({
     let newHasLiked = false;
 
     if (user) {
-      newHasLiked = review.user_has_liked;
+      newHasLiked = review.user_has_liked ?? false;
     } else {
       // Check local storage for anonymous likes
       if (typeof window !== "undefined") {
@@ -149,7 +149,7 @@ export default function ReviewCard({
         }
         return response.json();
       })
-      .then((data) => {
+      .then(() => {
         // console.log("Like toggled:", data);
       })
       .catch((error) => {

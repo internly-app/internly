@@ -16,7 +16,6 @@ export async function POST(
     // Check authentication
     const {
       data: { user },
-      error: authError,
     } = await supabase.auth.getUser();
 
     // Handle Anonymous Likes (if no user)
@@ -26,7 +25,7 @@ export async function POST(
       try {
         const body = await request.json();
         if (body.action === "unlike") action = "unlike";
-      } catch (e) {
+      } catch (_e) {
         // No body, default to like
       }
 
@@ -90,7 +89,7 @@ export async function POST(
       // Wait, we didn't call .json() in the !user branch yet (it was inside the if block).
       // Here we are in the user block.
       if (body.action) explicitAction = body.action;
-    } catch (e) {
+    } catch (_e) {
       // Ignore
     }
 
