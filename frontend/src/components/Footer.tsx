@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Linkedin, Instagram, Globe } from "lucide-react";
+import { Linkedin, Instagram, Laptop } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -18,7 +18,7 @@ export default function Footer() {
                 className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
                 aria-label="Website"
               >
-                <Globe className="size-4" />
+                <Laptop className="size-4" />
               </Link>
               <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                 Tejas
