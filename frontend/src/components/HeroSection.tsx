@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy } from "lucide-react";
+import { ArrowRight, Trophy, ArrowDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import ReviewCard from "@/components/ReviewCard";
@@ -391,6 +391,32 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
             />
           </div>
         )}
+
+        {/* Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2, duration: 1 }}
+          className="flex justify-center w-full mt-10 md:mt-2"
+        >
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="flex flex-col items-center gap-2 cursor-pointer p-4 group"
+            onClick={() => {
+              window.scrollTo({
+                top: window.innerHeight,
+                behavior: "smooth",
+              });
+            }}
+          >
+            <ArrowDown className="w-6 h-6 text-muted-foreground/60 transition-colors group-hover:text-foreground/80" />
+          </motion.div>
+        </motion.div>
       </div>
     </AuroraBackground>
   );

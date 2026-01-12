@@ -323,7 +323,11 @@ export default function ReviewCard({
             </div>
 
             {/* Key Info Badges */}
-            <div className="flex flex-wrap items-center gap-1.5 mt-3 overflow-hidden">
+            <div
+              className={`flex items-center gap-1.5 mt-3 ${
+                forceTruncate ? "flex-nowrap overflow-hidden" : "flex-wrap"
+              }`}
+            >
               {review.work_style && (
                 <Badge
                   variant="outline"
@@ -335,17 +339,12 @@ export default function ReviewCard({
                     review.work_style.slice(1)}
                 </Badge>
               )}
-              {/* Truncate location if it's too long to prevent card overflow issues */}
               <Badge
                 variant="outline"
-                className={`text-xs flex-shrink-0 px-2 py-0.5 ${
-                  forceTruncate ? "max-w-[80px] sm:max-w-[100px]" : ""
-                }`}
-                title={review.location} // Show full location on hover
+                className="text-xs flex-shrink-0 px-2 py-0.5"
+                title={review.location}
               >
-                <span className={forceTruncate ? "truncate" : ""}>
-                  {review.location}
-                </span>
+                <span>{review.location}</span>
               </Badge>
               {review.duration_months && (
                 <Badge
@@ -358,14 +357,10 @@ export default function ReviewCard({
               )}
               <Badge
                 variant="outline"
-                className={`text-xs flex-shrink-0 px-2 py-0.5 ${
-                  forceTruncate ? "max-w-[80px]" : ""
-                }`}
+                className="text-xs flex-shrink-0 px-2 py-0.5"
                 title={review.term}
               >
-                <span className={forceTruncate ? "truncate" : ""}>
-                  {review.term}
-                </span>
+                <span>{review.term}</span>
               </Badge>
             </div>
           </CardHeader>

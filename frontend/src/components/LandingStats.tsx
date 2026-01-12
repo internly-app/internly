@@ -1,4 +1,4 @@
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -14,19 +14,18 @@ import type { CompanyWithStats } from "@/lib/types/database";
  * - Leverages parallel queries
  */
 export default async function LandingStats() {
-  let supabaseAdmin;
-  try {
-    supabaseAdmin = createServiceRoleClient();
-  } catch {
-    return null;
-  }
+  // Use public client for better reliability with public data
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   // Step 1: Parallel fetch for global stats and top companies identity
   // Optimized: Use database sorting instead of fetching all reviews to group in JS
   const [topCompaniesResult, globalStatsResult, companiesCountResult] =
     await Promise.all([
       // 1. Get top 6 companies by review count directly from DB
-      supabaseAdmin
+      supabase
         .from("companies")
         .select("id")
         .order("review_count", { ascending: false })
@@ -34,10 +33,10 @@ export default async function LandingStats() {
 
       // 2. Get global review stats (like count for total calculation)
       // Note: Summing likes still requires fetching the column, but it's lighter than fetching company_id too
-      supabaseAdmin.from("reviews").select("like_count"),
+      supabase.from("reviews").select("like_count"),
 
       // 3. Get total companies count (lighter than extracting unique IDs from reviews)
-      supabaseAdmin
+      supabase
         .from("companies")
         .select("*", { count: "exact", head: true })
         .gt("review_count", 0),
@@ -59,8 +58,8 @@ export default async function LandingStats() {
 
   // Step 2: Fetch full details for the identified top companies in parallel
   const [companiesResult, reviewsResult] = await Promise.all([
-    supabaseAdmin.from("companies").select("*").in("id", topCompanyIds),
-    supabaseAdmin
+    supabase.from("companies").select("*").in("id", topCompanyIds),
+    supabase
       .from("reviews")
       .select(
         `

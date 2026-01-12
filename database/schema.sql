@@ -19,6 +19,7 @@ CREATE TABLE companies (
   logo_url TEXT,
   website TEXT,
   industry TEXT,
+  review_count INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -103,6 +104,7 @@ CREATE INDEX idx_companies_slug ON companies(slug);
 CREATE INDEX idx_companies_name ON companies(name);
 CREATE INDEX idx_companies_name_gin ON companies USING gin(to_tsvector('english', name));
 CREATE INDEX idx_companies_industry_gin ON companies USING gin(to_tsvector('english', COALESCE(industry, '')));
+CREATE INDEX idx_companies_review_count ON companies(review_count DESC);
 
 -- Roles indexes
 CREATE INDEX idx_roles_company_id ON roles(company_id);
@@ -179,10 +181,27 @@ $$ LANGUAGE plpgsql;
 -- Trigger for like_count updates
 CREATE TRIGGER update_review_like_count_trigger
 AFTER INSERT OR DELETE ON review_likes
-FOR EACH ROW EXECUTE FUNCTION update_review_like_count();
 
--- ============================================================================
--- ROW LEVEL SECURITY POLICIES
+-- Function to update review_count on companies
+CREATE OR REPLACE FUNCTION update_company_review_count()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE companies SET review_count = review_count + 1 WHERE id = NEW.company_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE companies SET review_count = GREATEST(review_count - 1, 0) WHERE id = OLD.company_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for company review_count updates
+CREATE TRIGGER update_company_review_count_trigger
+  AFTER INSERT OR DELETE ON reviews
+  FOR EACH ROW EXECUTE FUNCTION update_company_review_count();
 -- ============================================================================
 
 -- Companies: Public read, authenticated write
