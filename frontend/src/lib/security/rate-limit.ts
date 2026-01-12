@@ -37,45 +37,53 @@ const blocklist: Map<string, BlocklistEntry> = new Map();
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
   maxRequests: number; // Maximum requests per window
+  name?: string; // Optional namespace for the rate limit
 }
 
 // Default rate limits
 export const RATE_LIMITS = {
-  // Company creation: 5 per hour
+  // Company creation: 20 per hour
   CREATE_COMPANY: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 5,
+    maxRequests: 20,
+    name: "create_company",
   },
-  // Review creation: 10 per hour
+  // Review creation: 30 per hour
   CREATE_REVIEW: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 10,
+    maxRequests: 30,
+    name: "create_review",
   },
-  // Role creation: 10 per hour
+  // Role creation: 30 per hour
   CREATE_ROLE: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 10,
+    maxRequests: 30,
+    name: "create_role",
   },
   // General API: 100 per minute
   GENERAL: {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 100,
+    name: "general",
   },
   // ATS Analysis: expensive AI operations
   // Short burst limit: 3 per minute (prevent rapid fire)
   ATS_ANALYZE_BURST: {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 3,
+    name: "ats_analyze_burst",
   },
   // Hourly limit: 20 analyses per hour
   ATS_ANALYZE_HOURLY: {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 20,
+    name: "ats_analyze_hourly",
   },
   // Daily limit: 50 analyses per day
   ATS_ANALYZE_DAILY: {
     windowMs: 24 * 60 * 60 * 1000, // 24 hours
     maxRequests: 50,
+    name: "ats_analyze_daily",
   },
 } as const;
 
@@ -96,7 +104,8 @@ export function checkRateLimit(
   blockedUntil?: number;
 } {
   const now = Date.now();
-  const key = identifier;
+  // Namespace the key if a name is provided in the config
+  const key = config.name ? `${config.name}:${identifier}` : identifier;
 
   // Check if identifier is blocked
   const blockEntry = blocklist.get(key);
