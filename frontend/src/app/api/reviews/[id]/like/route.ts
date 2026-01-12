@@ -25,7 +25,7 @@ export async function POST(
       try {
         const body = await request.json();
         if (body.action === "unlike") action = "unlike";
-      } catch (_e) {
+      } catch {
         // No body, default to like
       }
 
@@ -89,7 +89,7 @@ export async function POST(
       // Wait, we didn't call .json() in the !user branch yet (it was inside the if block).
       // Here we are in the user block.
       if (body.action) explicitAction = body.action;
-    } catch (_e) {
+    } catch {
       // Ignore
     }
 
