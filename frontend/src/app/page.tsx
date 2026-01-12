@@ -14,8 +14,6 @@ const HeroSection = dynamic(() => import("@/components/HeroSection"), {
 });
 
 const Footer = dynamic(() => import("@/components/Footer"));
-// Import carousel component (must be client component since it uses refs/intervals)
-const CompanyCarousel = dynamic(() => import("@/components/CompanyCarousel"));
 
 // ISR: Revalidate every 60 seconds (1 minute) to ensure stats are fresh
 export const revalidate = 60;
@@ -30,25 +28,13 @@ export default async function Home() {
 
   // Fetch top 3 most liked reviews for hero section
   let heroReviews: ReviewWithDetails[] = [];
-  // Fetch popular companies (top 15 by review count)
-  let popularCompanies: string[] = [];
 
   try {
-    const [reviewsResult, companiesResult] = await Promise.all([
-      // 1. Fetch top reviews
-      supabase
-        .from("reviews")
-        .select(`*, company:companies(*), role:roles(*)`)
-        .order("like_count", { ascending: false })
-        .limit(10), // Fetch more to handle ties
-
-      // 2. Fetch companies sorted by review count
-      supabase
-        .from("companies")
-        .select("name, review_count")
-        .order("review_count", { ascending: false })
-        .limit(15),
-    ]);
+    const reviewsResult = await supabase
+      .from("reviews")
+      .select(`*, company:companies(*), role:roles(*)`)
+      .order("like_count", { ascending: false })
+      .limit(10); // Fetch more to handle ties
 
     // Process reviews
     const reviews = reviewsResult.data || [];
@@ -71,11 +57,6 @@ export default async function Home() {
         heroReviews = top3Reviews;
       }
     }
-
-    // Process companies
-    popularCompanies = (companiesResult.data || [])
-      .map((c) => c.name)
-      .filter(Boolean); // Filter out any null/empty names
   } catch (error) {
     console.error("Failed to fetch home page data:", error);
   }
@@ -84,7 +65,6 @@ export default async function Home() {
     <main className="min-h-screen flex flex-col">
       <Navigation />
       <HeroSection reviews={heroReviews} />
-      <CompanyCarousel companies={popularCompanies} />
       <LandingStats />
       <Footer />
     </main>
