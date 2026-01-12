@@ -73,13 +73,23 @@ export default function ReviewCard({
     // Don't update while auth is loading to prevent flash
     if (authLoading) return;
 
-    const newHasLiked = user ? review.user_has_liked : false;
+    let newHasLiked = false;
+
+    if (user) {
+      newHasLiked = review.user_has_liked ?? false;
+    } else {
+      // Check local storage for anonymous likes
+      if (typeof window !== "undefined") {
+        const localLiked = localStorage.getItem(`liked_review_${review.id}`);
+        newHasLiked = !!localLiked;
+      }
+    }
 
     setLikeData({
       hasLiked: newHasLiked,
       likeCount: review.like_count,
     });
-  }, [review.user_has_liked, review.like_count, user, authLoading]);
+  }, [review.user_has_liked, review.like_count, review.id, user, authLoading]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -95,15 +105,14 @@ export default function ReviewCard({
     // Prevent multiple simultaneous clicks (200ms debounce)
     if (isLiking) return;
 
-    if (!user) {
-      window.location.href = "/signin";
-      return;
-    }
-
     setIsLiking(true);
 
     // Store previous state for rollback
     const previousState = { ...likeData };
+
+    // Determine intent
+    const isUnliking = likeData.hasLiked;
+    const action = isUnliking ? "unlike" : "like";
 
     // Optimistic update - instant UI feedback
     const newLikedState = !likeData.hasLiked;
@@ -114,12 +123,23 @@ export default function ReviewCard({
         : Math.max(0, likeData.likeCount - 1),
     });
 
+    // Handle LocalStorage for anonymous users
+    if (!user && typeof window !== "undefined") {
+      if (newLikedState) {
+        localStorage.setItem(`liked_review_${review.id}`, "true");
+      } else {
+        localStorage.removeItem(`liked_review_${review.id}`);
+      }
+    }
+
     // Re-enable button after short delay (feels instant, prevents spam)
     setTimeout(() => setIsLiking(false), 200);
 
     // Fire-and-forget: API call in background
     fetch(`/api/reviews/${review.id}/like`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
     })
       .then(async (response) => {
         // Check if response is ok (status 200-299)
@@ -129,13 +149,23 @@ export default function ReviewCard({
         }
         return response.json();
       })
-      .then((data) => {
-        console.log("Like toggled:", data);
+      .then(() => {
+        // console.log("Like toggled:", data);
       })
       .catch((error) => {
         console.error("Failed to like review:", error);
         // Rollback to previous state on error
         setLikeData(previousState);
+
+        // Revert LocalStorage if anonymous
+        if (!user && typeof window !== "undefined") {
+          if (previousState.hasLiked) {
+            localStorage.setItem(`liked_review_${review.id}`, "true");
+          } else {
+            localStorage.removeItem(`liked_review_${review.id}`);
+          }
+        }
+
         // Show subtle error (avoid disruptive alert)
         console.error("Like failed - rolled back. Error:", error.message);
       });
