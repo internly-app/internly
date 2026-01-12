@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import Navigation from "@/components/Navigation";
 import LandingStats from "@/components/LandingStats";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import type { ReviewWithDetails } from "@/lib/types/database";
 
 // Dynamic imports for heavy components (below the fold)
@@ -21,7 +21,12 @@ const CompanyCarousel = dynamic(() => import("@/components/CompanyCarousel"));
 export const revalidate = 60;
 
 export default async function Home() {
-  const supabaseAdmin = createServiceRoleClient();
+  // Use a public client for fetching public home page data
+  // This avoids build failures if SUPABASE_SERVICE_ROLE_KEY is missing in some environments
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   // Fetch top 3 most liked reviews for hero section
   let heroReviews: ReviewWithDetails[] = [];
@@ -31,14 +36,14 @@ export default async function Home() {
   try {
     const [reviewsResult, companiesResult] = await Promise.all([
       // 1. Fetch top reviews
-      supabaseAdmin
+      supabase
         .from("reviews")
         .select(`*, company:companies(*), role:roles(*)`)
         .order("like_count", { ascending: false })
         .limit(10), // Fetch more to handle ties
 
       // 2. Fetch companies sorted by review count
-      supabaseAdmin
+      supabase
         .from("companies")
         .select("name, review_count")
         .order("review_count", { ascending: false })
