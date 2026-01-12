@@ -21,7 +21,7 @@ export default function Footer() {
                 <Laptop className="size-4" />
               </Link>
               <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Tejas
+                Tejas' Website
               </span>
             </div>
             <div className="relative group">
