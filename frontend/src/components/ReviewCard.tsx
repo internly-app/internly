@@ -74,6 +74,7 @@ export default function ReviewCard({
     if (authLoading) return;
 
     let newHasLiked = false;
+    let adjustedLikeCount = review.like_count;
 
     if (user) {
       newHasLiked = review.user_has_liked ?? false;
@@ -82,12 +83,29 @@ export default function ReviewCard({
       if (typeof window !== "undefined") {
         const localLiked = localStorage.getItem(`liked_review_${review.id}`);
         newHasLiked = !!localLiked;
+
+        // For anonymous users, check if we need to adjust the count
+        // This handles the case where the server cache hasn't been invalidated yet
+        if (localLiked) {
+          // Get the server count at the time of the like
+          const serverCountAtLike = localStorage.getItem(`liked_review_${review.id}_server_count`);
+          if (serverCountAtLike) {
+            const originalCount = parseInt(serverCountAtLike, 10);
+            // If server is still returning the same count as when we liked,
+            // the cache hasn't updated yet - add 1 to compensate
+            if (review.like_count === originalCount) {
+              adjustedLikeCount = review.like_count + 1;
+            }
+            // If server count is higher than original, cache has updated - use server count
+            // (This also handles the case where other users liked the review)
+          }
+        }
       }
     }
 
     setLikeData({
       hasLiked: newHasLiked,
-      likeCount: review.like_count,
+      likeCount: adjustedLikeCount,
     });
   }, [review.user_has_liked, review.like_count, review.id, user, authLoading]);
 
@@ -127,8 +145,12 @@ export default function ReviewCard({
     if (!user && typeof window !== "undefined") {
       if (newLikedState) {
         localStorage.setItem(`liked_review_${review.id}`, "true");
+        // Store the server count at the time of like so we can detect stale cache on refresh
+        // We store the count BEFORE the like (likeData.likeCount is the old count)
+        localStorage.setItem(`liked_review_${review.id}_server_count`, likeData.likeCount.toString());
       } else {
         localStorage.removeItem(`liked_review_${review.id}`);
+        localStorage.removeItem(`liked_review_${review.id}_server_count`);
       }
     }
 
@@ -161,8 +183,12 @@ export default function ReviewCard({
         if (!user && typeof window !== "undefined") {
           if (previousState.hasLiked) {
             localStorage.setItem(`liked_review_${review.id}`, "true");
+            // Restore server count reference if reverting to liked state
+            // Use previousState.likeCount - 1 since previousState includes the +1
+            localStorage.setItem(`liked_review_${review.id}_server_count`, (previousState.likeCount - 1).toString());
           } else {
             localStorage.removeItem(`liked_review_${review.id}`);
+            localStorage.removeItem(`liked_review_${review.id}_server_count`);
           }
         }
 
