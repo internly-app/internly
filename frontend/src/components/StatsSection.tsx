@@ -14,7 +14,7 @@ export function StatsSection({ totalReviews, totalCompanies, totalLikes }: Stats
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  const stats = [
+  const stats: Array<{ value: number; label: string; delay: number; suffix?: string }> = [
     { value: totalReviews, label: "Reviews", delay: 0 },
     { value: totalCompanies, label: "Companies", delay: 0.1 },
     { value: totalLikes, label: "Total Likes", delay: 0.2 },
