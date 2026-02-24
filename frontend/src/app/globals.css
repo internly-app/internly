@@ -335,12 +335,12 @@ body {
   letter-spacing: -0.02em;
 }
 
-/* Typography - Clean font using Inter from next/font */
+/* Typography - Clean font using Roboto from next/font */
 .text-display,
 h1,
 h2,
 h3 {
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui,
+  font-family: var(--font-roboto), -apple-system, BlinkMacSystemFont, system-ui,
     sans-serif;
 }
 

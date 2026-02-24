@@ -8,12 +8,11 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        // Default sans font (Inter) - will be set in layout.tsx
-        sans: ['var(--font-inter)'],
-        // Display font for hero/headings (EB Garamond)
+        // Default sans font (Roboto) - loaded via next/font in layout.tsx
+        sans: ['var(--font-roboto)', 'Roboto', 'sans-serif'],
+        // Display/serif font (Instrument Serif) - loaded via next/font in layout.tsx
         display: [
-          'var(--font-eb-garamond)',
-          'EB Garamond',
+          'var(--font-instrument-serif)',
           'Georgia',
           'Times New Roman',
           'serif'

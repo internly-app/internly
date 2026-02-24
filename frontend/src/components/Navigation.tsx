@@ -118,10 +118,19 @@ export default function Navigation() {
           <Link
             href="/"
             onClick={closeMobileMenu}
-            className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground hover:opacity-80 transition-opacity duration-200 flex-shrink-0 cursor-pointer"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200 flex-shrink-0 cursor-pointer"
             aria-label="Internly - Go to homepage"
           >
-            Internly
+            <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20,4 H80 Q96,4 96,20 V56 Q96,72 80,72 H60 L50,96 L40,72 H20 Q4,72 4,56 V20 Q4,4 20,4 Z" fill="white"/>
+              <path d="M50,24 L53,35 L64,38 L53,41 L50,52 L47,41 L36,38 L47,35 Z" fill="black"/>
+            </svg>
+            <span
+              className="text-xl sm:text-2xl font-normal tracking-tight text-foreground"
+              style={{ fontFamily: "var(--font-instrument-serif)" }}
+            >
+              Internly
+            </span>
           </Link>
 
           {/* Mobile Hamburger Menu Button */}
@@ -131,18 +140,31 @@ export default function Navigation() {
             aria-label="Toggle mobile menu"
             aria-expanded={isMobileMenuOpen}
           >
-            <motion.div
-              initial={false}
-              animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="absolute"
-            >
+            <AnimatePresence mode="wait" initial={false}>
               {isMobileMenuOpen ? (
-                <X className="size-6" />
+                <motion.div
+                  key="close"
+                  initial={{ opacity: 0, rotate: -45 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  exit={{ opacity: 0, rotate: 45 }}
+                  transition={{ duration: 0.15, ease: "easeInOut" }}
+                  className="absolute"
+                >
+                  <X className="size-5" />
+                </motion.div>
               ) : (
-                <Menu className="size-6" />
+                <motion.div
+                  key="open"
+                  initial={{ opacity: 0, rotate: 45 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  exit={{ opacity: 0, rotate: -45 }}
+                  transition={{ duration: 0.15, ease: "easeInOut" }}
+                  className="absolute"
+                >
+                  <Menu className="size-5" />
+                </motion.div>
               )}
-            </motion.div>
+            </AnimatePresence>
           </button>
 
           {/* Desktop Navigation Links - Center (Absolute positioning for true center) */}
@@ -349,9 +371,22 @@ export default function Navigation() {
                   <div className="flex flex-col h-full">
                     {/* Menu Header */}
                     <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-                      <span className="text-xl font-semibold text-foreground">
-                        Internly
-                      </span>
+                      <Link
+                        href="/"
+                        onClick={closeMobileMenu}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M20,4 H80 Q96,4 96,20 V56 Q96,72 80,72 H60 L50,96 L40,72 H20 Q4,72 4,56 V20 Q4,4 20,4 Z" fill="white"/>
+                          <path d="M50,24 L53,35 L64,38 L53,41 L50,52 L47,41 L36,38 L47,35 Z" fill="black"/>
+                        </svg>
+                        <span
+                          className="text-xl font-normal text-foreground"
+                          style={{ fontFamily: "var(--font-instrument-serif)" }}
+                        >
+                          Internly
+                        </span>
+                      </Link>
                       <button
                         onClick={closeMobileMenu}
                         className="p-2 rounded-md text-foreground hover:bg-muted transition-colors cursor-pointer"
