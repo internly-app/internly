@@ -123,7 +123,7 @@ export default function Navigation() {
           >
             <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M20,4 H80 Q96,4 96,20 V56 Q96,72 80,72 H60 L50,96 L40,72 H20 Q4,72 4,56 V20 Q4,4 20,4 Z" fill="white"/>
-              <path d="M50,24 L53,35 L64,38 L53,41 L50,52 L47,41 L36,38 L47,35 Z" fill="black"/>
+              <path d="M50,20 L54,34 L68,38 L54,42 L50,56 L46,42 L32,38 L46,34 Z" fill="black"/>
             </svg>
             <span
               className="text-xl sm:text-2xl font-normal tracking-tight text-foreground"
@@ -378,7 +378,7 @@ export default function Navigation() {
                       >
                         <svg width="20" height="20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                           <path d="M20,4 H80 Q96,4 96,20 V56 Q96,72 80,72 H60 L50,96 L40,72 H20 Q4,72 4,56 V20 Q4,4 20,4 Z" fill="white"/>
-                          <path d="M50,24 L53,35 L64,38 L53,41 L50,52 L47,41 L36,38 L47,35 Z" fill="black"/>
+                          <path d="M50,20 L54,34 L68,38 L54,42 L50,56 L46,42 L32,38 L46,34 Z" fill="black"/>
                         </svg>
                         <span
                           className="text-xl font-normal text-foreground"
