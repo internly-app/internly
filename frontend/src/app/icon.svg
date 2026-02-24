@@ -19,5 +19,5 @@
     Sparkle: outer r=16, inner r=5, center (50,40) = body center.
   -->
   <path class="bubble" d="M22,4 H78 Q94,4 94,20 V60 Q94,76 78,76 H60 L50,90 L40,76 H22 Q6,76 6,60 V20 Q6,4 22,4 Z"/>
-  <path class="spark"  d="M50,24 L54,37 L66,40 L54,43 L50,56 L46,43 L34,40 L46,37 Z"/>
+  <path class="spark"  d="M50,19 L55,35 L71,40 L55,45 L50,61 L45,45 L29,40 L45,35 Z"/>
 </svg>
