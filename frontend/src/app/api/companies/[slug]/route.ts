@@ -210,9 +210,11 @@ export async function GET(
       );
     }
 
+    const safeReviews = filteredReviews.map(({ user_id: _uid, ...r }) => r);
+
     return NextResponse.json({
       company: companyWithStats,
-      reviews: filteredReviews,
+      reviews: safeReviews,
       roles: commonRoles, // For the filter dropdown
     });
   } catch (error) {

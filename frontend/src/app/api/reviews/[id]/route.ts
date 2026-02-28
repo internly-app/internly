@@ -30,7 +30,8 @@ export async function GET(
       return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 
-    return NextResponse.json(review, { status: 200 });
+    const { user_id: _uid, ...safeReview } = review;
+    return NextResponse.json(safeReview, { status: 200 });
   } catch (error) {
     console.error("GET /api/reviews/[id] error:", error);
     return NextResponse.json(
@@ -126,7 +127,8 @@ export async function PATCH(
     }
     revalidatePath("/profile");
 
-    return NextResponse.json(updatedReview, { status: 200 });
+    const { user_id: _uid, ...safeReview } = updatedReview;
+    return NextResponse.json(safeReview, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(

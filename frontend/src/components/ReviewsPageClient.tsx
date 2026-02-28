@@ -264,7 +264,11 @@ export function ReviewsPageClient({
     return filteredReviews.slice(startIndex, endIndex);
   }, [filteredReviews, currentPage, debouncedSearchQuery]);
 
-  const totalPages = Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE);
+  // When not searching, use server total (pagination is server-side).
+  // When searching, paginate the client-filtered results.
+  const totalPages = debouncedSearchQuery.trim()
+    ? Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE)
+    : Math.ceil(total / REVIEWS_PER_PAGE);
   const hasNextPage = currentPage < totalPages;
   const hasPrevPage = currentPage > 1;
   const hasActiveFilters =
@@ -539,22 +543,26 @@ export function ReviewsPageClient({
         {/* Results Count */}
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-5xl mx-auto">
           <p className="text-sm text-muted-foreground">
-            Showing{" "}
-            <span className="font-semibold text-foreground">
-              {debouncedSearchQuery
-                ? filteredReviews.length
-                : (currentPage - 1) * REVIEWS_PER_PAGE + 1}
-              -
-              {Math.min(currentPage * REVIEWS_PER_PAGE, filteredReviews.length)}
-            </span>{" "}
-            of{" "}
-            <span className="font-semibold text-foreground">
-              {filteredReviews.length}
-            </span>{" "}
-            {filteredReviews.length === 1 ? "review" : "reviews"}
-            {debouncedSearchQuery &&
-              filteredReviews.length < total &&
-              ` (${total} total)`}
+            {debouncedSearchQuery.trim() ? (
+              <>
+                <span className="font-semibold text-foreground">
+                  {filteredReviews.length}
+                </span>{" "}
+                {filteredReviews.length === 1 ? "review" : "reviews"} found
+                {filteredReviews.length < total && ` (${total} total)`}
+              </>
+            ) : (
+              <>
+                Showing{" "}
+                <span className="font-semibold text-foreground">
+                  {total === 0 ? 0 : (currentPage - 1) * REVIEWS_PER_PAGE + 1}
+                  –{Math.min(currentPage * REVIEWS_PER_PAGE, total)}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-foreground">{total}</span>{" "}
+                {total === 1 ? "review" : "reviews"}
+              </>
+            )}
           </p>
         </div>
 
