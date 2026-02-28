@@ -19,8 +19,8 @@ let pdfjsPromise: Promise<PdfjsLib> | null = null;
 async function getPdfjs(): Promise<PdfjsLib> {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
-      // Import the legacy build which doesn't require canvas
-      const pdfjs = await import("pdfjs-dist/legacy/build/pdf");
+      // Import pdfjs-dist (v5+ dropped the legacy/build/pdf path)
+      const pdfjs = await import("pdfjs-dist");
 
       // Disable workers for serverless compatibility
       pdfjs.GlobalWorkerOptions.workerSrc = "";
