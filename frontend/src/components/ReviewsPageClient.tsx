@@ -251,20 +251,16 @@ export function ReviewsPageClient({
     return reviewsWithScores;
   }, [filteredByFilters, debouncedSearchQuery, sortBy]);
 
-  // Paginate filtered reviews
-  const paginatedReviews = useMemo(() => {
-    if (debouncedSearchQuery.trim()) {
-      // When searching, show all filtered results (no pagination)
-      return filteredReviews;
-    }
+  // Pagination is server-side: the server already fetched the correct page.
+  // When searching, the server fetches up to 1000 and we show all results.
+  // Either way, just display filteredReviews as-is — no client-side slicing.
+  const paginatedReviews = filteredReviews;
 
-    // Otherwise, paginate
-    const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
-    const endIndex = startIndex + REVIEWS_PER_PAGE;
-    return filteredReviews.slice(startIndex, endIndex);
-  }, [filteredReviews, currentPage, debouncedSearchQuery]);
-
-  const totalPages = Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE);
+  // When not searching, use server total (pagination is server-side).
+  // When searching, paginate the client-filtered results.
+  const totalPages = debouncedSearchQuery.trim()
+    ? Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE)
+    : Math.ceil(total / REVIEWS_PER_PAGE);
   const hasNextPage = currentPage < totalPages;
   const hasPrevPage = currentPage > 1;
   const hasActiveFilters =
@@ -539,22 +535,26 @@ export function ReviewsPageClient({
         {/* Results Count */}
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4 max-w-5xl mx-auto">
           <p className="text-sm text-muted-foreground">
-            Showing{" "}
-            <span className="font-semibold text-foreground">
-              {debouncedSearchQuery
-                ? filteredReviews.length
-                : (currentPage - 1) * REVIEWS_PER_PAGE + 1}
-              -
-              {Math.min(currentPage * REVIEWS_PER_PAGE, filteredReviews.length)}
-            </span>{" "}
-            of{" "}
-            <span className="font-semibold text-foreground">
-              {filteredReviews.length}
-            </span>{" "}
-            {filteredReviews.length === 1 ? "review" : "reviews"}
-            {debouncedSearchQuery &&
-              filteredReviews.length < total &&
-              ` (${total} total)`}
+            {debouncedSearchQuery.trim() ? (
+              <>
+                <span className="font-semibold text-foreground">
+                  {filteredReviews.length}
+                </span>{" "}
+                {filteredReviews.length === 1 ? "review" : "reviews"} found
+                {filteredReviews.length < total && ` (${total} total)`}
+              </>
+            ) : (
+              <>
+                Showing{" "}
+                <span className="font-semibold text-foreground">
+                  {total === 0 ? 0 : (currentPage - 1) * REVIEWS_PER_PAGE + 1}
+                  –{Math.min(currentPage * REVIEWS_PER_PAGE, total)}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-foreground">{total}</span>{" "}
+                {total === 1 ? "review" : "reviews"}
+              </>
+            )}
           </p>
         </div>
 
@@ -580,75 +580,71 @@ export function ReviewsPageClient({
 
         {/* Reviews Grid */}
         {paginatedReviews.length > 0 && (
-          <>
-            <div className="grid gap-4 max-w-5xl mx-auto mb-8">
-              {paginatedReviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  compact={true}
-                  expanded={expandedIds.has(review.id)}
-                  onExpandedChange={handleExpandedChange}
-                />
-              ))}
+          <div className="grid gap-4 max-w-5xl mx-auto mb-8">
+            {paginatedReviews.map((review) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                compact={true}
+                expanded={expandedIds.has(review.id)}
+                onExpandedChange={handleExpandedChange}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Pagination Controls — always rendered when there are multiple pages */}
+        {!debouncedSearchQuery && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 max-w-5xl mx-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!hasPrevPage}
+              className="gap-2"
+            >
+              <ChevronLeft className="size-4" />
+              Previous
+            </Button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(pageNum)}
+                    className="min-w-[40px]"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
             </div>
 
-            {/* Pagination Controls */}
-            {!debouncedSearchQuery && totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 max-w-5xl mx-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={!hasPrevPage}
-                  className="gap-2"
-                >
-                  <ChevronLeft className="size-4" />
-                  Previous
-                </Button>
-
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum: number;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={
-                          currentPage === pageNum ? "default" : "outline"
-                        }
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                        className="min-w-[40px]"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={!hasNextPage}
-                  className="gap-2"
-                >
-                  Next
-                  <ChevronRight className="size-4" />
-                </Button>
-              </div>
-            )}
-          </>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!hasNextPage}
+              className="gap-2"
+            >
+              Next
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
         )}
       </motion.div>
       <Footer />

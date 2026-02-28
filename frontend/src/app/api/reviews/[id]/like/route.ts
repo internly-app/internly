@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 
 /**
  * POST /api/reviews/[id]/like
@@ -29,9 +29,12 @@ export async function POST(
         // No body, default to like
       }
 
+      // Use service role to bypass RLS — anonymous users can't update via anon key
+      const supabaseAdmin = createServiceRoleClient();
+
       // Fetch current count first (Read-Modify-Write)
       // Note: This has a race condition but is acceptable for this feature scale.
-      const { data: reviewData, error: fetchError } = await supabase
+      const { data: reviewData, error: fetchError } = await supabaseAdmin
         .from("reviews")
         .select("like_count")
         .eq("id", reviewId)
@@ -48,7 +51,7 @@ export async function POST(
       if (action === "like") newCount++;
       else newCount = Math.max(0, newCount - 1);
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from("reviews")
         .update({ like_count: newCount })
         .eq("id", reviewId);

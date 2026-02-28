@@ -138,7 +138,8 @@ export async function POST(request: NextRequest) {
     }
     revalidatePath("/profile");
 
-    return NextResponse.json(review, { status: 201 });
+    const { user_id: _uid, ...safeReview } = review;
+    return NextResponse.json(safeReview, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       console.error("Validation error:", error);
@@ -270,9 +271,11 @@ export async function GET(request: NextRequest) {
       ? "private, max-age=60, stale-while-revalidate=120" // Authenticated: slightly longer to reduce refetch flicker
       : "public, s-maxage=300, stale-while-revalidate=600"; // Anonymous: 5 min cache
 
+    const safeReviews = reviewsWithLikeStatus.map(({ user_id: _uid, ...r }) => r);
+
     return NextResponse.json(
       {
-        reviews: reviewsWithLikeStatus,
+        reviews: safeReviews,
         total: count || 0,
         limit: query.limit,
         offset: query.offset,
