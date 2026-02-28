@@ -108,30 +108,43 @@ export default function Navigation() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/60 transition-colors duration-300 ease-in-out ${
-        isScrolled ? "bg-background/95 backdrop-blur-sm" : "bg-transparent"
+      className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ease-in-out ${
+        isScrolled
+          ? "bg-background/95 backdrop-blur-sm border-zinc-700/70"
+          : "bg-transparent border-zinc-800/50"
       }`}
     >
       <div className="max-w-[100rem] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 w-full">
-        <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
+        <motion.div
+          className="flex items-center justify-between gap-2 sm:gap-4 min-w-0"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
           {/* Logo - Left Side */}
-          <Link
-            href="/"
-            onClick={closeMobileMenu}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200 flex-shrink-0 cursor-pointer"
-            aria-label="Internly - Go to homepage"
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.05, ease: "easeOut" }}
           >
-            <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M20,4 H80 Q96,4 96,20 V56 Q96,72 80,72 H60 L50,96 L40,72 H20 Q4,72 4,56 V20 Q4,4 20,4 Z" fill="white"/>
-              <path d="M50,17 L55,33 L71,38 L55,43 L50,59 L45,43 L29,38 L45,33 Z" fill="black"/>
-            </svg>
-            <span
-              className="text-xl sm:text-2xl font-normal tracking-tight text-foreground"
-              style={{ fontFamily: "var(--font-instrument-serif)" }}
+            <Link
+              href="/"
+              onClick={closeMobileMenu}
+              className="flex items-center gap-2.5 hover:opacity-75 transition-opacity duration-200 flex-shrink-0 cursor-pointer"
+              aria-label="Internly - Go to homepage"
             >
-              Internly
-            </span>
-          </Link>
+              <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M20,4 H80 Q96,4 96,20 V56 Q96,72 80,72 H60 L50,96 L40,72 H20 Q4,72 4,56 V20 Q4,4 20,4 Z" fill="white"/>
+                <path d="M50,17 L55,33 L71,38 L55,43 L50,59 L45,43 L29,38 L45,33 Z" fill="black"/>
+              </svg>
+              <span
+                className="text-xl sm:text-2xl font-normal tracking-tight text-foreground"
+                style={{ fontFamily: "var(--font-instrument-serif)" }}
+              >
+                Internly
+              </span>
+            </Link>
+          </motion.div>
 
           {/* Mobile Hamburger Menu Button */}
           <button
@@ -168,39 +181,40 @@ export default function Navigation() {
           </button>
 
           {/* Desktop Navigation Links - Center (Absolute positioning for true center) */}
-          <div className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
-            <Link
-              href="/about"
-              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white cursor-pointer"
-            >
-              About Us
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-            <Link
-              href="/reviews"
-              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white cursor-pointer"
-            >
-              Reviews
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-            <Link
-              href="/companies"
-              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white cursor-pointer"
-            >
-              Companies
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-            <Link
-              href="/ats"
-              className="text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white cursor-pointer"
-            >
-              Resume ATS
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-          </div>
+          <motion.div
+            className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+          >
+            {(["About Us", "Reviews", "Companies", "Resume ATS"] as const).map((label, i) => {
+              const href = label === "About Us" ? "/about" : label === "Resume ATS" ? "/ats" : `/${label.toLowerCase()}`;
+              return (
+                <motion.div
+                  key={label}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.15 + i * 0.06, ease: "easeOut" }}
+                >
+                  <Link
+                    href={href}
+                    className="text-sm font-medium text-zinc-400 relative group transition-colors duration-200 hover:text-white cursor-pointer"
+                  >
+                    {label}
+                    <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-white origin-center scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </motion.div>
 
           {/* Right Side - Write Review, Profile (Desktop Only) */}
-          <div className="hidden md:flex items-center gap-3 ml-auto flex-shrink-0 min-w-0">
+          <motion.div
+            className="hidden md:flex items-center gap-3 ml-auto flex-shrink-0 min-w-0"
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+          >
             {/* Show skeleton while auth is loading to prevent flash */}
             {authLoading ? (
               <div className="flex items-center gap-3">
@@ -336,8 +350,8 @@ export default function Navigation() {
                 </Button>
               </>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Mobile Side Navigation Menu - Rendered via portal to avoid clipping */}
@@ -401,7 +415,7 @@ export default function Navigation() {
                       <Link
                         href="/about"
                         onClick={closeMobileMenu}
-                        className="block px-4 py-3 rounded-lg text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
+                        className="block px-4 py-3 rounded-lg text-sm font-medium text-zinc-400 relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
                       >
                         <span className="relative">About Us</span>
                         <span className="absolute bottom-2 left-4 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-[calc(100%-2rem)]"></span>
@@ -409,7 +423,7 @@ export default function Navigation() {
                       <Link
                         href="/reviews"
                         onClick={closeMobileMenu}
-                        className="block px-4 py-3 rounded-lg text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
+                        className="block px-4 py-3 rounded-lg text-sm font-medium text-zinc-400 relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
                       >
                         <span className="relative">Reviews</span>
                         <span className="absolute bottom-2 left-4 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-[calc(100%-2rem)]"></span>
@@ -417,7 +431,7 @@ export default function Navigation() {
                       <Link
                         href="/companies"
                         onClick={closeMobileMenu}
-                        className="block px-4 py-3 rounded-lg text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
+                        className="block px-4 py-3 rounded-lg text-sm font-medium text-zinc-400 relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
                       >
                         <span className="relative">Companies</span>
                         <span className="absolute bottom-2 left-4 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-[calc(100%-2rem)]"></span>
@@ -425,7 +439,7 @@ export default function Navigation() {
                       <Link
                         href="/ats"
                         onClick={closeMobileMenu}
-                        className="block px-4 py-3 rounded-lg text-sm font-medium text-foreground relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
+                        className="block px-4 py-3 rounded-lg text-sm font-medium text-zinc-400 relative group transition-colors duration-200 hover:text-white hover:bg-muted cursor-pointer"
                       >
                         <span className="relative">Resume ATS</span>
                         <span className="absolute bottom-2 left-4 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-[calc(100%-2rem)]"></span>
