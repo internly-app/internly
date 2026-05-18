@@ -134,14 +134,14 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
               transition={{ duration: 0.9, delay: 0.5, ease: "easeOut" }}
               className="hidden lg:flex lg:flex-1 lg:relative lg:items-center lg:justify-end mt-12 lg:mt-0"
             >
-              <div className="relative w-full max-w-[480px] h-[340px]">
+              <div className="relative w-full max-w-[560px] h-[400px]">
 
                 {/* Silver card — back left, slightly rotated */}
                 {cardData.left && (
                   <motion.div
                     animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                    className="absolute left-0 top-10 w-[320px]"
+                    className="absolute left-0 top-16 w-[280px]"
                     style={{ transform: "rotate(-2.5deg)", zIndex: 1, willChange: "transform" }}
                   >
                     <div className="relative">
@@ -164,7 +164,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-                    className="absolute right-0 top-0 w-[340px]"
+                    className="absolute left-1/2 -translate-x-1/2 top-0 w-[320px]"
                     style={{ zIndex: 2, willChange: "transform" }}
                   >
                     {/* Gold badge */}
@@ -191,6 +191,29 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         </div>
                         <div className="w-full h-full pointer-events-none overflow-hidden">
                           <ReviewCard review={cardData.center} compact={true} forceTruncate={true} />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Bronze card — back right, slightly rotated */}
+                {cardData.right && (
+                  <motion.div
+                    animate={{ y: [0, -7, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.3 }}
+                    className="absolute right-0 top-16 w-[280px]"
+                    style={{ transform: "rotate(2.5deg)", zIndex: 1, willChange: "transform" }}
+                  >
+                    <div className="relative">
+                      <motion.div
+                        animate={{ opacity: [0.3, 0.55, 0.3] }}
+                        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700"
+                      />
+                      <div className="relative rounded-xl overflow-hidden bg-card opacity-90" style={{ height: "200px" }}>
+                        <div className="w-full h-full pointer-events-none overflow-hidden">
+                          <ReviewCard review={cardData.right} compact={true} forceTruncate={true} />
                         </div>
                       </div>
                     </div>
