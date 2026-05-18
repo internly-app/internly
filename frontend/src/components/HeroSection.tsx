@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, Medal } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import ReviewCard from "@/components/ReviewCard";
@@ -141,7 +141,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                    className="absolute left-0 top-16 w-[300px]"
+                    className="absolute left-0 top-16 w-[280px]"
                     style={{ transform: "rotate(-2.5deg)", zIndex: 1, willChange: "transform" }}
                   >
                     <div className="relative">
@@ -202,12 +202,9 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   <motion.div
                     animate={{ y: [0, -7, 0] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.3 }}
-                    className="absolute right-0 top-20 w-[300px]"
+                    className="absolute right-0 top-16 w-[280px]"
                     style={{ transform: "rotate(2.5deg)", zIndex: 1, willChange: "transform" }}
                   >
-                    <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-amber-100 rounded-lg w-9 h-9 flex items-center justify-center shadow-xl border border-amber-500/50 translate-x-1/3 -translate-y-1/3">
-                      <Medal className="size-4 fill-current" />
-                    </div>
                     <div className="relative">
                       <motion.div
                         animate={{ opacity: [0.3, 0.55, 0.3] }}
