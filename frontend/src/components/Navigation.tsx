@@ -180,9 +180,9 @@ export default function Navigation() {
             </AnimatePresence>
           </button>
 
-          {/* Desktop Navigation Links - Center (Absolute positioning for true center) */}
+          {/* Desktop Navigation Links - Center */}
           <motion.div
-            className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2"
+            className="hidden md:flex flex-1 items-center justify-center gap-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
@@ -384,7 +384,7 @@ export default function Navigation() {
                 >
                   <div className="flex flex-col h-full">
                     {/* Menu Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+                    <div className="flex items-center p-4 border-b border-zinc-800">
                       <Link
                         href="/"
                         onClick={closeMobileMenu}
@@ -401,13 +401,6 @@ export default function Navigation() {
                           Internly
                         </span>
                       </Link>
-                      <button
-                        onClick={closeMobileMenu}
-                        className="p-2 rounded-md text-foreground hover:bg-muted transition-colors cursor-pointer"
-                        aria-label="Close menu"
-                      >
-                        <X className="size-5" />
-                      </button>
                     </div>
 
                     {/* Navigation Links */}

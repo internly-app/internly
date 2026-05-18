@@ -25,9 +25,10 @@ import { stripHTML } from "@/lib/security/xss-protection";
 interface CompanyCardProps {
   company: CompanyWithStats;
   onSaveToggle?: (companyId: string, saved: boolean) => void;
+  featured?: boolean;
 }
 
-export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps) {
+export default function CompanyCard({ company, onSaveToggle, featured = false }: CompanyCardProps) {
   const { user, loading: authLoading } = useAuth();
   const [isSaved, setIsSaved] = useState(company.user_has_saved || false);
   const [isSaving, setIsSaving] = useState(false);
@@ -108,7 +109,7 @@ export default function CompanyCard({ company, onSaveToggle }: CompanyCardProps)
 
   return (
     <Link href={`/companies/${company.slug}`}>
-      <Card className="transition-all duration-200 hover:shadow-md hover:border-zinc-500 cursor-pointer h-full">
+      <Card className={`transition-all duration-200 hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-[0.99] cursor-pointer h-full ${featured ? "flex flex-col md:flex-row md:items-start md:gap-6 md:p-2" : ""}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">

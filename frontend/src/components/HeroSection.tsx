@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, ArrowDown } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import ReviewCard from "@/components/ReviewCard";
@@ -23,400 +23,210 @@ interface HeroSectionProps {
 export default function HeroSection({ reviews }: HeroSectionProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
 
-  // Memoize card data to prevent unnecessary re-renders
   const cardData = useMemo(() => {
     if (reviews.length === 0) return { left: null, center: null, right: null };
-
-    if (reviews.length >= 3) {
-      return {
-        left: reviews[0], // 2nd most liked
-        center: reviews[1], // Most liked
-        right: reviews[2], // 3rd most liked
-      };
-    }
-
-    if (reviews.length === 2) {
-      return {
-        left: reviews[0], // 2nd most liked
-        center: reviews[1], // Most liked
-        right: null,
-      };
-    }
-
-    return {
-      left: null,
-      center: reviews[0], // Only review
-      right: null,
-    };
+    if (reviews.length >= 3) return { left: reviews[0], center: reviews[1], right: reviews[2] };
+    if (reviews.length === 2) return { left: reviews[0], center: reviews[1], right: null };
+    return { left: null, center: reviews[0], right: null };
   }, [reviews]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
     }, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <AuroraBackground className="min-h-screen">
+    <AuroraBackground className="min-h-[100dvh]">
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-16 md:pb-24">
-        {/* New Feature Pill */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex justify-center mb-6"
-        >
-          <Link
-            href="/ats"
-            className="inline-flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-colors duration-300 group cursor-pointer"
-          >
-            <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] uppercase font-bold tracking-wider">
-              Recruiter Approved
-            </span>
-            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground">
-              Check your resume ATS score
-            </span>
-            <ArrowRight className="size-3 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-        </motion.div>
+        {/* Two-column layout on desktop */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
 
-        {/* Hero Title - Fade from top */}
-        <motion.h1
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-center mb-6 md:mb-8"
-          style={{ fontFamily: "var(--font-instrument-serif)" }}
-        >
-          <div className="h-[1.2em] overflow-visible">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={currentWordIndex}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="text-foreground inline-block leading-normal"
-              >
-                {ROTATING_WORDS[currentWordIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-          <span className="block">from real interns</span>
-        </motion.h1>
+          {/* LEFT COLUMN — Content */}
+          <div className="flex flex-col items-start lg:flex-1 lg:max-w-[52%]">
 
-        {/* Subtitle - Normal fade */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="text-base sm:text-lg md:text-xl text-center text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-12"
-        >
-          Discover what it&apos;s really like to intern at top companies. Read
-          authentic reviews from students who&apos;ve been there.
-        </motion.p>
-
-        {/* CTA Buttons - Normal fade */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row gap-4 justify-center mb-16 md:mb-20 lg:mb-24"
-        >
-          <Button asChild size="lg" variant="outline" className="gap-2 group">
-            <Link href="/reviews">
-              Explore Reviews
-              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-          </Button>
-          <Button asChild size="lg" className="gap-2 group">
-            <Link href="/write-review">
-              Share Your Experience
-              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-          </Button>
-        </motion.div>
-
-        {/* Review Cards Section - Fade from bottom */}
-        {reviews.length > 0 && (
-          <div className="relative w-full">
+            {/* Feature pill */}
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-              className="flex flex-col sm:flex-row justify-center items-center sm:items-end gap-4 sm:gap-5 lg:gap-8"
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="mb-6"
             >
-              {/* Left Card - 2nd Place (Silver) */}
-              {cardData.left && (
-                <motion.div
-                  animate={{
-                    y: [0, -10, 0],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="hidden sm:block z-10 relative"
-                  style={{
-                    willChange: "transform",
-                    backfaceVisibility: "hidden",
-                    transform: "translateZ(0)",
-                  }}
-                >
-                  <div
-                    className="relative w-[340px] lg:w-[380px]"
-                    style={{ transform: "scale(0.98) rotate(-2deg)" }}
-                  >
-                    {/* Colored border ring with pulsing glow */}
-                    <motion.div
-                      animate={{
-                        opacity: [0.4, 0.7, 0.4],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: [0.4, 0, 0.6, 1],
-                      }}
-                      className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400"
-                      style={{ willChange: "opacity" }}
-                    />
-                    <div
-                      className="opacity-90 rounded-xl overflow-hidden w-full relative bg-card"
-                      style={{
-                        filter: "blur(0.2px)",
-                        backfaceVisibility: "hidden",
-                        height: "220px",
-                      }}
-                    >
-                      {/* Silver Shine Effect - GPU optimized */}
-                      <div
-                        className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10"
-                        style={{ willChange: "transform" }}
-                      >
-                        <div
-                          className="absolute w-full h-full bg-gradient-to-r from-transparent via-white/26 to-transparent"
-                          style={{
-                            width: "300%",
-                            height: "300%",
-                            animation: "shine 5s ease-in-out 1.7s infinite",
-                            animationFillMode: "both",
-                            transformOrigin: "center",
-                            transform:
-                              "translateX(-200%) translateY(-200%) rotate(45deg)",
-                            opacity: 0,
-                            backfaceVisibility: "hidden",
-                            willChange: "transform",
-                          }}
-                        />
-                      </div>
-                      <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
-                        <ReviewCard
-                          review={cardData.left}
-                          compact={true}
-                          forceTruncate={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Center Card - 1st Place (Gold) */}
-              {cardData.center && (
-                <motion.div
-                  animate={{
-                    y: [0, -10, 0],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.5,
-                  }}
-                  className="z-20 relative sm:-mt-10 lg:-mt-16 w-full sm:w-auto max-w-[340px] sm:max-w-none mx-auto sm:mx-0"
-                  style={{
-                    willChange: "transform",
-                    backfaceVisibility: "hidden",
-                    perspective: 1000,
-                    transform: "translateZ(0)",
-                  }}
-                >
-                  {/* Gold Badge - Modern Design */}
-                  <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-10 h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 translate-x-1/2 -translate-y-1/2">
-                    <Trophy className="size-5 fill-current" />
-                  </div>
-
-                  <div className="relative w-full max-w-[340px] sm:max-w-none sm:w-[380px] md:w-[420px] lg:w-[440px] sm:scale-105">
-                    {/* Colored border ring with pulsing glow */}
-                    <motion.div
-                      animate={{
-                        opacity: [0.5, 0.8, 0.5],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: [0.4, 0, 0.6, 1],
-                      }}
-                      className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"
-                      style={{ willChange: "opacity" }}
-                    />
-                    <div
-                      className="rounded-xl overflow-hidden w-full relative bg-card"
-                      style={{
-                        backfaceVisibility: "hidden",
-                        WebkitFontSmoothing: "antialiased",
-                        height: "240px",
-                      }}
-                    >
-                      {/* Gold Shine Effect - GPU optimized */}
-                      <div
-                        className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10"
-                        style={{ willChange: "transform" }}
-                      >
-                        <div
-                          className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/28 to-transparent"
-                          style={{
-                            width: "300%",
-                            height: "300%",
-                            animation: "shine 5s ease-in-out 0s infinite",
-                            animationFillMode: "both",
-                            transformOrigin: "center",
-                            transform:
-                              "translateX(-200%) translateY(-200%) rotate(45deg)",
-                            opacity: 0,
-                            backfaceVisibility: "hidden",
-                            willChange: "transform",
-                          }}
-                        />
-                      </div>
-                      <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
-                        <ReviewCard
-                          review={cardData.center}
-                          compact={true}
-                          forceTruncate={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Right Card - 3rd Place (Bronze) */}
-              {cardData.right && (
-                <motion.div
-                  animate={{
-                    y: [0, -10, 0],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1,
-                  }}
-                  className="hidden lg:block z-10 relative"
-                  style={{
-                    willChange: "transform",
-                    backfaceVisibility: "hidden",
-                    transform: "translateZ(0)",
-                  }}
-                >
-                  <div
-                    className="relative w-[340px] lg:w-[380px]"
-                    style={{ transform: "scale(0.98) rotate(2deg)" }}
-                  >
-                    {/* Colored border ring with pulsing glow */}
-                    <motion.div
-                      animate={{
-                        opacity: [0.4, 0.7, 0.4],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: [0.4, 0, 0.6, 1],
-                      }}
-                      className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600"
-                      style={{ willChange: "opacity" }}
-                    />
-                    <div
-                      className="opacity-90 rounded-xl overflow-hidden w-full relative bg-card"
-                      style={{
-                        filter: "blur(0.2px)",
-                        backfaceVisibility: "hidden",
-                        height: "220px",
-                      }}
-                    >
-                      {/* Bronze Shine Effect - GPU optimized */}
-                      <div
-                        className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10"
-                        style={{ willChange: "transform" }}
-                      >
-                        <div
-                          className="absolute w-full h-full bg-gradient-to-r from-transparent via-amber-400/26 to-transparent"
-                          style={{
-                            width: "300%",
-                            height: "300%",
-                            animation: "shine 5s ease-in-out 3.4s infinite",
-                            animationFillMode: "both",
-                            transformOrigin: "center",
-                            transform:
-                              "translateX(-200%) translateY(-200%) rotate(45deg)",
-                            opacity: 0,
-                            backfaceVisibility: "hidden",
-                            willChange: "transform",
-                          }}
-                        />
-                      </div>
-                      <div className="w-full h-full pointer-events-none relative z-0 overflow-hidden">
-                        <ReviewCard
-                          review={cardData.right}
-                          compact={true}
-                          forceTruncate={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+              <Link
+                href="/ats"
+                className="inline-flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-colors duration-300 group cursor-pointer"
+              >
+                <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] uppercase font-bold tracking-wider">
+                  Recruiter Approved
+                </span>
+                <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground">
+                  Check your resume ATS score
+                </span>
+                <ArrowRight className="size-3 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </motion.div>
 
-            {/* Visual hint that cards continue below */}
+            {/* Hero heading */}
+            <motion.h1
+              initial={{ opacity: 0, y: -24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-normal mb-5 md:mb-6 tracking-tight"
+              style={{ fontFamily: "var(--font-instrument-serif)" }}
+            >
+              {/* Rotating word — slot-machine direction: exits up, enters from below */}
+              <div className="h-[1.15em] overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={currentWordIndex}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -24 }}
+                    transition={{ duration: 0.45, ease: "easeInOut" }}
+                    className="text-foreground block leading-tight"
+                  >
+                    {ROTATING_WORDS[currentWordIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+              <span className="block leading-tight">from real interns</span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}
+              className="text-base sm:text-lg text-muted-foreground max-w-lg mb-8 md:mb-10 leading-relaxed"
+            >
+              Discover what it&apos;s really like to intern at top companies. Read
+              authentic reviews from students who&apos;ve been there.
+            </motion.p>
+
+            {/* CTAs — primary action first */}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              transition={{ duration: 1, delay: 1.2 }}
-              className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"
-            />
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto"
+            >
+              <Button asChild size="lg" className="gap-2 group">
+                <Link href="/write-review">
+                  Share Your Experience
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="gap-2 group">
+                <Link href="/reviews">
+                  Explore Reviews
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </Button>
+            </motion.div>
           </div>
-        )}
 
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2, duration: 1 }}
-          className="flex justify-center w-full mt-10 md:mt-2"
-        >
+          {/* RIGHT COLUMN — Floating review cards (desktop only) */}
+          {reviews.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.9, delay: 0.5, ease: "easeOut" }}
+              className="hidden lg:flex lg:flex-1 lg:relative lg:items-center lg:justify-end mt-12 lg:mt-0"
+            >
+              <div className="relative w-full max-w-[480px] h-[340px]">
+
+                {/* Silver card — back left, slightly rotated */}
+                {cardData.left && (
+                  <motion.div
+                    animate={{ y: [0, -8, 0] }}
+                    transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+                    className="absolute left-0 top-10 w-[320px]"
+                    style={{ transform: "rotate(-2.5deg)", zIndex: 1, willChange: "transform" }}
+                  >
+                    <div className="relative">
+                      <motion.div
+                        animate={{ opacity: [0.35, 0.6, 0.35] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-zinc-400 via-zinc-300 to-zinc-400"
+                      />
+                      <div className="relative rounded-xl overflow-hidden bg-card opacity-90" style={{ height: "200px" }}>
+                        <div className="w-full h-full pointer-events-none overflow-hidden">
+                          <ReviewCard review={cardData.left} compact={true} forceTruncate={true} />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Gold card — front center, elevated */}
+                {cardData.center && (
+                  <motion.div
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                    className="absolute right-0 top-0 w-[340px]"
+                    style={{ zIndex: 2, willChange: "transform" }}
+                  >
+                    {/* Gold badge */}
+                    <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-9 h-9 flex items-center justify-center shadow-xl border border-yellow-300/50 translate-x-1/3 -translate-y-1/3">
+                      <Trophy className="size-4 fill-current" />
+                    </div>
+                    <div className="relative">
+                      <motion.div
+                        animate={{ opacity: [0.5, 0.8, 0.5] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"
+                      />
+                      <div className="relative rounded-xl overflow-hidden bg-card" style={{ height: "220px" }}>
+                        <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
+                          <div
+                            className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/20 to-transparent"
+                            style={{
+                              width: "300%", height: "300%",
+                              animation: "shine 5s ease-in-out 0s infinite",
+                              transform: "translateX(-200%) translateY(-200%) rotate(45deg)",
+                              opacity: 0, willChange: "transform",
+                            }}
+                          />
+                        </div>
+                        <div className="w-full h-full pointer-events-none overflow-hidden">
+                          <ReviewCard review={cardData.center} compact={true} forceTruncate={true} />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Mobile: single card below content */}
+        {reviews.length > 0 && cardData.center && (
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="flex flex-col items-center gap-2 cursor-pointer p-4 group"
-            onClick={() => {
-              window.scrollTo({
-                top: window.innerHeight,
-                behavior: "smooth",
-              });
-            }}
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
+            className="lg:hidden mt-12 w-full max-w-[380px] mx-auto"
           >
-            <ArrowDown className="w-6 h-6 text-muted-foreground/60 transition-colors group-hover:text-foreground/80" />
+            <div className="relative">
+              <motion.div
+                animate={{ opacity: [0.5, 0.8, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"
+              />
+              <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-900 rounded-lg w-8 h-8 flex items-center justify-center shadow-xl border border-yellow-300/50 translate-x-1/3 -translate-y-1/3">
+                <Trophy className="size-3.5 fill-current" />
+              </div>
+              <div className="relative rounded-xl overflow-hidden bg-card" style={{ height: "220px" }}>
+                <div className="w-full h-full pointer-events-none overflow-hidden">
+                  <ReviewCard review={cardData.center} compact={true} forceTruncate={true} />
+                </div>
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+        )}
       </div>
     </AuroraBackground>
   );

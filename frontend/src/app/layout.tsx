@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Roboto, Instrument_Serif } from "next/font/google";
+import { DM_Sans, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const roboto = Roboto({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-roboto",
+  variable: "--font-dm-sans",
   display: "swap",
-  weight: ["300", "400", "500", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   preload: true,
 });
 
@@ -73,7 +73,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${roboto.className} ${roboto.variable} ${instrumentSerif.variable} font-sans antialiased`}
+        className={`${dmSans.className} ${dmSans.variable} ${instrumentSerif.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <AuthProvider>{children}</AuthProvider>

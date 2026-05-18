@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       fontFamily: {
         // Default sans font (Roboto) - loaded via next/font in layout.tsx
-        sans: ['var(--font-roboto)', 'Roboto', 'sans-serif'],
+        sans: ['var(--font-dm-sans)', 'DM Sans', 'sans-serif'],
         // Display/serif font (Instrument Serif) - loaded via next/font in layout.tsx
         display: [
           'var(--font-instrument-serif)',

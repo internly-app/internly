@@ -21,9 +21,9 @@ export function StatsSection({ totalReviews, totalCompanies, totalLikes }: Stats
   ];
 
   return (
-    <section className="py-16 md:py-24 px-4 sm:px-6 bg-background">
+    <section className="py-16 md:py-24 px-4 sm:px-6 bg-background border-b border-border">
       <div className="max-w-6xl mx-auto">
-        <div ref={ref} className="grid grid-cols-3 gap-6 md:gap-8">
+        <div ref={ref} className="flex flex-col sm:flex-row sm:divide-x sm:divide-border gap-8 sm:gap-0">
           {stats.map((stat) => (
             <motion.div
               key={stat.label}
@@ -34,12 +34,12 @@ export function StatsSection({ totalReviews, totalCompanies, totalLikes }: Stats
                 delay: stat.delay,
                 ease: "easeOut",
               }}
-              className="text-center"
+              className="flex-1 sm:px-8 first:pl-0 last:pr-0"
             >
-              <div className="text-3xl md:text-4xl font-bold mb-2 text-primary">
+              <div className="text-5xl md:text-6xl font-semibold tracking-tighter mb-1 text-foreground tabular-nums">
                 {isInView ? (
-                  <CountUpAnimation 
-                    target={stat.value} 
+                  <CountUpAnimation
+                    target={stat.value}
                     suffix={stat.suffix}
                     startDelay={stat.delay}
                   />
@@ -47,7 +47,7 @@ export function StatsSection({ totalReviews, totalCompanies, totalLikes }: Stats
                   "0"
                 )}
               </div>
-              <div className="text-sm md:text-base text-muted-foreground">
+              <div className="text-sm text-muted-foreground tracking-wide uppercase">
                 {stat.label}
               </div>
             </motion.div>
