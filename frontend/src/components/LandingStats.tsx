@@ -227,9 +227,9 @@ export default async function LandingStats() {
       {companiesWithStats.length > 0 && (
         <section className="py-16 md:py-24 px-4 sm:px-6 bg-background">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-end justify-between mb-10">
               <div>
-                <h2 className="text-2xl md:text-3xl font-semibold mb-2">
+                <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">
                   Popular Companies
                 </h2>
                 <p className="text-muted-foreground">
@@ -239,7 +239,7 @@ export default async function LandingStats() {
               <Button
                 asChild
                 variant="outline"
-                className="hidden sm:flex gap-2 group"
+                className="hidden sm:flex gap-2 group flex-shrink-0"
               >
                 <Link href="/companies">
                   View All
@@ -247,11 +247,19 @@ export default async function LandingStats() {
                 </Link>
               </Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {companiesWithStats.slice(0, 6).map((company) => (
+
+            {/* Asymmetric grid: featured card spans 2 cols on desktop, rest fill 2-col */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {companiesWithStats.slice(0, 1).map((company) => (
+                <div key={company.id} className="md:col-span-2">
+                  <CompanyCard company={company} featured />
+                </div>
+              ))}
+              {companiesWithStats.slice(1, 5).map((company) => (
                 <CompanyCard key={company.id} company={company} />
               ))}
             </div>
+
             <div className="mt-8 text-center sm:hidden">
               <Button asChild variant="outline" className="gap-2 group">
                 <Link href="/companies">
@@ -265,22 +273,32 @@ export default async function LandingStats() {
       )}
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 px-4 sm:px-6 bg-background">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-4">
-            Ready to find your next internship?
-          </h2>
-          <p className="text-muted-foreground mb-8 text-lg">
-            Browse reviews from students who&apos;ve been there. See what
-            interviews are really like, what you&apos;ll get paid, and what
-            you&apos;ll actually work on.
-          </p>
-          <Button asChild size="lg" className="gap-2 group">
-            <Link href="/reviews">
-              Browse Reviews
-              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-          </Button>
+      <section className="py-16 md:py-24 px-4 sm:px-6 bg-background border-t border-border">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+          <div className="max-w-xl">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">
+              Ready to find your next internship?
+            </h2>
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Browse reviews from students who&apos;ve been there. See what
+              interviews are really like, what you&apos;ll get paid, and what
+              you&apos;ll actually work on.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+            <Button asChild size="lg" className="gap-2 group">
+              <Link href="/reviews">
+                Browse Reviews
+                <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="gap-2 group">
+              <Link href="/write-review">
+                Write a Review
+                <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     </>

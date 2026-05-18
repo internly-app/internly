@@ -5,118 +5,122 @@ import { Linkedin, Instagram, Laptop } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="py-6 px-4 sm:px-6 bg-background border-t border-border">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col items-center gap-3">
-          {/* Social icons with tooltip showing whose account it is */}
-          <div className="flex gap-3">
-            <div className="relative group">
+    <footer className="py-10 px-4 sm:px-6 bg-background border-t border-border">
+      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+
+        {/* Top: logo + page nav */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <Link
+            href="/"
+            className="flex items-center gap-2 hover:opacity-75 transition-opacity w-fit"
+            aria-label="Internly homepage"
+          >
+            <svg width="20" height="20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20,4 H80 Q96,4 96,20 V56 Q96,72 80,72 H60 L50,96 L40,72 H20 Q4,72 4,56 V20 Q4,4 20,4 Z" fill="white"/>
+              <path d="M50,17 L55,33 L71,38 L55,43 L50,59 L45,43 L29,38 L45,33 Z" fill="black"/>
+            </svg>
+            <span className="text-base font-normal" style={{ fontFamily: "var(--font-instrument-serif)" }}>
+              Internly
+            </span>
+          </Link>
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Footer navigation">
+            {[
+              { label: "Reviews", href: "/reviews" },
+              { label: "Companies", href: "/companies" },
+              { label: "Resume ATS", href: "/ats" },
+              { label: "About", href: "/about" },
+            ].map(({ label, href }) => (
               <Link
-                href="https://tejasthind.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
-                aria-label="Website"
+                key={label}
+                href={href}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
               >
-                <Laptop className="size-4" />
+                {label}
               </Link>
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Tejas&apos; Website
-              </span>
-            </div>
-            <div className="relative group">
-              <Link
-                href="https://linkedin.com/in/tejas-thind" // Tejas LinkedIn
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="size-4" />
-              </Link>
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Tejas
-              </span>
-            </div>
-            <div className="relative group">
-              <Link
-                href="https://instagram.com/tejastnd" // Tejas Instagram
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
-                aria-label="Instagram"
-              >
-                <Instagram className="size-4" />
-              </Link>
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Tejas
-              </span>
-            </div>
-            <div className="relative group">
-              <Link
-                href="https://twitter.com/tejasthind4" // Tejas X
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
-                aria-label="X (Twitter)"
-              >
-                <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </Link>
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Tejas
-              </span>
-            </div>
-            <div className="w-px h-6 bg-border/50 self-center mx-1" />
-            <div className="relative group">
-              <Link
-                href="https://linkedin.com/in/srinikesh-singarapu" // Srinikesh LinkedIn
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="size-4" />
-              </Link>
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Srinikesh
-              </span>
-            </div>
-            <div className="relative group">
-              <Link
-                href="https://twitter.com/SingarapuSrini" // Srinikesh X
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all duration-300 cursor-pointer"
-                aria-label="X (Twitter)"
-              >
-                <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </Link>
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-card px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Srinikesh
-              </span>
-            </div>
+            ))}
+          </nav>
+        </div>
+
+        {/* Bottom: socials + copyright */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 pt-6 border-t border-border">
+
+          {/* Social icons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Tejas */}
+            {[
+              { href: "https://tejasthind.com", label: "Tejas' Website", icon: <Laptop className="size-4" />, tooltip: "Tejas' site" },
+              { href: "https://linkedin.com/in/tejas-thind", label: "Tejas LinkedIn", icon: <Linkedin className="size-4" />, tooltip: "Tejas" },
+              { href: "https://instagram.com/tejastnd", label: "Tejas Instagram", icon: <Instagram className="size-4" />, tooltip: "Tejas" },
+              {
+                href: "https://twitter.com/tejasthind4", label: "Tejas X", tooltip: "Tejas",
+                icon: (
+                  <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                ),
+              },
+            ].map(({ href, label, icon, tooltip }) => (
+              <div key={href} className="relative group">
+                <Link
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-zinc-500 hover:bg-zinc-800 transition-all duration-200 cursor-pointer"
+                  aria-label={label}
+                >
+                  {icon}
+                </Link>
+                <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs bg-card border border-border px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                  {tooltip}
+                </span>
+              </div>
+            ))}
+
+            <div className="w-px h-5 bg-border mx-1" />
+
+            {/* Srinikesh */}
+            {[
+              { href: "https://linkedin.com/in/srinikesh-singarapu", label: "Srinikesh LinkedIn", icon: <Linkedin className="size-4" />, tooltip: "Srinikesh" },
+              {
+                href: "https://twitter.com/SingarapuSrini", label: "Srinikesh X", tooltip: "Srinikesh",
+                icon: (
+                  <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                ),
+              },
+            ].map(({ href, label, icon, tooltip }) => (
+              <div key={href} className="relative group">
+                <Link
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-zinc-500 hover:bg-zinc-800 transition-all duration-200 cursor-pointer"
+                  aria-label={label}
+                >
+                  {icon}
+                </Link>
+                <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs bg-card border border-border px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                  {tooltip}
+                </span>
+              </div>
+            ))}
           </div>
 
-          {/* Copyright */}
-          <div className="text-sm text-muted-foreground font-medium text-center">
-            © 2025 Built by Tejas Thind and Srinikesh Singarapu. All rights
-            reserved.
+          {/* Copyright + contact */}
+          <div className="flex flex-col sm:items-end gap-1 text-sm text-muted-foreground">
+            <span>© 2025 Tejas Thind &amp; Srinikesh Singarapu</span>
+            <span>
+              Bug or request?{" "}
+              <a
+                href="mailto:tejas.st0544@gmail.com"
+                className="text-foreground hover:opacity-75 transition-opacity underline underline-offset-2 cursor-pointer"
+              >
+                Contact us
+              </a>
+            </span>
           </div>
 
-          {/* Contact */}
-          <div className="text-sm text-muted-foreground text-center">
-            Want to see a company added or noticed a bug?{" "}
-            <a
-              href="mailto:tejas.st0544@gmail.com"
-              className="text-foreground hover:text-primary transition-colors underline underline-offset-2 cursor-pointer"
-            >
-              Contact us
-            </a>
-          </div>
         </div>
       </div>
     </footer>
