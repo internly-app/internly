@@ -1,4 +1,4 @@
-# 🎓 Internly
+# Internly
 
 ## What is Internly?
 
