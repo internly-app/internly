@@ -122,7 +122,7 @@ function AuthCallbackContent() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/signin")}
               variant="outline"
               className="w-full"
             >

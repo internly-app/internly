@@ -400,17 +400,6 @@ export default function ReviewCard({
             </CardContent>
           )}
 
-          <CardFooter className="flex items-center justify-end p-4 sm:p-6 pt-0 sm:pt-0 pb-3 sm:pb-3 flex-shrink-0 mt-auto">
-            {/* Expand/Collapse indicator */}
-            <div className="text-muted-foreground" aria-hidden="true">
-              {isExpanded ? (
-                <ChevronUp className="size-4" />
-              ) : (
-                <ChevronDown className="size-4" />
-              )}
-            </div>
-          </CardFooter>
-
           {/* Expanded Content */}
           {isExpanded && (
             <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 pb-4 space-y-4">
@@ -501,6 +490,17 @@ export default function ReviewCard({
               </div>
             </CardContent>
           )}
+
+          <CardFooter className="flex items-center justify-end p-4 sm:p-6 pt-0 sm:pt-0 pb-3 sm:pb-3 flex-shrink-0 mt-auto">
+            {/* Expand/Collapse indicator */}
+            <div className="text-muted-foreground" aria-hidden="true">
+              {isExpanded ? (
+                <ChevronUp className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
+            </div>
+          </CardFooter>
         </Card>
 
         {/* Delete Confirmation Modal */}

@@ -35,7 +35,7 @@ function WriteReviewContent() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/signin?redirect=review");
+      router.push("/signin?redirect=/write-review");
     }
   }, [user, authLoading, router]);
 

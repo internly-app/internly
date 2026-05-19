@@ -62,31 +62,26 @@ export default function CompanyCard({ company, onSaveToggle, featured = false }:
     const newState = !isSaved;
     setIsSaved(newState);
 
-    try {
-      // Fire-and-forget; only revert on error
-      fetch(`/api/companies/save/${company.id}`, {
-        method: newState ? "POST" : "DELETE",
+    fetch(`/api/companies/save/${company.id}`, {
+      method: newState ? "POST" : "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to toggle save");
+        }
+        return response.json();
       })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to toggle save");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setIsSaved(data.saved);
-          onSaveToggle?.(company.id, data.saved);
-        })
-        .catch((error) => {
-          console.error("Failed to save company:", error);
-          setIsSaved(previousState);
-        });
-    } catch (error) {
-      console.error("Failed to save company:", error);
-      setIsSaved(previousState);
-    } finally {
-      setIsSaving(false);
-    }
+      .then((data) => {
+        setIsSaved(data.saved);
+        onSaveToggle?.(company.id, data.saved);
+      })
+      .catch((error) => {
+        console.error("Failed to save company:", error);
+        setIsSaved(previousState);
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
   };
 
   // Format pay range

@@ -17,6 +17,7 @@ export interface Database {
           logo_url: string | null;
           website: string | null;
           industry: string | null;
+          review_count: number;
           created_at: string;
           updated_at: string;
         };
@@ -27,6 +28,7 @@ export interface Database {
           logo_url?: string | null;
           website?: string | null;
           industry?: string | null;
+          review_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -37,6 +39,7 @@ export interface Database {
           logo_url?: string | null;
           website?: string | null;
           industry?: string | null;
+          review_count?: number;
           created_at?: string;
           updated_at?: string;
         };
