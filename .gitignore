@@ -25,6 +25,9 @@ Thumbs.db
 # Documentation (local reference)
 CODEBASE_STATUS.md
 
+# Seed data (contains private review content, never push)
+database/seed-reviews.sql
+
 # Build artifacts
 .turbo
 *.tsbuildinfo
