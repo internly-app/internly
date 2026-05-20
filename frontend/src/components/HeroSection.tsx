@@ -134,14 +134,41 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
               transition={{ duration: 0.9, delay: 0.5, ease: "easeOut" }}
               className="hidden lg:flex lg:flex-1 lg:relative lg:items-center lg:justify-end mt-12 lg:mt-0"
             >
-              <div className="relative w-full max-w-[480px] h-[340px]">
+              <div className="relative w-full max-w-[480px] h-[380px]">
+
+                {/* Bronze card — furthest back, bottom-left */}
+                {cardData.right && (
+                  <motion.div
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                    className="absolute left-4 bottom-0 w-[285px]"
+                    style={{ transform: "rotate(2deg)", zIndex: 0, willChange: "transform" }}
+                  >
+                    {/* Bronze badge */}
+                    <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-amber-600 via-orange-700 to-amber-800 text-amber-100 rounded-lg w-9 h-9 flex items-center justify-center shadow-xl border border-amber-500/40 translate-x-1/3 -translate-y-1/3">
+                      <Trophy className="size-4 fill-current" />
+                    </div>
+                    <div className="relative">
+                      <motion.div
+                        animate={{ opacity: [0.25, 0.45, 0.25] }}
+                        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700"
+                      />
+                      <div className="relative rounded-xl overflow-hidden bg-card opacity-80" style={{ height: "185px" }}>
+                        <div className="w-full h-full pointer-events-none overflow-hidden">
+                          <ReviewCard review={cardData.right} compact={true} forceTruncate={true} />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Silver card — back left, slightly rotated */}
                 {cardData.left && (
                   <motion.div
                     animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                    className="absolute left-0 top-10 w-[320px]"
+                    className="absolute left-0 top-8 w-[320px]"
                     style={{ transform: "rotate(-2.5deg)", zIndex: 1, willChange: "transform" }}
                   >
                     <div className="relative">
@@ -159,7 +186,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   </motion.div>
                 )}
 
-                {/* Gold card — front center, elevated */}
+                {/* Gold card — front right, elevated */}
                 {cardData.center && (
                   <motion.div
                     animate={{ y: [0, -10, 0] }}
