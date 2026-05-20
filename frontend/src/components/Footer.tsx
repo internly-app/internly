@@ -25,10 +25,10 @@ export default function Footer() {
           </Link>
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Footer navigation">
             {[
+              { label: "About", href: "/about" },
               { label: "Reviews", href: "/reviews" },
               { label: "Companies", href: "/companies" },
               { label: "Resume ATS", href: "/ats" },
-              { label: "About", href: "/about" },
             ].map(({ label, href }) => (
               <Link
                 key={label}
@@ -45,66 +45,64 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 pt-6 border-t border-border">
 
           {/* Social icons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap">
             {/* Tejas */}
-            {[
-              { href: "https://tejasthind.com", label: "Tejas' Website", icon: <Laptop className="size-4" />, tooltip: "Tejas' site" },
-              { href: "https://linkedin.com/in/tejas-thind", label: "Tejas LinkedIn", icon: <Linkedin className="size-4" />, tooltip: "Tejas" },
-              { href: "https://instagram.com/tejastnd", label: "Tejas Instagram", icon: <Instagram className="size-4" />, tooltip: "Tejas" },
-              {
-                href: "https://twitter.com/tejasthind4", label: "Tejas X", tooltip: "Tejas",
-                icon: (
-                  <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                ),
-              },
-            ].map(({ href, label, icon, tooltip }) => (
-              <div key={href} className="relative group">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Tejas</span>
+              {[
+                { href: "https://tejasthind.com", label: "Tejas' Website", icon: <Laptop className="size-4" /> },
+                { href: "https://linkedin.com/in/tejas-thind", label: "Tejas LinkedIn", icon: <Linkedin className="size-4" /> },
+                { href: "https://instagram.com/tejastnd", label: "Tejas Instagram", icon: <Instagram className="size-4" /> },
+                {
+                  href: "https://twitter.com/tejasthind4", label: "Tejas X",
+                  icon: (
+                    <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  ),
+                },
+              ].map(({ href, label, icon }) => (
                 <Link
+                  key={href}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-zinc-500 hover:bg-zinc-800 transition-all duration-200 cursor-pointer"
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-zinc-500 hover:bg-zinc-800 transition-all duration-200"
                   aria-label={label}
                 >
                   {icon}
                 </Link>
-                <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs bg-card border border-border px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                  {tooltip}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            <div className="w-px h-5 bg-border mx-1" />
+            <div className="w-px h-5 bg-border" />
 
             {/* Srinikesh */}
-            {[
-              { href: "https://linkedin.com/in/srinikesh-singarapu", label: "Srinikesh LinkedIn", icon: <Linkedin className="size-4" />, tooltip: "Srinikesh" },
-              {
-                href: "https://twitter.com/SingarapuSrini", label: "Srinikesh X", tooltip: "Srinikesh",
-                icon: (
-                  <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                ),
-              },
-            ].map(({ href, label, icon, tooltip }) => (
-              <div key={href} className="relative group">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Srinikesh</span>
+              {[
+                { href: "https://linkedin.com/in/srinikesh-singarapu", label: "Srinikesh LinkedIn", icon: <Linkedin className="size-4" /> },
+                {
+                  href: "https://twitter.com/SingarapuSrini", label: "Srinikesh X",
+                  icon: (
+                    <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  ),
+                },
+              ].map(({ href, label, icon }) => (
                 <Link
+                  key={href}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-zinc-500 hover:bg-zinc-800 transition-all duration-200 cursor-pointer"
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-zinc-500 hover:bg-zinc-800 transition-all duration-200"
                   aria-label={label}
                 >
                   {icon}
                 </Link>
-                <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs bg-card border border-border px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                  {tooltip}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* Copyright + contact */}

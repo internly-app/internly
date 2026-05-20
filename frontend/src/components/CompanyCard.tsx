@@ -105,7 +105,7 @@ export default function CompanyCard({ company, onSaveToggle, featured = false }:
   return (
     <Link href={`/companies/${company.slug}`}>
       <Card className={`transition-all duration-200 hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-[0.99] cursor-pointer h-full ${featured ? "flex flex-col md:flex-row md:items-center md:gap-0" : ""}`}>
-        <CardHeader className={`pb-3 ${featured ? "md:flex-shrink-0 md:w-[220px] md:border-r md:border-zinc-800 md:pr-6 md:mr-0" : ""}`}>
+        <CardHeader className={`pb-3 ${featured ? "md:flex-shrink-0 md:w-[300px] md:border-r md:border-zinc-800 md:pr-6 md:mr-0" : ""}`}>
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* Company Logo */}
@@ -156,7 +156,7 @@ export default function CompanyCard({ company, onSaveToggle, featured = false }:
           </div>
         </CardHeader>
 
-        <CardContent className={`pt-0 pb-3 space-y-2.5 ${featured ? "md:flex-1 md:pl-6" : ""}`}>
+        <CardContent className={`pt-0 pb-3 space-y-3 ${featured ? "md:flex-1 md:pl-6 md:py-4" : ""}`}>
           {/* Pay Information - Most important */}
           <div className="flex items-center gap-2 text-sm">
             <DollarSign className="size-4 text-muted-foreground flex-shrink-0" />
