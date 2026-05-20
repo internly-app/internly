@@ -134,19 +134,26 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
               transition={{ duration: 0.9, delay: 0.5, ease: "easeOut" }}
               className="hidden lg:flex lg:flex-1 lg:relative lg:items-center lg:justify-end mt-12 lg:mt-0"
             >
-              <div className="relative w-full max-w-[460px] h-[400px]">
+              {/*
+                Layout math: company name+logo block is ~140px from each card's left edge.
+                Silver must start ≥140px right of Bronze's left → Bronze name never covered.
+                Gold must start ≥140px right of Silver's left → Silver name never covered.
+                Container 560px: Gold left edge = 560-270 = 290. Silver name ends ≈141+140=281 < 290 ✓
+                Bronze name ends ≈140 < Silver left 141 ✓
+              */}
+              <div className="relative w-full max-w-[560px] h-[370px]">
 
-                {/* Bronze card — back, bottom-left */}
+                {/* Bronze card — back, bottom-left. Left at 0 so its name is fully exposed. */}
                 {cardData.right && (
                   <motion.div
-                    animate={{ y: [0, -5, 0] }}
+                    animate={{ y: [0, -4, 0] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-                    className="absolute left-0 bottom-0 w-[255px]"
-                    style={{ transform: "rotate(2deg)", zIndex: 0, willChange: "transform" }}
+                    className="absolute left-0 top-[148px] w-[238px]"
+                    style={{ transform: "rotate(2.5deg)", zIndex: 0, willChange: "transform" }}
                   >
                     {/* Bronze badge */}
-                    <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-amber-600 via-orange-700 to-amber-800 text-amber-100 rounded-lg w-9 h-9 flex items-center justify-center shadow-xl border border-amber-500/40 translate-x-1/3 -translate-y-1/3">
-                      <Trophy className="size-4 fill-current" />
+                    <div className="absolute top-0 right-0 z-30 bg-gradient-to-br from-amber-600 via-orange-700 to-amber-800 text-amber-100 rounded-lg w-8 h-8 flex items-center justify-center shadow-xl border border-amber-500/40 translate-x-1/3 -translate-y-1/3">
+                      <Trophy className="size-3.5 fill-current" />
                     </div>
                     <div className="relative">
                       <motion.div
@@ -154,7 +161,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700"
                       />
-                      <div className="relative rounded-xl overflow-hidden bg-card opacity-80" style={{ height: "175px" }}>
+                      <div className="relative rounded-xl overflow-hidden bg-card opacity-75" style={{ height: "160px" }}>
                         <div className="w-full h-full pointer-events-none overflow-hidden">
                           <ReviewCard review={cardData.right} compact={true} forceTruncate={true} />
                         </div>
@@ -163,12 +170,12 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   </motion.div>
                 )}
 
-                {/* Silver card — middle */}
+                {/* Silver card — middle. Left at 141px so Bronze name (ends ~140px) is exposed. */}
                 {cardData.left && (
                   <motion.div
-                    animate={{ y: [0, -7, 0] }}
+                    animate={{ y: [0, -6, 0] }}
                     transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                    className="absolute left-[50px] top-[90px] w-[275px]"
+                    className="absolute left-[141px] top-[68px] w-[255px]"
                     style={{ transform: "rotate(-1.5deg)", zIndex: 1, willChange: "transform" }}
                   >
                     <div className="relative">
@@ -177,7 +184,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-zinc-400 via-zinc-300 to-zinc-400"
                       />
-                      <div className="relative rounded-xl overflow-hidden bg-card opacity-90" style={{ height: "190px" }}>
+                      <div className="relative rounded-xl overflow-hidden bg-card opacity-90" style={{ height: "172px" }}>
                         <div className="w-full h-full pointer-events-none overflow-hidden">
                           <ReviewCard review={cardData.left} compact={true} forceTruncate={true} />
                         </div>
@@ -186,12 +193,12 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                   </motion.div>
                 )}
 
-                {/* Gold card — front, top-right */}
+                {/* Gold card — front, top-right. Left edge at 290px, Silver name ends ~282px ✓ */}
                 {cardData.center && (
                   <motion.div
-                    animate={{ y: [0, -9, 0] }}
+                    animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-                    className="absolute right-0 top-0 w-[305px]"
+                    className="absolute right-0 top-0 w-[270px]"
                     style={{ zIndex: 2, willChange: "transform" }}
                   >
                     {/* Gold badge */}
@@ -204,7 +211,7 @@ export default function HeroSection({ reviews }: HeroSectionProps) {
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute -inset-[2px] rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500"
                       />
-                      <div className="relative rounded-xl overflow-hidden bg-card" style={{ height: "205px" }}>
+                      <div className="relative rounded-xl overflow-hidden bg-card" style={{ height: "184px" }}>
                         <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-10">
                           <div
                             className="absolute w-full h-full bg-gradient-to-r from-transparent via-yellow-300/20 to-transparent"
