@@ -48,11 +48,6 @@ function WriteReviewContent() {
         const response = await fetch(`/api/reviews/${editId}`);
         if (response.ok) {
           const review = await response.json();
-          // Verify ownership
-          if (review.user_id !== user.id) {
-            router.push("/profile");
-            return;
-          }
           setEditingReview(review);
           // Pre-fill form data
           setFormData({

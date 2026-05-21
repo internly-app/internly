@@ -116,7 +116,7 @@ export default function Navigation() {
     >
       <div className="max-w-[100rem] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 w-full">
         <motion.div
-          className="flex items-center justify-between gap-2 sm:gap-4 min-w-0"
+          className="relative flex items-center justify-between gap-2 sm:gap-4 min-w-0"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
@@ -182,7 +182,7 @@ export default function Navigation() {
 
           {/* Desktop Navigation Links - Center */}
           <motion.div
-            className="hidden md:flex flex-1 items-center justify-center gap-8"
+            className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
@@ -210,7 +210,7 @@ export default function Navigation() {
 
           {/* Right Side - Write Review, Profile (Desktop Only) */}
           <motion.div
-            className="hidden md:flex items-center gap-3 ml-auto flex-shrink-0 min-w-0"
+            className="hidden md:flex items-center gap-3 flex-shrink-0 min-w-0"
             initial={{ opacity: 0, x: 8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
